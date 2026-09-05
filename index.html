@@ -561,6 +561,62 @@
       }
     }
 
+    // Fungsi Kalkulasi Tanggal Selesai Otomatis & Auto Nama Paket
+    function setupDynamicCalculations() {
+      let menuSelect = document.getElementById('field-menu_id') || document.getElementById('field-menuid');
+      let namaPaketInput = document.getElementById('field-nama_paket') || document.getElementById('field-namapaket');
+      let tglMulaiInput = document.getElementById('field-tanggal_mulai') || document.getElementById('field-tanggalmulai');
+      let lamaHariInput = document.getElementById('field-lama_hari') || document.getElementById('field-lamahari');
+      let tglSelesaiInput = document.getElementById('field-tgl_selesai') || document.getElementById('field-tglselesai');
+
+      if (menuSelect && namaPaketInput) {
+        menuSelect.addEventListener('change', function() {
+          let selectedMenuId = this.value;
+          let matchedMenu = globalListMenuPekerjaan.find(item => {
+            for (let k in item) {
+              if (String(item[k]) === String(selectedMenuId)) return true;
+            }
+            return false;
+          });
+
+          if (matchedMenu) {
+            let menuName = '';
+            for (let k in matchedMenu) {
+              let kl = k.toLowerCase();
+              if (kl.includes('nama') || kl.includes('menu')) {
+                menuName = matchedMenu[k];
+              }
+            }
+            if (!menuName) menuName = Object.values(matchedMenu)[1] || Object.values(matchedMenu)[0];
+            namaPaketInput.value = menuName;
+          } else {
+            namaPaketInput.value = '';
+          }
+        });
+      }
+
+      function hitungTanggalSelesai() {
+        if (tglMulaiInput && lamaHariInput && tglSelesaiInput) {
+          let tglMulaiVal = tglMulaiInput.value;
+          let lamaHariVal = parseInt(lamaHariInput.value);
+
+          if (tglMulaiVal && !isNaN(lamaHariVal) && lamaHariVal > 0) {
+            let date = new Date(tglMulaiVal);
+            date.setDate(date.getDate() + lamaHariVal);
+            let year = date.getFullYear();
+            let month = String(date.getMonth() + 1).padStart(2, '0');
+            let day = String(date.getDate()).padStart(2, '0');
+            tglSelesaiInput.value = `${year}-${month}-${day}`;
+          } else {
+            tglSelesaiInput.value = '';
+          }
+        }
+      }
+
+      if (tglMulaiInput) tglMulaiInput.addEventListener('change', hitungTanggalSelesai);
+      if (lamaHariInput) lamaHariInput.addEventListener('input', hitungTanggalSelesai);
+    }
+
     function renderFormFields(rowData) {
       let fieldsHtml = '';
       let isEditMode = (currentEditRowIndex !== null);
@@ -587,6 +643,7 @@
           }
         }
 
+        // Dropdown Menu Pekerjaan
         if (currentSheet === 'paket_pekerjaan_sd' && (hLower === 'menu_id' || hLower === 'menuid')) {
           fieldElement = `<select id="field-${h}" class="form-control"><option value="">-- Pilih Menu Pekerjaan --</option>`;
           globalListMenuPekerjaan.forEach(item => {
@@ -602,6 +659,19 @@
             fieldElement += `<option value="${itemKey}" ${selected}>${itemKey} - ${itemVal}</option>`;
           });
           fieldElement += `</select>`;
+        }
+
+        // Nama Paket Otomatis & Readonly
+        if (currentSheet === 'paket_pekerjaan_sd' && (hLower === 'nama_paket' || hLower === 'namapaket')) {
+          fieldElement = `<input type="text" id="field-${h}" class="form-control" value="${val}" readonly style="background-color: #f1f5f9; cursor: not-allowed;" placeholder="Otomatis terisi dari menu pekerjaan">`;
+        }
+
+        // Format Tipe Tanggal & Selesai Otomatis
+        if (currentSheet === 'paket_pekerjaan_sd' && (hLower === 'tanggal_mulai' || hLower === 'tanggalmulai')) {
+          fieldElement = `<input type="date" id="field-${h}" class="form-control" value="${val}">`;
+        }
+        if (currentSheet === 'paket_pekerjaan_sd' && (hLower === 'tgl_selesai' || hLower === 'tglselesai')) {
+          fieldElement = `<input type="date" id="field-${h}" class="form-control" value="${val}" readonly style="background-color: #f1f5f9; cursor: not-allowed;" placeholder="Otomatis dari tanggal mulai + lama hari">`;
         }
 
         if (activeUser && activeUser.role === "SEKOLAH") {
@@ -626,6 +696,7 @@
       });
       
       document.getElementById('dynamic-form-fields').innerHTML = fieldsHtml;
+      setupDynamicCalculations();
     }
 
     function closeModal() { document.getElementById('formModal').style.display = "none"; }
