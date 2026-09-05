@@ -245,7 +245,7 @@
         let currentActiveSheet = "";
         let currentTableHeaders = [];
         let menuPekerjaanList = [];
-        let paketPekerjaanList = []; // Cache untuk paket pekerjaan sekolah
+        let paketPekerjaanList = [];
 
         function switchTab(tab) {
             if(tab === 'login') {
@@ -670,12 +670,12 @@
                         
                         let defaultOpt = document.createElement('option');
                         defaultOpt.value = "";
-                        defaultOpt.innerText = "-- Pilih Nama Paket Pekerjaan --";
+                        defaultOpt.innerText = "-- Pilih Nama Menu Pekerjaan --";
                         input.appendChild(defaultOpt);
 
                         menuPekerjaanList.forEach(m => {
+                            let namaMenu = m['nama_menu'] || m['nama_pekerjaan'] || Object.values(m)[1];
                             let opt = document.createElement('option');
-                            let namaMenu = m['nama_pekerjaan'] || m['nama_menu'] || Object.values(m)[1];
                             opt.value = namaMenu;
                             opt.innerText = namaMenu;
                             if (rowData && rowData[h] === namaMenu) opt.selected = true;
@@ -684,7 +684,7 @@
 
                         input.onchange = function() {
                             let selectedVal = this.value;
-                            let match = menuPekerjaanList.find(m => (m['nama_pekerjaan'] || m['nama_menu'] || Object.values(m)[1]) === selectedVal);
+                            let match = menuPekerjaanList.find(m => (m['nama_menu'] || m['nama_pekerjaan'] || Object.values(m)[1]) === selectedVal);
                             if (match) {
                                 let mId = match['menu_id'] || match['id_menu'] || Object.values(match)[0];
                                 let generatedPaketId = "PKT-" + currentUser.username + "-" + Math.floor(Date.now() / 1000);
@@ -737,23 +737,24 @@
                         };
                     } else if (h === 'tanggal_mulai') {
                         input = document.createElement('input');
-                        input.type = "date";
+                        input.type = "text";
                         input.name = h;
+                        input.placeholder = "dd/mm/yyyy";
                         input.className = "w-full px-3 py-2 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none";
                         
                         if (rowData && rowData[h]) {
-                            let parts = rowData[h].split('/');
-                            if (parts.length === 3) {
-                                input.value = `${parts[2]}-${parts[1]}-${parts[0]}`;
-                            }
+                            input.value = rowData[h]; // format dd/mm/yyyy
+                        } else {
+                            let today = new Date();
+                            input.value = `${String(today.getDate()).padStart(2, '0')}/${String(today.getMonth() + 1).padStart(2, '0')}/${today.getFullYear()}`;
                         }
-                        input.onchange = calculateTglSelesai;
+                        input.oninput = calculateTglSelesai;
                     } else if (h === 'tgl_selesai') {
                         input = document.createElement('input');
                         input.type = "text";
                         input.name = h;
                         input.readOnly = true;
-                        input.placeholder = "Otomatis terhitung...";
+                        input.placeholder = "dd/mm/yyyy (Otomatis)";
                         input.className = "w-full px-3 py-2 bg-slate-100 border border-slate-300 rounded-lg text-xs text-slate-500 cursor-not-allowed";
                         input.value = rowData ? (rowData[h] !== undefined ? rowData[h] : "") : "";
                     } else if (h === 'lama_hari') {
@@ -766,7 +767,7 @@
                     }
                 }
 
-                // Modul: laporan_progres (Sesuai Permintaan Baru)
+                // Modul: laporan_progres
                 if (currentActiveSheet === 'laporan_progres') {
                     if (h.toLowerCase() === 'id' || h.toLowerCase() === 'id_progres' || h.toLowerCase() === 'laporan_id') {
                         input = document.createElement('input');
@@ -820,6 +821,7 @@
                         input = document.createElement('input');
                         input.type = "text";
                         input.name = h;
+                        input.placeholder = "dd/mm/yyyy";
                         input.className = "w-full px-3 py-2 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none";
                         
                         if (rowData && rowData[h]) {
@@ -891,7 +893,6 @@
                 container.appendChild(div);
             });
 
-            // Jika sedang membuka form laporan progres dan data sudah ada/dipilih paketnya
             if (currentActiveSheet === 'laporan_progres' && rowData && rowData['paket_id']) {
                 updateMingguKeOptions(rowData['paket_id'], rowData['minggu_ke']);
             }
@@ -900,7 +901,7 @@
             document.getElementById('dataModal').classList.add('flex');
         }
 
-        // Fungsi Generator Rentang Minggu ke- (7 hari) berdasarkan tanggal_mulai paket pekerjaan
+        // Generator Rentang Minggu ke- (7 hari) dengan format tanggal dd/mm/yyyy Indonesia
         function updateMingguKeOptions(selectedPaketId, selectedValue = "") {
             let selectMinggu = document.getElementById('selectMingguKe');
             if (!selectMinggu) return;
@@ -916,7 +917,7 @@
                 return;
             }
 
-            let tglMulaiStr = paketObj['tanggal_mulai']; // Format dd/mm/yyyy atau yyyy-mm-dd
+            let tglMulaiStr = paketObj['tanggal_mulai']; // Format dd/mm/yyyy
             let startDate;
             
             if (tglMulaiStr.includes('/')) {
@@ -931,7 +932,6 @@
             defaultOpt.innerText = "-- Pilih Rentang Minggu Pekerjaan --";
             selectMinggu.appendChild(defaultOpt);
 
-            // Buat 16 minggu iterasi rentang 7 harian (atau sesuaikan kebutuhan proyek)
             for (let i = 1; i <= 16; i++) {
                 let startWeekDate = new Date(startDate);
                 startWeekDate.setDate(startDate.getDate() + ((i - 1) * 7));
@@ -955,6 +955,7 @@
             }
         }
 
+        // Kalkulator Otomatis Tanggal Selesai dengan format dd/mm/yyyy Indonesia
         function calculateTglSelesai() {
             let tglMulaiEl = document.querySelector('input[name="tanggal_mulai"]');
             let lamaHariEl = document.querySelector('input[name="lama_hari"]');
@@ -962,12 +963,12 @@
 
             if (!tglMulaiEl || !lamaHariEl || !tglSelesaiEl) return;
 
-            let dateVal = tglMulaiEl.value;
+            let dateVal = tglMulaiEl.value.trim(); // Format dd/mm/yyyy
             let lamaVal = parseInt(lamaHariEl.value) || 0;
 
-            if (dateVal && lamaVal > 0) {
-                let parts = dateVal.split('-');
-                let dateObj = new Date(parts[0], parts[1] - 1, parts[2]);
+            if (dateVal.includes('/') && dateVal.length === 10 && lamaVal > 0) {
+                let parts = dateVal.split('/');
+                let dateObj = new Date(parts[2], parts[1] - 1, parts[0]);
                 dateObj.setDate(dateObj.getDate() + lamaVal);
 
                 let d = String(dateObj.getDate()).padStart(2, '0');
@@ -1060,14 +1061,7 @@
             let formData = {};
 
             document.querySelectorAll('#formFieldsContainer input, #formFieldsContainer select, #formFieldsContainer textarea').forEach(input => {
-                let val = input.value;
-                if (input.type === 'date' && val) {
-                    let parts = val.split('-');
-                    if (parts.length === 3) {
-                        val = `${parts[2]}/${parts[1]}/${parts[0]}`;
-                    }
-                }
-                formData[input.name] = val;
+                formData[input.name] = input.value;
             });
 
             if (currentUser.role === 'SEKOLAH') {
