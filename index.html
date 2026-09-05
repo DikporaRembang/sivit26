@@ -137,7 +137,7 @@
 
     <!-- ================= SCRIPT LOGIC ================= -->
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxSAYpoDmTW0z1FkKzWeLCERraNcrjUFYaljj6A22fDmQa0a4n1PEoCm08qs6WWIim19Q/exec";
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwCIVnWfBN1aE5rZ5SXJwUVB9pGZLMv4V3QbzUDSyDGpozm6dJBpSwVIhQN9HY2MF4suw/exec";
 
         let currentUser = null;
         let currentActiveSheet = "";
@@ -282,6 +282,7 @@
                 menus = [
                     { name: 'Verifikasi Sekolah', sheet: 'sekolah_pending', icon: 'fa-user-check text-amber-500' },
                     { name: 'Data Sekolah', sheet: 'sekolah', icon: 'fa-school' },
+                    { name: 'Manajemen Pengguna', sheet: 'users', icon: 'fa-users text-blue-500' },
                     { name: 'Menu Pekerjaan', sheet: 'menu_pekerjaan', icon: 'fa-list-check' },
                     { name: 'Paket Pekerjaan SD', sheet: 'paket_pekerjaan_sd', icon: 'fa-folder-open' },
                     { name: 'Laporan Progres', sheet: 'laporan_progres', icon: 'fa-chart-line' },
@@ -315,7 +316,7 @@
             let canPrint = false;
 
             if (currentUser.role === 'DINAS') {
-                if (['sekolah', 'menu_pekerjaan'].includes(sheetName)) {
+                if (['sekolah', 'menu_pekerjaan', 'users'].includes(sheetName)) {
                     canAdd = true;
                 }
                 if (['paket_pekerjaan_sd', 'laporan_progres', 'riwayat_pagu'].includes(sheetName)) {
