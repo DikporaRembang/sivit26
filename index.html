@@ -245,6 +245,7 @@
         let currentActiveSheet = "";
         let currentTableHeaders = [];
         let menuPekerjaanList = [];
+        let paketPekerjaanList = []; // Cache untuk paket pekerjaan sekolah
 
         function switchTab(tab) {
             if(tab === 'login') {
@@ -390,11 +391,20 @@
                 identitasCard.classList.add('hidden');
             }
 
+            // Fetch reference master data
             fetch(`${WEB_APP_URL}?action=getData&sheet=menu_pekerjaan&role=DINAS&npsn=`)
             .then(res => res.json())
             .then(res => {
                 menuPekerjaanList = res.data;
             });
+
+            if(currentUser.role === 'SEKOLAH') {
+                fetch(`${WEB_APP_URL}?action=getData&sheet=paket_pekerjaan_sd&role=SEKOLAH&npsn=${currentUser.username}`)
+                .then(res => res.json())
+                .then(res => {
+                    paketPekerjaanList = res.data;
+                });
+            }
 
             buildSidebar();
             
@@ -543,7 +553,7 @@
                     td.className = "p-3 text-slate-700 text-xs truncate max-w-xs";
                     let val = row[h] !== undefined ? row[h] : "";
                     
-                    if (h.toLowerCase() === 'pagu' && !isNaN(val) && val !== "") {
+                    if ((h.toLowerCase() === 'pagu' || h.toLowerCase() === 'penggunaan_anggaran') && !isNaN(val) && val !== "") {
                         val = "Rp " + Number(val).toLocaleString('id-ID');
                     }
                     
@@ -636,6 +646,7 @@
 
                 let input;
 
+                // Modul: users (update konsultan oleh sekolah)
                 if (currentActiveSheet === 'users' && currentUser.role === 'SEKOLAH') {
                     input = document.createElement('input');
                     input.type = "text";
@@ -650,6 +661,7 @@
                     }
                 }
 
+                // Modul: paket_pekerjaan_sd
                 if (currentActiveSheet === 'paket_pekerjaan_sd') {
                     if (h === 'nama_paket') {
                         input = document.createElement('select');
@@ -754,6 +766,113 @@
                     }
                 }
 
+                // Modul: laporan_progres (Sesuai Permintaan Baru)
+                if (currentActiveSheet === 'laporan_progres') {
+                    if (h.toLowerCase() === 'id' || h.toLowerCase() === 'id_progres' || h.toLowerCase() === 'laporan_id') {
+                        input = document.createElement('input');
+                        input.type = "text";
+                        input.name = h;
+                        input.readOnly = true;
+                        input.className = "w-full px-3 py-2 bg-slate-100 border border-slate-300 rounded-lg text-xs text-slate-500 cursor-not-allowed";
+                        input.value = rowData && rowData[h] ? rowData[h] : "PRG-" + currentUser.username + "-" + Math.floor(Date.now() / 1000);
+                    } else if (h.toLowerCase() === 'paket_id') {
+                        input = document.createElement('select');
+                        input.name = h;
+                        input.className = "w-full px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none";
+                        
+                        let defaultOpt = document.createElement('option');
+                        defaultOpt.value = "";
+                        defaultOpt.innerText = "-- Pilih Paket Pekerjaan SD --";
+                        input.appendChild(defaultOpt);
+
+                        paketPekerjaanList.forEach(p => {
+                            let pId = p['paket_id'] || Object.values(p)[1];
+                            let pName = p['nama_paket'] || '';
+                            let opt = document.createElement('option');
+                            opt.value = pId;
+                            opt.innerText = `${pId} - ${pName}`;
+                            if (rowData && rowData[h] === pId) opt.selected = true;
+                            input.appendChild(opt);
+                        });
+
+                        input.onchange = function() {
+                            updateMingguKeOptions(this.value);
+                        };
+                    } else if (h.toLowerCase() === 'minggu_ke') {
+                        input = document.createElement('select');
+                        input.name = h;
+                        input.id = 'selectMingguKe';
+                        input.className = "w-full px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none";
+                        
+                        let defaultOpt = document.createElement('option');
+                        defaultOpt.value = "";
+                        defaultOpt.innerText = "-- Pilih Paket Pekerjaan Terlebih Dahulu --";
+                        input.appendChild(defaultOpt);
+
+                        if (rowData && rowData[h]) {
+                            let opt = document.createElement('option');
+                            opt.value = rowData[h];
+                            opt.innerText = rowData[h];
+                            opt.selected = true;
+                            input.appendChild(opt);
+                        }
+                    } else if (h.toLowerCase() === 'tanggal_lapor') {
+                        input = document.createElement('input');
+                        input.type = "text";
+                        input.name = h;
+                        input.className = "w-full px-3 py-2 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none";
+                        
+                        if (rowData && rowData[h]) {
+                            input.value = rowData[h];
+                        } else {
+                            let today = new Date();
+                            let dd = String(today.getDate()).padStart(2, '0');
+                            let mm = String(today.getMonth() + 1).padStart(2, '0');
+                            let yyyy = today.getFullYear();
+                            input.value = `${dd}/${mm}/${yyyy}`;
+                        }
+                    } else if (h.toLowerCase() === 'target_kurva_s' || h.toLowerCase() === 'realisasi_fisik') {
+                        input = document.createElement('input');
+                        input.type = "number";
+                        input.step = "0.01";
+                        input.max = "100";
+                        input.min = "0";
+                        input.name = h;
+                        input.placeholder = "0.00 hingga 100 (%)";
+                        input.className = "w-full px-3 py-2 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none";
+                        input.value = rowData ? (rowData[h] !== undefined ? rowData[h] : "") : "";
+                    } else if (h.toLowerCase() === 'penggunaan_anggaran') {
+                        input = document.createElement('input');
+                        input.type = "text";
+                        input.name = h;
+                        input.placeholder = "Contoh: 15.000.000";
+                        input.className = "w-full px-3 py-2 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none";
+                        
+                        let rawVal = rowData && rowData[h] !== undefined ? rowData[h] : "";
+                        if (rawVal !== "" && !isNaN(rawVal)) {
+                            input.value = Number(rawVal).toLocaleString('id-ID');
+                        } else {
+                            input.value = rawVal;
+                        }
+
+                        input.oninput = function() {
+                            let cleanNum = this.value.replace(/[^0-9]/g, '');
+                            if (cleanNum !== "") {
+                                this.value = Number(cleanNum).toLocaleString('id-ID');
+                            } else {
+                                this.value = "";
+                            }
+                        };
+                    } else if (h.toLowerCase() === 'catatan_pekerjaan') {
+                        input = document.createElement('textarea');
+                        input.name = h;
+                        input.rows = 3;
+                        input.placeholder = "Tulis catatan atau kendala pekerjaan...";
+                        input.className = "w-full px-3 py-2 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none";
+                        input.innerText = rowData ? (rowData[h] !== undefined ? rowData[h] : "") : "";
+                    }
+                }
+
                 if (!input) {
                     input = document.createElement('input');
                     input.type = "text";
@@ -772,8 +891,68 @@
                 container.appendChild(div);
             });
 
+            // Jika sedang membuka form laporan progres dan data sudah ada/dipilih paketnya
+            if (currentActiveSheet === 'laporan_progres' && rowData && rowData['paket_id']) {
+                updateMingguKeOptions(rowData['paket_id'], rowData['minggu_ke']);
+            }
+
             document.getElementById('dataModal').classList.remove('hidden');
             document.getElementById('dataModal').classList.add('flex');
+        }
+
+        // Fungsi Generator Rentang Minggu ke- (7 hari) berdasarkan tanggal_mulai paket pekerjaan
+        function updateMingguKeOptions(selectedPaketId, selectedValue = "") {
+            let selectMinggu = document.getElementById('selectMingguKe');
+            if (!selectMinggu) return;
+
+            selectMinggu.innerHTML = "";
+            
+            let paketObj = paketPekerjaanList.find(p => String(p['paket_id']) === String(selectedPaketId));
+            if (!paketObj || !paketObj['tanggal_mulai']) {
+                let opt = document.createElement('option');
+                opt.value = "";
+                opt.innerText = "-- Tanggal mulai paket tidak ditemukan --";
+                selectMinggu.appendChild(opt);
+                return;
+            }
+
+            let tglMulaiStr = paketObj['tanggal_mulai']; // Format dd/mm/yyyy atau yyyy-mm-dd
+            let startDate;
+            
+            if (tglMulaiStr.includes('/')) {
+                let parts = tglMulaiStr.split('/');
+                startDate = new Date(parts[2], parts[1] - 1, parts[0]);
+            } else {
+                startDate = new Date(tglMulaiStr);
+            }
+
+            let defaultOpt = document.createElement('option');
+            defaultOpt.value = "";
+            defaultOpt.innerText = "-- Pilih Rentang Minggu Pekerjaan --";
+            selectMinggu.appendChild(defaultOpt);
+
+            // Buat 16 minggu iterasi rentang 7 harian (atau sesuaikan kebutuhan proyek)
+            for (let i = 1; i <= 16; i++) {
+                let startWeekDate = new Date(startDate);
+                startWeekDate.setDate(startDate.getDate() + ((i - 1) * 7));
+                
+                let endWeekDate = new Date(startDate);
+                endWeekDate.setDate(startDate.getDate() + (i * 7) - 1);
+
+                let fmtStart = `${String(startWeekDate.getDate()).padStart(2, '0')}/${String(startWeekDate.getMonth() + 1).padStart(2, '0')}/${startWeekDate.getFullYear()}`;
+                let fmtEnd = `${String(endWeekDate.getDate()).padStart(2, '0')}/${String(endWeekDate.getMonth() + 1).padStart(2, '0')}/${endWeekDate.getFullYear()}`;
+
+                let labelMinggu = `Minggu ke-${i} (${fmtStart} s.d. ${fmtEnd})`;
+                
+                let opt = document.createElement('option');
+                opt.value = `Minggu ke-${i} (${fmtStart} - ${fmtEnd})`;
+                opt.innerText = labelMinggu;
+
+                if (selectedValue && opt.value === selectedValue) {
+                    opt.selected = true;
+                }
+                selectMinggu.appendChild(opt);
+            }
         }
 
         function calculateTglSelesai() {
@@ -880,7 +1059,7 @@
             let rowIndex = rawRowIndex ? Number(rawRowIndex) : null;
             let formData = {};
 
-            document.querySelectorAll('#formFieldsContainer input, #formFieldsContainer select').forEach(input => {
+            document.querySelectorAll('#formFieldsContainer input, #formFieldsContainer select, #formFieldsContainer textarea').forEach(input => {
                 let val = input.value;
                 if (input.type === 'date' && val) {
                     let parts = val.split('-');
