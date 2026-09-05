@@ -440,18 +440,28 @@
       currentHeader.forEach(h => {
         let hLower = String(h).toLowerCase().trim();
         let val = rowData[h] !== undefined ? rowData[h] : '';
-        let isHiddenId = (currentSheet === 'riwayat_pagu' && hLower === 'id_') || (currentSheet === 'paket_pekerjaan_sd' && (hLower === 'id_' || hLower === 'id' || hLower === 'id_paket'));
+        let isHiddenId = (currentSheet === 'riwayat_pagu' && hLower === 'id_') || (currentSheet === 'paket_pekerjaan_sd' && (hLower === 'id_' || hLower === 'id'));
         let displayStyle = isHiddenId ? 'style="display:none;"' : '';
         
         let fieldElement = '';
         
-        if (!isEditMode && (hLower === 'id' || hLower === 'id_' || hLower === 'id_user' || hLower === 'id_menu')) {
-          if (!val) {
-            let prefix = currentSheet === 'users' ? 'USR' : (currentSheet === 'menu_pekerjaan' ? 'MNU' : 'ID');
-            let randomNum = Math.floor(1000 + Math.random() * 9000);
-            val = `${prefix}-${Date.now().toString().slice(-6)}${randomNum}`;
+        // Auto-generate ID or specific fields when adding new data
+        if (!isEditMode) {
+          if (hLower === 'id' || hLower === 'id_' || hLower === 'id_user' || hLower === 'id_menu') {
+            if (!val) {
+              let prefix = currentSheet === 'users' ? 'USR' : (currentSheet === 'menu_pekerjaan' ? 'MNU' : (currentSheet === 'laporan_progres' ? 'LPR' : 'ID'));
+              let randomNum = Math.floor(1000 + Math.random() * 9000);
+              val = `${prefix}-${Date.now().toString().slice(-6)}${randomNum}`;
+            }
+            fieldElement = `<input type="text" id="field-${h}" class="form-control" value="${val}" readonly style="background-color: #f1f5f9; cursor: not-allowed;" title="ID dibuat otomatis oleh sistem">`;
+          } else if (currentSheet === 'paket_pekerjaan_sd' && (hLower === 'paket_id' || hLower === 'user_id')) {
+            if (!val) {
+              let prefix = hLower === 'paket_id' ? 'PKT' : 'USR';
+              let randomNum = Math.floor(1000 + Math.random() * 9000);
+              val = `${prefix}-${Date.now().toString().slice(-6)}${randomNum}`;
+            }
+            fieldElement = `<input type="text" id="field-${h}" class="form-control" value="${val}" readonly style="background-color: #f1f5f9; cursor: not-allowed;" title="Terisi otomatis oleh sistem">`;
           }
-          fieldElement = `<input type="text" id="field-${h}" class="form-control" value="${val}" readonly style="background-color: #f1f5f9; cursor: not-allowed;" title="ID dibuat otomatis oleh sistem">`;
         }
 
         if (activeUser && activeUser.role === "SEKOLAH") {
@@ -468,16 +478,24 @@
             val = activeUser.alamat_lengkap || '';
             fieldElement = `<input type="text" id="field-${h}" class="form-control" value="${val}" readonly style="background-color: #f1f5f9; cursor: not-allowed;">`;
           } else if (currentSheet === 'laporan_progres' && (hLower === 'paket_id' || hLower === 'id_paket' || hLower === 'id_' || hLower === 'id')) {
-            if (globalListPaketId && globalListPaketId.length > 0) {
-              fieldElement = `<select id="field-${h}" class="form-control">`;
-              fieldElement += `<option value="">-- Pilih Paket Pekerjaan --</option>`;
-              globalListPaketId.forEach(pid => {
-                let selected = (pid === String(val)) ? 'selected' : '';
-                fieldElement += `<option value="${pid}" ${selected}>${pid}</option>`;
-              });
-              fieldElement += `</select>`;
-            } else {
-              fieldElement = `<input type="text" id="field-${h}" class="form-control" value="${val}" placeholder="Input data Paket Pekerjaan SD terlebih dahulu" readonly>`;
+            if (hLower === 'paket_id' || hLower === 'id_paket') {
+              if (globalListPaketId && globalListPaketId.length > 0) {
+                fieldElement = `<select id="field-${h}" class="form-control">`;
+                fieldElement += `<option value="">-- Pilih Paket Pekerjaan --</option>`;
+                globalListPaketId.forEach(pid => {
+                  let selected = (pid === String(val)) ? 'selected' : '';
+                  fieldElement += `<option value="${pid}" ${selected}>${pid}</option>`;
+                });
+                fieldElement += `</select>`;
+              } else {
+                fieldElement = `<input type="text" id="field-${h}" class="form-control" value="${val}" placeholder="Input data Paket Pekerjaan SD terlebih dahulu" readonly>`;
+              }
+            } else if (hLower === 'id' || hLower === 'id_') {
+              if (!isEditMode && !val) {
+                let randomNum = Math.floor(1000 + Math.random() * 9000);
+                val = `LPR-${Date.now().toString().slice(-6)}${randomNum}`;
+              }
+              fieldElement = `<input type="text" id="field-${h}" class="form-control" value="${val}" readonly style="background-color: #f1f5f9; cursor: not-allowed;" title="Terisi otomatis oleh sistem">`;
             }
           }
         }
