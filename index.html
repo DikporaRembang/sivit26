@@ -146,14 +146,12 @@
 
     <!-- ================= JAVASCRIPT LOGIC ================= -->
     <script>
-        // Masukkan URL Web App Google Apps Script Anda di sini
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyr0s9Q2dV0HgdWbNcIEQcwOJqObTfacZ0DsH3VKUxslCuEa19nSzut_CvSk4Ypszp9-Q/exec";
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw2NXEX3q_rwwnMG8sIFmtkYEAy_BAo94vM3_XX3GC1SLkjg0T01XSijwhO9TJIOKDpZw/exec";
 
         let currentUser = null;
         let currentActiveSheet = "";
         let currentTableHeaders = [];
 
-        // Switch Tab Auth
         function switchTab(tab) {
             if(tab === 'login') {
                 document.getElementById('formLogin').classList.remove('hidden');
@@ -168,7 +166,6 @@
             }
         }
 
-        // Fitur Autofill Nama Sekolah Berdasarkan NPSN saat Registrasi
         const regNpsnInput = document.getElementById('regNpsn');
         if(regNpsnInput) {
             regNpsnInput.addEventListener('blur', function() {
@@ -197,7 +194,6 @@
             });
         }
 
-        // Proses Login
         function handleLogin(e) {
             e.preventDefault();
             let u = document.getElementById('loginUser').value;
@@ -222,7 +218,6 @@
             });
         }
 
-        // Proses Register Sekolah
         function handleRegister(e) {
             e.preventDefault();
             let npsn = document.getElementById('regNpsn').value;
@@ -235,7 +230,10 @@
             }
 
             setAuthLoading(true);
-            fetch(`${WEB_APP_URL}?action=register&npsn=${encodeURIComponent(npsn)}&password=${encodeURIComponent(pass)}&nama_lengkap=${encodeURIComponent(nama)}`)
+            fetch(WEB_APP_URL, {
+                method: "POST",
+                body: JSON.stringify({ action: "register", npsn: npsn, password: pass, nama_lengkap: nama })
+            })
             .then(res => res.json())
             .then(res => {
                 setAuthLoading(false);
@@ -259,7 +257,6 @@
             else loadingEl.classList.add('hidden');
         }
 
-        // Cek Session saat Halaman Dimuat
         window.onload = function() {
             let saved = localStorage.getItem('sivit_user');
             if(saved) {
@@ -289,7 +286,6 @@
 
             buildSidebar();
             
-            // Muat menu default pertama
             if(currentUser.role === 'DINAS') {
                 loadTableData('paket_pekerjaan_sd');
             } else {
@@ -297,7 +293,6 @@
             }
         }
 
-        // Bangun Sidebar berdasarkan Role
         function buildSidebar() {
             let container = document.getElementById('sidebarMenuContainer');
             if(!container) return;
@@ -308,6 +303,7 @@
                 menus = [
                     { name: 'Paket Pekerjaan SD', sheet: 'paket_pekerjaan_sd', icon: 'fa-folder-open' },
                     { name: 'Laporan Progres', sheet: 'laporan_progres', icon: 'fa-chart-line' },
+                    { name: 'Verifikasi Sekolah', sheet: 'sekolah_pending', icon: 'fa-user-check' },
                     { name: 'Data Sekolah', sheet: 'sekolah', icon: 'fa-school' },
                     { name: 'Menu Pekerjaan', sheet: 'menu_pekerjaan', icon: 'fa-list-check' },
                     { name: 'Riwayat Pagu', sheet: 'riwayat_pagu', icon: 'fa-clock-rotate-left' }
@@ -328,7 +324,6 @@
             });
         }
 
-        // Ambil dan Tampilkan Data Tabel
         function loadTableData(sheetName, customTitle = "") {
             currentActiveSheet = sheetName;
             document.getElementById('contentTitle').innerText = customTitle || sheetName.replace(/_/g, ' ').toUpperCase();
@@ -336,8 +331,7 @@
             document.getElementById('tableBody').innerHTML = "";
             document.getElementById('actionButtonContainer').innerHTML = "";
 
-            // Tombol tambah data jika diizinkan (kecuali riwayat)
-            if(sheetName !== 'riwayat_pagu' && sheetName !== 'sekolah') {
+            if(sheetName !== 'riwayat_pagu' && sheetName !== 'sekolah' && sheetName !== 'sekolah_pending') {
                 let addBtn = document.createElement('button');
                 addBtn.className = "bg-blue-600 hover:bg-blue-700 text-white px-3.5 py-2 rounded-lg text-xs font-medium transition-colors shadow-sm";
                 addBtn.innerHTML = `<i class="fa-solid fa-plus mr-1"></i> Tambah Data`;
@@ -371,7 +365,6 @@
                 return;
             }
 
-            // Render Header
             let trHead = document.createElement('tr');
             headers.forEach(h => {
                 let th = document.createElement('th');
@@ -379,7 +372,6 @@
                 th.innerText = h;
                 trHead.appendChild(th);
             });
-            // Kolom Aksi
             let thAction = document.createElement('th');
             thAction.className = "p-3 font-semibold text-slate-600 text-right";
             thAction.innerText = "Aksi";
@@ -387,7 +379,6 @@
             headEl.innerHTML = "";
             headEl.appendChild(trHead);
 
-            // Render Body
             bodyEl.innerHTML = "";
             if(!data || data.length === 0) {
                 let tr = document.createElement('tr');
@@ -407,24 +398,36 @@
                     tr.appendChild(td);
                 });
 
-                // Tombol Aksi per Baris
                 let tdAct = document.createElement('td');
                 tdAct.className = "p-3 text-right space-x-1";
                 
-                // Edit Data
-                let btnEdit = document.createElement('button');
-                btnEdit.className = "px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-600 rounded text-[11px] font-medium border border-amber-200 transition-colors";
-                btnEdit.innerHTML = `<i class="fa-solid fa-pen-to-square"></i>`;
-                btnEdit.onclick = () => openModalForm(row);
-                tdAct.appendChild(btnEdit);
+                // Khusus Menu Verifikasi Sekolah Pending
+                if(currentActiveSheet === 'sekolah_pending') {
+                    let btnApprove = document.createElement('button');
+                    btnApprove.className = "px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 rounded text-[11px] font-medium border border-emerald-200 transition-colors mr-1";
+                    btnApprove.innerHTML = `<i class="fa-solid fa-check mr-1"></i> Setujui`;
+                    btnApprove.onclick = () => verifySchool(row.NPSN, 'APPROVED');
+                    tdAct.appendChild(btnApprove);
 
-                // Hapus Data (Khusus DINAS dengan Auto-Refresh otomatis)
-                if(currentUser && currentUser.role === 'DINAS') {
-                    let btnDel = document.createElement('button');
-                    btnDel.className = "px-2.5 py-1 bg-red-50 hover:bg-red-100 text-red-600 rounded text-[11px] font-medium border border-red-200 transition-colors";
-                    btnDel.innerHTML = `<i class="fa-solid fa-trash"></i>`;
-                    btnDel.onclick = () => deleteRowData(row._rowIndex);
-                    tdAct.appendChild(btnDel);
+                    let btnReject = document.createElement('button');
+                    btnReject.className = "px-2.5 py-1 bg-red-50 hover:bg-red-100 text-red-600 rounded text-[11px] font-medium border border-red-200 transition-colors";
+                    btnReject.innerHTML = `<i class="fa-solid fa-xmark mr-1"></i> Tolak`;
+                    btnReject.onclick = () => verifySchool(row.NPSN, 'REJECTED');
+                    tdAct.appendChild(btnReject);
+                } else {
+                    let btnEdit = document.createElement('button');
+                    btnEdit.className = "px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-600 rounded text-[11px] font-medium border border-amber-200 transition-colors";
+                    btnEdit.innerHTML = `<i class="fa-solid fa-pen-to-square"></i>`;
+                    btnEdit.onclick = () => openModalForm(row);
+                    tdAct.appendChild(btnEdit);
+
+                    if(currentUser && currentUser.role === 'DINAS') {
+                        let btnDel = document.createElement('button');
+                        btnDel.className = "px-2.5 py-1 bg-red-50 hover:bg-red-100 text-red-600 rounded text-[11px] font-medium border border-red-200 transition-colors";
+                        btnDel.innerHTML = `<i class="fa-solid fa-trash"></i>`;
+                        btnDel.onclick = () => deleteRowData(row._rowIndex);
+                        tdAct.appendChild(btnDel);
+                    }
                 }
 
                 tr.appendChild(tdAct);
@@ -432,7 +435,27 @@
             });
         }
 
-        // Modal Form Buka (Tambah/Edit)
+        function verifySchool(npsn, status) {
+            let actionText = status === 'APPROVED' ? 'menyetujui' : 'menolak';
+            if(!confirm(`Apakah Anda yakin ingin ${actionText} pendaftaran sekolah dengan NPSN ${npsn}?`)) return;
+
+            fetch(WEB_APP_URL, {
+                method: "POST",
+                body: JSON.stringify({ action: "verifyRegister", npsn: npsn, status: status })
+            })
+            .then(res => res.json())
+            .then(res => {
+                alert(res && res.pesan ? res.pesan : "Status berhasil diperbarui.");
+                if(res && res.status === 'success') {
+                    loadTableData('sekolah_pending', 'Verifikasi Sekolah');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert("Gagal memproses verifikasi.");
+            });
+        }
+
         function openModalForm(rowData = null) {
             let container = document.getElementById('formFieldsContainer');
             if(!container) return;
@@ -457,7 +480,6 @@
                 input.className = "w-full px-3 py-2 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none";
                 input.value = rowData && rowData[h] !== undefined ? rowData[h] : "";
 
-                // Jika user SEKOLAH, kunci input NPSN otomatis
                 if(currentUser && currentUser.role === 'SEKOLAH' && (h.toLowerCase().includes('npsn') || h.toLowerCase().includes('user_id'))) {
                     input.value = currentUser.username;
                     input.readOnly = true;
@@ -483,7 +505,6 @@
             }
         }
 
-        // Simpan Data dengan Auto-Refresh Tabel
         function handleFormSubmit(e) {
             e.preventDefault();
             let rowIndex = document.getElementById('formRowIndex').value;
@@ -526,7 +547,6 @@
             });
         }
 
-        // Hapus Data dengan Auto-Refresh Tabel
         function deleteRowData(rowIndex) {
             if(!confirm("Apakah Anda yakin ingin menghapus baris data ini secara permanen?")) return;
 
