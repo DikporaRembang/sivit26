@@ -105,6 +105,7 @@
     let currentHeader = [];
     let currentEditRowIndex = null;
     let globalRawData = [];
+    let globalListPaketId = [];
 
     function switchTab(target) {
       if (target === 'login') {
@@ -175,6 +176,7 @@
         
         currentHeader = result.header || [];
         globalRawData = result.data || [];
+        globalListPaketId = result.listPaketId || [];
         document.getElementById('page-title').innerText = "Data: " + sheetName;
 
         let canAdd = (activeUser.role === "DINAS") || (activeUser.role === "SEKOLAH" && (sheetName === 'paket_pekerjaan_sd' || sheetName === 'laporan_progres'));
@@ -229,15 +231,38 @@
         let isHiddenId = (currentSheet === 'riwayat_pagu' && hLower === 'id_') || (currentSheet === 'paket_pekerjaan_sd' && ['id_', 'id', 'id_paket'].includes(hLower));
         let displayStyle = isHiddenId ? 'style="display:none;"' : '';
         
-        let isReadOnly = '';
-        let val = '';
-        // Kunci kolom NPSN otomatis jika role SEKOLAH
-        if (activeUser.role === "SEKOLAH" && hLower === 'npsn') {
-          isReadOnly = 'readonly style="background-color: #e9ecef; cursor: not-allowed;"';
-          val = activeUser.npsn;
-        }
+        let fieldElement = '';
         
-        fieldsHtml += `<div ${displayStyle}><label>${h}:</label><input type="text" id="field-${h}" value="${val}" ${isReadOnly}></div>`;
+        if (activeUser.role === "SEKOLAH") {
+          // 1. Kolom NPSN otomatis terisi & terkunci
+          if (hLower === 'npsn') {
+            fieldElement = `<input type="text" id="field-${h}" value="${activeUser.npsn}" readonly style="background-color: #e9ecef; cursor: not-allowed;">`;
+          } 
+          // 2. Kolom Nama Sekolah otomatis terisi & terkunci
+          else if (hLower === 'nama_sekolah' || hLower === 'nama sekolah') {
+            fieldElement = `<input type="text" id="field-${h}" value="${activeUser.nama}" readonly style="background-color: #e9ecef; cursor: not-allowed;">`;
+          } 
+          // 3. Kolom paket_id pada laporan_progres diubah menjadi Dropdown pilihan paket_id milik sekolah tersebut
+          else if (currentSheet === 'laporan_progres' && ['paket_id', 'id_paket', 'id_'].includes(hLower)) {
+            if (globalListPaketId.length > 0) {
+              fieldElement = `<select id="field-${h}">`;
+              fieldElement += `<option value="">-- Pilih Paket Pekerjaan --</option>`;
+              globalListPaketId.forEach(pid => {
+                fieldElement += `<option value="${pid}">${pid}</option>`;
+              });
+              fieldElement += `</select>`;
+            } else {
+              fieldElement = `<input type="text" id="field-${h}" placeholder="Belum ada Paket Pekerjaan terinput" readonly>`;
+            }
+          }
+        }
+
+        // Jika belum terisi oleh aturan khusus di atas, buat input teks standar
+        if (!fieldElement) {
+          fieldElement = `<input type="text" id="field-${h}" value="">`;
+        }
+
+        fieldsHtml += `<div ${displayStyle}><label>${h}:</label>${fieldElement}</div>`;
       });
       
       document.getElementById('dynamic-form-fields').innerHTML = fieldsHtml;
@@ -253,15 +278,32 @@
       currentHeader.forEach(h => {
         let hLower = String(h).toLowerCase().trim();
         let val = rowData[h] !== undefined ? rowData[h] : '';
+        let fieldElement = '';
         
-        let isReadOnly = '';
-        // Kunci kolom NPSN saat edit jika role SEKOLAH
-        if (activeUser.role === "SEKOLAH" && hLower === 'npsn') {
-          isReadOnly = 'readonly style="background-color: #e9ecef; cursor: not-allowed;"';
-          val = activeUser.npsn;
+        if (activeUser.role === "SEKOLAH") {
+          if (hLower === 'npsn') {
+            fieldElement = `<input type="text" id="field-${h}" value="${activeUser.npsn}" readonly style="background-color: #e9ecef; cursor: not-allowed;">`;
+          } else if (hLower === 'nama_sekolah' || hLower === 'nama sekolah') {
+            fieldElement = `<input type="text" id="field-${h}" value="${activeUser.nama}" readonly style="background-color: #e9ecef; cursor: not-allowed;">`;
+          } else if (currentSheet === 'laporan_progres' && ['paket_id', 'id_paket', 'id_'].includes(hLower)) {
+            if (globalListPaketId.length > 0) {
+              fieldElement = `<select id="field-${h}">`;
+              globalListPaketId.forEach(pid => {
+                let selected = (pid === String(val)) ? 'selected' : '';
+                fieldElement += `<option value="${pid}" ${selected}>${pid}</option>`;
+              });
+              fieldElement += `</select>`;
+            } else {
+              fieldElement = `<input type="text" id="field-${h}" value="${val}">`;
+            }
+          }
         }
-        
-        fieldsHtml += `<div><label>${h}:</label><input type="text" id="field-${h}" value="${val}" ${isReadOnly}></div>`;
+
+        if (!fieldElement) {
+          fieldElement = `<input type="text" id="field-${h}" value="${val}">`;
+        }
+
+        fieldsHtml += `<div><label>${h}:</label>${fieldElement}</div>`;
       });
       
       document.getElementById('dynamic-form-fields').innerHTML = fieldsHtml;
