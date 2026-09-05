@@ -197,7 +197,6 @@
         </div>
         
         <div class="space-y-4 pt-2">
-          <!-- KOTAK INFORMASI SEKOLAH & MENU PEKERJAAN -->
           <div class="bg-slate-50 rounded-lg p-3 border border-slate-200">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -211,7 +210,6 @@
             </div>
           </div>
 
-          <!-- TABEL RIWAYAT -->
           <div class="overflow-x-auto max-h-[50vh]">
             <table class="w-full text-left border-collapse text-xs">
               <thead class="bg-slate-100 text-slate-600 uppercase tracking-wider border-b border-slate-200 text-center">
@@ -224,9 +222,7 @@
                   <th class="p-2.5">Keterangan / Alasan</th>
                 </tr>
               </thead>
-              <tbody id="tabelRiwayatBody" class="divide-y divide-slate-100 text-slate-700">
-                <!-- Data dimuat dinamis via JavaScript -->
-              </tbody>
+              <tbody id="tabelRiwayatBody" class="divide-y divide-slate-100 text-slate-700"></tbody>
             </table>
           </div>
         </div>
@@ -391,18 +387,22 @@
                 identitasCard.classList.add('hidden');
             }
 
-            // Fetch reference master data
+            // Fetch reference master data menu pekerjaan
             fetch(`${WEB_APP_URL}?action=getData&sheet=menu_pekerjaan&role=DINAS&npsn=`)
             .then(res => res.json())
             .then(res => {
-                menuPekerjaanList = res.data;
+                if(res && res.data) {
+                    menuPekerjaanList = res.data;
+                }
             });
 
             if(currentUser.role === 'SEKOLAH') {
                 fetch(`${WEB_APP_URL}?action=getData&sheet=paket_pekerjaan_sd&role=SEKOLAH&npsn=${currentUser.username}`)
                 .then(res => res.json())
                 .then(res => {
-                    paketPekerjaanList = res.data;
+                    if(res && res.data) {
+                        paketPekerjaanList = res.data;
+                    }
                 });
             }
 
@@ -673,20 +673,30 @@
                         defaultOpt.innerText = "-- Pilih Nama Menu Pekerjaan --";
                         input.appendChild(defaultOpt);
 
-                        menuPekerjaanList.forEach(m => {
-                            let namaMenu = m['nama_menu'] || m['Nama_Menu'] || m['nama_pekerjaan'] || Object.values(m)[1];
-                            let opt = document.createElement('option');
-                            opt.value = namaMenu;
-                            opt.innerText = namaMenu;
-                            if (rowData && rowData[h] === namaMenu) opt.selected = true;
-                            input.appendChild(opt);
-                        });
+                        if (Array.isArray(menuPekerjaanList)) {
+                            menuPekerjaanList.forEach(m => {
+                                let namaMenuVal = m['nama_menu'] || m['Nama_Menu'] || m['nama_pekerjaan'] || '';
+                                if (namaMenuVal) {
+                                    let opt = document.createElement('option');
+                                    opt.value = namaMenuVal;
+                                    opt.innerText = namaMenuVal;
+                                    if (rowData && String(rowData[h]) === String(namaMenuVal)) {
+                                        opt.selected = true;
+                                    }
+                                    input.appendChild(opt);
+                                }
+                            });
+                        }
 
                         input.onchange = function() {
                             let selectedVal = this.value;
-                            let match = menuPekerjaanList.find(m => (m['nama_menu'] || m['Nama_Menu'] || m['nama_pekerjaan'] || Object.values(m)[1]) === selectedVal);
+                            let match = menuPekerjaanList.find(m => {
+                                let nVal = m['nama_menu'] || m['Nama_Menu'] || m['nama_pekerjaan'] || '';
+                                return nVal === selectedVal;
+                            });
+
                             if (match) {
-                                let mId = match['menu_id'] || match['id_menu'] || Object.values(match)[0];
+                                let mId = match['menu_id'] || match['id_menu'] || '';
                                 let generatedPaketId = "PKT-" + currentUser.username + "-" + Math.floor(Date.now() / 1000);
                                 
                                 let pInput = document.querySelector('input[name="paket_id"]');
@@ -884,7 +894,6 @@
                 container.appendChild(div);
             });
 
-            // Logic tambahan: Jika mengedit paket_pekerjaan_sd, tambahkan field input Alasan Perubahan Pagu secara dinamis
             if (currentActiveSheet === 'paket_pekerjaan_sd' && rowData) {
                 let divAlasan = document.createElement('div');
                 divAlasan.className = "space-y-1 pt-2 border-t border-slate-100";
@@ -903,7 +912,6 @@
             document.getElementById('dataModal').classList.add('flex');
         }
 
-        // Generator Rentang Minggu ke- (7 hari) standar format kalender
         function updateMingguKeOptions(selectedPaketId, selectedValue = "") {
             let selectMinggu = document.getElementById('selectMingguKe');
             if (!selectMinggu) return;
@@ -919,7 +927,7 @@
                 return;
             }
 
-            let tglMulaiStr = paketObj['tanggal_mulai']; // Format YYYY-MM-DD dari input type="date"
+            let tglMulaiStr = paketObj['tanggal_mulai'];
             let startDate = new Date(tglMulaiStr);
 
             let defaultOpt = document.createElement('option');
@@ -950,7 +958,6 @@
             }
         }
 
-        // Kalkulator Otomatis Tanggal Selesai Berdasarkan Tanggal Mulai dan Lama Hari
         function calculateTglSelesai() {
             let tglMulaiEl = document.querySelector('input[name="tanggal_mulai"]');
             let lamaHariEl = document.querySelector('input[name="lama_hari"]');
@@ -980,7 +987,6 @@
             document.getElementById('dataModal').classList.remove('flex');
         }
 
-        // ================= LOGIKA RIWAYAT PAGU =================
         function bukaRiwayatPagu(npsn, paketId) {
             let tbody = document.getElementById('tabelRiwayatBody');
             tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-slate-500">Memuat data riwayat...</td></tr>';
@@ -1060,7 +1066,6 @@
                 }
             });
 
-            // Clean currency formatting for numeric submission
             if (formData['pagu']) {
                 formData['pagu'] = formData['pagu'].toString().replace(/[^0-9]/g, '');
             }
