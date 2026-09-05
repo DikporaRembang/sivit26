@@ -118,7 +118,7 @@
       let savedUser = sessionStorage.getItem('sivit26_user');
       if (savedUser) {
         activeUser = JSON.parse(savedUser);
-        if (activeUser.role === "SEKOLAH") {
+        if (activeUser && activeUser.role === "SEKOLAH") {
           if (!activeUser.npsn) activeUser.npsn = activeUser.username;
           await fetchSchoolProfile();
         }
@@ -280,7 +280,6 @@
         }
         document.getElementById('action-container').innerHTML = actionHtml;
         
-        // Tampilkan kotak pencarian jika data ada
         let searchInputEl = document.getElementById('search-input');
         if (globalRawData.length > 0) {
           searchInputEl.classList.remove('hidden');
@@ -310,7 +309,6 @@
           currentHeader.forEach(h => {
             let val = row[h] !== undefined && row[h] !== null ? row[h] : '';
             let hLower = String(h).toLowerCase();
-            // Format otomatis jika kolom terkait keuangan/pagu/nilai
             if ((hLower.includes('pagu') || hLower.includes('nilai') || hLower.includes('anggaran') || hLower.includes('biaya')) && !isNaN(val) && val !== '') {
               val = formatRupiah(val);
             }
@@ -362,6 +360,7 @@
 
     function renderFormFields(rowData) {
       let fieldsHtml = '';
+      let isEditMode = (currentEditRowIndex !== null);
       
       currentHeader.forEach(h => {
         let hLower = String(h).toLowerCase().trim();
@@ -371,7 +370,18 @@
         
         let fieldElement = '';
         
-        if (activeUser.role === "SEKOLAH") {
+        // Logika otomatisasi ID untuk DINAS / umum saat Tambah Data baru
+        if (!isEditMode && (hLower === 'id' || hLower === 'id_' || hLower === 'id_user' || hLower === 'id_menu')) {
+          if (!val) {
+            let prefix = currentSheet === 'users' ? 'USR' : (currentSheet === 'menu_pekerjaan' ? 'MNU' : 'ID');
+            let randomNum = Math.floor(1000 + Math.random() * 9000);
+            val = `${prefix}-${Date.now().toString().slice(-6)}${randomNum}`;
+          }
+          fieldElement = `<input type="text" id="field-${h}" value="${val}" readonly style="background-color: #e9ecef; cursor: not-allowed;" title="ID dibuat otomatis oleh sistem">`;
+        }
+
+        // Logika untuk role SEKOLAH
+        if (activeUser && activeUser.role === "SEKOLAH") {
           if (hLower.includes('npsn')) {
             val = activeUser.npsn || activeUser.username || '';
             fieldElement = `<input type="text" id="field-${h}" value="${val}" readonly style="background-color: #e9ecef; cursor: not-allowed;">`;
@@ -385,7 +395,7 @@
             val = activeUser.alamat_lengkap || '';
             fieldElement = `<input type="text" id="field-${h}" value="${val}" readonly style="background-color: #e9ecef; cursor: not-allowed;">`;
           } else if (currentSheet === 'laporan_progres' && (hLower === 'paket_id' || hLower === 'id_paket' || hLower === 'id_' || hLower === 'id')) {
-            if (globalListPaketId.length > 0) {
+            if (globalListPaketId && globalListPaketId.length > 0) {
               fieldElement = `<select id="field-${h}">`;
               fieldElement += `<option value="">-- Pilih Paket Pekerjaan --</option>`;
               globalListPaketId.forEach(pid => {
