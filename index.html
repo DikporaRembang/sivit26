@@ -436,10 +436,12 @@
                     { name: 'Riwayat Pagu', sheet: 'riwayat_pagu', icon: 'fa-clock-rotate-left' }
                 ];
             } else {
+                // Menambahkan menu "Riwayat Pagu" agar SEKOLAH bisa memantau perubahan pagunya sendiri
                 menus = [
                     { name: 'Update Konsultan', sheet: 'users', icon: 'fa-user-gear text-emerald-600' },
                     { name: 'Paket Pekerjaan SD', sheet: 'paket_pekerjaan_sd', icon: 'fa-folder-open text-emerald-600' },
-                    { name: 'Laporkan Progres', sheet: 'laporan_progres', icon: 'fa-chart-line text-teal-600' }
+                    { name: 'Laporkan Progres', sheet: 'laporan_progres', icon: 'fa-chart-line text-teal-600' },
+                    { name: 'Riwayat Pagu', sheet: 'riwayat_pagu', icon: 'fa-clock-rotate-left text-amber-600' }
                 ];
             }
 
@@ -471,8 +473,12 @@
                     canPrint = true;
                 }
             } else if (currentUser.role === 'SEKOLAH') {
+                // Memberikan izin cetak untuk laporan dan riwayat pagu bagi sekolah
                 if (['paket_pekerjaan_sd', 'laporan_progres'].includes(sheetName)) {
                     canAdd = true;
+                    canPrint = true;
+                }
+                if (['riwayat_pagu'].includes(sheetName)) {
                     canPrint = true;
                 }
             }
@@ -526,7 +532,8 @@
             });
             
             let showActionColumn = true;
-            if (currentUser.role === 'DINAS' && ['riwayat_pagu'].includes(sheetName)) {
+            // Jika riwayat_pagu, kolom aksi dihilangkan karena sifatnya transparan/laporan baca-saja
+            if (['riwayat_pagu'].includes(sheetName)) {
                 showActionColumn = false;
             }
 
@@ -556,7 +563,7 @@
                     td.className = "p-3 text-slate-700 text-xs truncate max-w-xs";
                     let val = row[h] !== undefined ? row[h] : "";
                     
-                    if ((h.toLowerCase() === 'pagu' || h.toLowerCase() === 'penggunaan_anggaran') && !isNaN(val) && val !== "") {
+                    if ((h.toLowerCase() === 'pagu' || h.toLowerCase() === 'pagu_lama' || h.toLowerCase() === 'pagu_baru' || h.toLowerCase() === 'penggunaan_anggaran') && !isNaN(val) && val !== "") {
                         val = "Rp " + Number(val).toLocaleString('id-ID');
                     }
                     
@@ -676,7 +683,6 @@
                 if (currentActiveSheet === 'paket_pekerjaan_sd') {
                     if (h === 'nama_menu') {
                         if (currentUser.role === 'SEKOLAH' && rowData) {
-                            // Untuk role SEKOLAH, jika sedang EDIT data, nama_menu dikunci agar tidak bisa diganti (sesuai aturan baru)
                             input = document.createElement('input');
                             input.type = "text";
                             input.name = h;
@@ -696,10 +702,9 @@
                             menuPekerjaanList.forEach(m => {
                                 let namaMenuVal = m['nama_menu'] || m['Nama_Menu'] || m['nama_pekerjaan'] || '';
                                 if (namaMenuVal) {
-                                    // Saring jika role SEKOLAH, pastikan tidak menampilkan menu yang sudah pernah diinput sebelumnya (mencegah duplikat)
                                     if (currentUser.role === 'SEKOLAH' && !rowData) {
                                         let alreadyExists = paketPekerjaanList.some(p => String(p['nama_menu']).trim().toLowerCase() === String(namaMenuVal).trim().toLowerCase());
-                                        if (alreadyExists) return; // Lewati jika sudah ada
+                                        if (alreadyExists) return;
                                     }
 
                                     let opt = document.createElement('option');
@@ -1020,7 +1025,8 @@
             modal.classList.remove('hidden');
             modal.classList.add('flex');
 
-            fetch(`${WEB_APP_URL}?action=getData&sheet=riwayat_pagu&role=DINAS&npsn=`)
+            // Mengirim parameter role dan npsn agar data riwayat yang diambil disaring otomatis khusus sekolah yang bersangkutan
+            fetch(`${WEB_APP_URL}?action=getData&sheet=riwayat_pagu&role=${currentUser.role}&npsn=${currentUser.username}`)
             .then(res => res.json())
             .then(res => {
                 let filtered = res.data.filter(item => String(item.npsn) === String(npsn) && String(item.paket_id) === String(paketId));
