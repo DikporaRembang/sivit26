@@ -1198,30 +1198,5 @@ function renderTabelRiwayatModal(dataList) {
             </tr>
         </thead>
         <tbody>`;
-
-    if (dataList.length === 0) {
-        html += `<tr><td colspan="5" class="text-center">Tidak ada riwayat pagu untuk paket ini.</td></tr>`;
-    } else {
-        dataList.forEach(row => {
-            html += `<tr>
-                <td>${row.id_riwayat || '-'}</td>
-                <td>Rp ${Number(row.pagu_lama || 0).toLocaleString('id-ID')}</td>
-                <td>Rp ${Number(row.pagu_baru || 0).toLocaleString('id-ID')}</td>
-                <td>${row.tanggal ? new Date(row.tanggal).toLocaleString('id-ID') : '-'}</td>
-                <td>${row.keterangan || '-'}</td>
-            </tr>`;
-        });
-    }
-
-    html += `</tbody></table></div>`;
-
-    Swal.fire({
-        title: 'Riwayat Perubahan Pagu',
-        html: html,
-        width: '800px',
-        confirmButtonText: 'Tutup'
-    });
-}
-</script>
 </body>
 </html>
