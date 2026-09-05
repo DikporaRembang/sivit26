@@ -32,6 +32,8 @@
     .modal-content { background-color: white; margin: 10% auto; padding: 20px; width: 50%; border-radius: 8px; max-height: 80vh; overflow-y: auto; }
     .close { float: right; font-size: 1.5rem; font-weight: bold; cursor: pointer; }
     .hidden { display: none !important; }
+    .profile-box { background: #f8f9fa; border-left: 4px solid #3498db; padding: 15px; margin-bottom: 20px; border-radius: 4px; }
+    .profile-box p { margin: 5px 0; font-size: 0.95rem; color: #2c3e50; }
   </style>
 </head>
 <body>
@@ -79,7 +81,7 @@
     <div class="content">
       <div class="card">
         <h3 id="page-title">Selamat Datang</h3>
-        <p id="user-info" style="font-style: italic; color: #7f8c8d; font-size: 0.9rem;"></p>
+        <div id="user-profile-container"></div>
         <div id="action-container"></div>
         <div id="table-container"><p>Silakan pilih menu di sebelah kiri.</p></div>
       </div>
@@ -140,7 +142,6 @@
         let data = await res.json();
         if (data.status === "success") {
           activeUser = data;
-          // Simpan sesi ke sessionStorage agar tahan saat refresh
           sessionStorage.setItem('sivit26_user', JSON.stringify(activeUser));
           tampilkanDashboardUtama();
         } else {
@@ -154,11 +155,22 @@
     function tampilkanDashboardUtama() {
       document.getElementById('auth-screen').classList.add('hidden');
       document.getElementById('app-screen').classList.remove('hidden');
-      document.getElementById('user-info').innerText = `Masuk sebagai: ${activeUser.nama} | Role: ${activeUser.role} ${activeUser.npsn ? '(NPSN: '+activeUser.npsn+')' : ''}`;
+      
+      let profileHtml = `<p style="font-style: italic; color: #7f8c8d; font-size: 0.9rem; margin-bottom: 10px;">Masuk sebagai: <b>${activeUser.nama}</b> | Role: <b>${activeUser.role}</b></p>`;
       
       if (activeUser.role === "SEKOLAH") {
+        profileHtml += `
+          <div class="profile-box">
+            <p><strong>NPSN:</strong> ${activeUser.npsn || '-'}</p>
+            <p><strong>Nama Sekolah:</strong> ${activeUser.nama_sekolah || activeUser.nama || '-'}</p>
+            <p><strong>Kecamatan:</strong> ${activeUser.kecamatan || '-'}</p>
+            <p><strong>Alamat Lengkap:</strong> ${activeUser.alamat_lengkap || '-'}</p>
+          </div>
+        `;
         document.querySelectorAll('.dinas-only').forEach(el => el.classList.add('hidden'));
       }
+      
+      document.getElementById('user-profile-container').innerHTML = profileHtml;
     }
 
     function logout() {
@@ -216,7 +228,6 @@
         if (globalRawData.length > 0) {
           globalRawData.forEach((row, index) => {
             html += `<tr>`;
-            currentHeader.querySelector?.(h => {}); // Safe traversal check
             currentHeader.forEach(h => {
               html += `<td>${row[h] !== undefined && row[h] !== null ? row[h] : ''}</td>`;
             });
@@ -268,10 +279,19 @@
         let fieldElement = '';
         
         if (activeUser.role === "SEKOLAH") {
+          // Otomatis isi data profil sekolah dan kunci (readonly)
           if (hLower === 'npsn') {
-            fieldElement = `<input type="text" id="field-${h}" value="${activeUser.npsn}" readonly style="background-color: #e9ecef; cursor: not-allowed;">`;
+            val = activeUser.npsn || '';
+            fieldElement = `<input type="text" id="field-${h}" value="${val}" readonly style="background-color: #e9ecef; cursor: not-allowed;">`;
           } else if (hLower === 'nama_sekolah' || hLower === 'nama sekolah' || hLower === 'namasekolah') {
-            fieldElement = `<input type="text" id="field-${h}" value="${activeUser.nama}" readonly style="background-color: #e9ecef; cursor: not-allowed;">`;
+            val = activeUser.nama_sekolah || activeUser.nama || '';
+            fieldElement = `<input type="text" id="field-${h}" value="${val}" readonly style="background-color: #e9ecef; cursor: not-allowed;">`;
+          } else if (hLower === 'kecamatan') {
+            val = activeUser.kecamatan || '';
+            fieldElement = `<input type="text" id="field-${h}" value="${val}" readonly style="background-color: #e9ecef; cursor: not-allowed;">`;
+          } else if (hLower === 'alamat_lengkap' || hLower === 'alamat lengkap' || hLower === 'alamat') {
+            val = activeUser.alamat_lengkap || '';
+            fieldElement = `<input type="text" id="field-${h}" value="${val}" readonly style="background-color: #e9ecef; cursor: not-allowed;">`;
           } else if (currentSheet === 'laporan_progres' && (hLower === 'paket_id' || hLower === 'id_paket' || hLower === 'id_' || hLower === 'id')) {
             if (globalListPaketId.length > 0) {
               fieldElement = `<select id="field-${h}">`;
