@@ -149,7 +149,7 @@
 
     <!-- ================= SCRIPT LOGIC ================= -->
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwCIVnWfBN1aE5rZ5SXJwUVB9pGZLMv4V3QbzUDSyDGpozm6dJBpSwVIhQN9HY2MF4suw/exec";
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxilpPLGIxDWcGlw0iZAfZht_RXwx6OXV39OLZF0mvlndUc1mgB_TAmNsanl5JiJCmv9A/exec";
 
         let currentUser = null;
         let currentActiveSheet = "";
@@ -277,7 +277,7 @@
             document.getElementById('userNpsnDisplay').innerText = "NPSN/ID: " + currentUser.username;
             document.getElementById('userRoleSubtitle').innerText = "Hak Akses: " + currentUser.role;
 
-            // Ambil daftar menu pekerjaan untuk referensi dropdown laporan progres
+            // Ambil daftar menu pekerjaan untuk list laporan progres
             fetch(`${WEB_APP_URL}?action=getData&sheet=menu_pekerjaan&role=DINAS&npsn=`)
             .then(res => res.json())
             .then(res => {
@@ -286,10 +286,11 @@
 
             buildSidebar();
             
+            // Logika: Jika role SEKOLAH, otomatis masuk ke sub-menu Update Konsultan
             if(currentUser.role === 'DINAS') {
                 loadTableData('sekolah_pending', 'Verifikasi Sekolah');
             } else {
-                loadTableData('paket_pekerjaan_sd', 'Paket Pekerjaan SD');
+                loadTableData('users', 'Update Konsultan');
             }
         }
 
@@ -310,7 +311,7 @@
                 ];
             } else {
                 menus = [
-                    { name: 'Paket Pekerjaan SD', sheet: 'paket_pekerjaan_sd', icon: 'fa-folder-open' },
+                    { name: 'Update Konsultan', sheet: 'users', icon: 'fa-user-gear text-blue-500' },
                     { name: 'Laporan Progres', sheet: 'laporan_progres', icon: 'fa-chart-line' }
                 ];
             }
@@ -343,7 +344,7 @@
                     canPrint = true;
                 }
             } else if (currentUser.role === 'SEKOLAH') {
-                if (['paket_pekerjaan_sd', 'laporan_progres'].includes(sheetName)) {
+                if (sheetName === 'laporan_progres') {
                     canAdd = true;
                     canPrint = true;
                 }
@@ -395,7 +396,7 @@
             });
             
             let showActionColumn = true;
-            if (currentUser.role === 'DINAS' && ['paket_pekerjaan_sd', 'laporan_progres', 'riwayat_pagu'].includes(sheetName)) {
+            if (currentUser.role === 'DINAS' && ['paket_pekerjaan_sd', 'riwayat_pagu'].includes(sheetName)) {
                 showActionColumn = false;
             }
 
@@ -443,6 +444,12 @@
                         btnReject.innerHTML = `<i class="fa-solid fa-xmark mr-1"></i> Reject`;
                         btnReject.onclick = () => verifyReg(row.username || row.npsn, 'REJECTED');
                         tdAct.appendChild(btnReject);
+                    } else if (currentUser.role === 'SEKOLAH' && sheetName === 'users') {
+                        let btnEdit = document.createElement('button');
+                        btnEdit.className = "px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded text-[11px] font-medium border border-blue-200";
+                        btnEdit.innerHTML = `<i class="fa-solid fa-pen-to-square mr-1"></i> Edit Perencana & Pengawas`;
+                        btnEdit.onclick = () => openModalForm(row);
+                        tdAct.appendChild(btnEdit);
                     } else {
                         let btnEdit = document.createElement('button');
                         btnEdit.className = "px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-600 rounded text-[11px] font-medium border border-amber-200";
@@ -498,7 +505,22 @@
 
                 let input;
 
-                // Handle logika khusus form laporan_progres
+                // Logika khusus form users jika diakses oleh SEKOLAH (Update Konsultan)
+                if (currentActiveSheet === 'users' && currentUser.role === 'SEKOLAH') {
+                    input = document.createElement('input');
+                    input.type = "text";
+                    input.name = h;
+                    input.value = rowData ? (rowData[h] !== undefined ? rowData[h] : "") : "";
+                    
+                    if (h !== 'perencana' && h !== 'pengawas') {
+                        input.readOnly = true;
+                        input.className = "w-full px-3 py-2 bg-slate-100 border border-slate-300 rounded-lg text-xs text-slate-500 cursor-not-allowed";
+                    } else {
+                        input.className = "w-full px-3 py-2 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none";
+                    }
+                }
+
+                // Logika khusus form laporan_progres
                 if (currentActiveSheet === 'laporan_progres') {
                     if (h === 'nama_paket') {
                         input = document.createElement('select');
@@ -519,17 +541,17 @@
                             input.appendChild(opt);
                         });
 
-                        // Event saat nama_paket dipilih untuk mengisi paket_id & menu_id otomatis
+                        // Otomatis isi paket_id & menu_id berdasarkan pilihan nama_paket
                         input.onchange = function() {
                             let selectedVal = this.value;
                             let match = menuPekerjaanList.find(m => (m['nama_pekerjaan'] || m['nama_menu'] || Object.values(m)[1]) === selectedVal);
                             if (match) {
-                                let pId = match['paket_id'] || match['id_paket'] || match['menu_id'] || Object.values(m)[0];
-                                let mId = match['menu_id'] || match['id_menu'] || '';
+                                let mId = match['menu_id'] || match['id_menu'] || Object.values(match)[0];
+                                let generatedPaketId = "PKT-" + currentUser.username + "-" + Math.floor(Date.now() / 1000);
                                 
                                 let pInput = document.querySelector('input[name="paket_id"]');
                                 let mInput = document.querySelector('input[name="menu_id"]');
-                                if (pInput) pInput.value = pId;
+                                if (pInput) pInput.value = generatedPaketId;
                                 if (mInput) mInput.value = mId;
                             }
                         };
@@ -547,8 +569,6 @@
                         input.placeholder = "dd/mm/yyyy";
                         input.className = "w-full px-3 py-2 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none";
                         input.value = rowData ? (rowData[h] !== undefined ? rowData[h] : "") : "";
-
-                        // Hitung tgl_selesai otomatis saat tanggal_mulai atau lama_hari diubah
                         input.oninput = calculateTglSelesai;
                     } else if (['lama_hari'].includes(h)) {
                         input = document.createElement('input');
@@ -557,13 +577,6 @@
                         input.className = "w-full px-3 py-2 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none";
                         input.value = rowData ? (rowData[h] !== undefined ? rowData[h] : "") : "";
                         input.oninput = calculateTglSelesai;
-                    } else if (['perencana', 'pengawas'].includes(h)) {
-                        input = document.createElement('input');
-                        input.type = "text";
-                        input.name = h;
-                        input.readOnly = true;
-                        input.className = "w-full px-3 py-2 bg-slate-100 border border-slate-300 rounded-lg text-xs text-slate-500 cursor-not-allowed";
-                        input.value = rowData ? (rowData[h] !== undefined ? rowData[h] : "") : currentUser[h] || "";
                     }
                 }
 
@@ -576,7 +589,7 @@
                     input.value = rowData ? (rowData[h] !== undefined ? rowData[h] : "") : "";
                 }
 
-                if(currentUser.role === 'SEKOLAH' && (h.toLowerCase().includes('npsn') || h.toLowerCase().includes('user_id'))) {
+                if(currentUser.role === 'SEKOLAH' && (h.toLowerCase().includes('npsn') || h.toLowerCase().includes('user_id') || h.toLowerCase().includes('username'))) {
                     input.value = currentUser.username;
                     input.readOnly = true;
                     input.className += " bg-slate-100 text-slate-500 cursor-not-allowed";
