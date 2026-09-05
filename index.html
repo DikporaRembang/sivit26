@@ -497,6 +497,9 @@
             .then(res => res.json())
             .then(res => {
                 currentTableHeaders = res.header;
+                if(sheetName === 'paket_pekerjaan_sd' && currentUser.role === 'SEKOLAH') {
+                    paketPekerjaanList = res.data;
+                }
                 renderTable(res.header, res.data, sheetName);
             })
             .catch(err => {
@@ -598,7 +601,7 @@
                         btnEdit.onclick = () => openModalForm(row);
                         tdAct.appendChild(btnEdit);
 
-                        if (currentUser.role === 'DINAS' || ['paket_pekerjaan_sd', 'laporan_progres'].includes(sheetName)) {
+                        if (currentUser.role === 'DINAS' || ['laporan_progres'].includes(sheetName)) {
                             let btnDel = document.createElement('button');
                             btnDel.className = "px-2.5 py-1 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg text-[11px] font-medium border border-red-200";
                             btnDel.innerHTML = `<i class="fa-solid fa-trash"></i>`;
@@ -672,43 +675,59 @@
 
                 if (currentActiveSheet === 'paket_pekerjaan_sd') {
                     if (h === 'nama_menu') {
-                        input = document.createElement('select');
-                        input.name = h;
-                        input.className = "w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none";
-                        
-                        let defaultOpt = document.createElement('option');
-                        defaultOpt.value = "";
-                        defaultOpt.innerText = "-- Pilih Nama Menu Pekerjaan --";
-                        input.appendChild(defaultOpt);
+                        if (currentUser.role === 'SEKOLAH' && rowData) {
+                            // Untuk role SEKOLAH, jika sedang EDIT data, nama_menu dikunci agar tidak bisa diganti (sesuai aturan baru)
+                            input = document.createElement('input');
+                            input.type = "text";
+                            input.name = h;
+                            input.readOnly = true;
+                            input.className = "w-full px-3.5 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-xs text-slate-500 cursor-not-allowed";
+                            input.value = rowData[h] || "";
+                        } else {
+                            input = document.createElement('select');
+                            input.name = h;
+                            input.className = "w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none";
+                            
+                            let defaultOpt = document.createElement('option');
+                            defaultOpt.value = "";
+                            defaultOpt.innerText = "-- Pilih Nama Menu Pekerjaan --";
+                            input.appendChild(defaultOpt);
 
-                        menuPekerjaanList.forEach(m => {
-                            let namaMenuVal = m['nama_menu'] || m['Nama_Menu'] || m['nama_pekerjaan'] || '';
-                            if (namaMenuVal) {
-                                let opt = document.createElement('option');
-                                opt.value = namaMenuVal;
-                                opt.innerText = namaMenuVal;
-                                if (rowData && String(rowData[h]) === String(namaMenuVal)) {
-                                    opt.selected = true;
+                            menuPekerjaanList.forEach(m => {
+                                let namaMenuVal = m['nama_menu'] || m['Nama_Menu'] || m['nama_pekerjaan'] || '';
+                                if (namaMenuVal) {
+                                    // Saring jika role SEKOLAH, pastikan tidak menampilkan menu yang sudah pernah diinput sebelumnya (mencegah duplikat)
+                                    if (currentUser.role === 'SEKOLAH' && !rowData) {
+                                        let alreadyExists = paketPekerjaanList.some(p => String(p['nama_menu']).trim().toLowerCase() === String(namaMenuVal).trim().toLowerCase());
+                                        if (alreadyExists) return; // Lewati jika sudah ada
+                                    }
+
+                                    let opt = document.createElement('option');
+                                    opt.value = namaMenuVal;
+                                    opt.innerText = namaMenuVal;
+                                    if (rowData && String(rowData[h]) === String(namaMenuVal)) {
+                                        opt.selected = true;
+                                    }
+                                    input.appendChild(opt);
                                 }
-                                input.appendChild(opt);
-                            }
-                        });
-
-                        input.onchange = function() {
-                            let selectedVal = this.value;
-                            let match = menuPekerjaanList.find(m => {
-                                let nVal = m['nama_menu'] || m['Nama_Menu'] || m['nama_pekerjaan'] || '';
-                                return nVal === selectedVal;
                             });
 
-                            let mId = match ? (match['menu_id'] || match['id_menu'] || 'M01') : 'M01';
-                            let generatedPaketId = "PKT-" + currentUser.username + "-" + Math.floor(Date.now() / 1000);
-                            
-                            let pInput = document.querySelector('input[name="paket_id"]');
-                            let mInput = document.querySelector('input[name="menu_id"]');
-                            if (pInput && !pInput.value) pInput.value = generatedPaketId;
-                            if (mInput) mInput.value = mId;
-                        };
+                            input.onchange = function() {
+                                let selectedVal = this.value;
+                                let match = menuPekerjaanList.find(m => {
+                                    let nVal = m['nama_menu'] || m['Nama_Menu'] || m['nama_pekerjaan'] || '';
+                                    return nVal === selectedVal;
+                                });
+
+                                let mId = match ? (match['menu_id'] || match['id_menu'] || 'M01') : 'M01';
+                                let generatedPaketId = "PKT-" + currentUser.username + "-" + Math.floor(Date.now() / 1000);
+                                
+                                let pInput = document.querySelector('input[name="paket_id"]');
+                                let mInput = document.querySelector('input[name="menu_id"]');
+                                if (pInput && !pInput.value) pInput.value = generatedPaketId;
+                                if (mInput) mInput.value = mId;
+                            };
+                        }
                     } else if (['paket_id', 'menu_id'].includes(h)) {
                         input = document.createElement('input');
                         input.type = "text";
