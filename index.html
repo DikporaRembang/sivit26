@@ -75,6 +75,7 @@
     .btn-action:hover { opacity: 0.9; }
     .btn-edit { background: var(--warning); }
     .btn-del { background: var(--danger); }
+    .btn-pagu { background: #0284c7; }
     .btn-add { background: var(--success); display: inline-flex; align-items: center; gap: 6px; }
 
     .table-responsive { width: 100%; overflow-x: auto; border: 1px solid var(--border); border-radius: 8px; background: white; }
@@ -186,8 +187,31 @@
     </div>
   </div>
 
+  <!-- Modal Khusus Rubah Pagu -->
+  <div id="paguModal" class="modal">
+    <div class="modal-content" style="max-width: 400px;">
+      <div class="modal-header">
+        <h3>Rubah Pagu Anggaran</h3>
+        <button class="close-btn" onclick="closePaguModal()">&times;</button>
+      </div>
+      <div class="form-group">
+        <label>Paket ID</label>
+        <input type="text" id="pagu-paket-id" class="form-control" readonly style="background:#f1f5f9;">
+      </div>
+      <div class="form-group">
+        <label>Pagu Tercatat Saat Ini</label>
+        <input type="text" id="pagu-lama" class="form-control" readonly style="background:#f1f5f9;">
+      </div>
+      <div class="form-group">
+        <label>Pagu Baru</label>
+        <input type="number" id="pagu-baru" class="form-control" placeholder="Masukkan nilai pagu baru">
+      </div>
+      <button class="btn btn-primary" style="margin-top: 10px;" onclick="submitRubahPagu()">Simpan Perubahan Pagu</button>
+    </div>
+  </div>
+
   <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbyVSSHJ-4wHah4HB9FH6tay1f4nTgDYGfM1VFfTS5JXUtyDbu3QwHxRMcC_eeAW5H9wRA/exec";
+    const API_URL = "https://script.google.com/macros/s/AKfycbwxqdVLvJovT0Wk5ZE87VJUI6TG8_EOpPcLK03MRG7LOmIMttT3ewMGVr-0E5tzxHVtfg/exec";
 
     let activeUser = null;
     let currentSheet = '';
@@ -197,6 +221,7 @@
     let globalListPaketId = [];
     let globalListMenuPekerjaan = [];
     let globalListMenuIdPekerjaan = [];
+    let selectedPaketRowForPagu = null;
 
     window.onload = async function() {
       let savedUser = sessionStorage.getItem('sivit26_user');
@@ -224,14 +249,10 @@
 
     async function fetchDropdownReferences() {
       try {
-        // Ambil data menu_pekerjaan untuk pilihan di paket_pekerjaan_sd
         let resMenu = await fetch(`${API_URL}?action=getData&sheet=menu_pekerjaan&role=DINAS`);
         let jsonMenu = await resMenu.json();
-        if (jsonMenu.data) {
-          globalListMenuPekerjaan = jsonMenu.data;
-        }
+        if (jsonMenu.data) globalListMenuPekerjaan = jsonMenu.data;
 
-        // Ambil data paket_pekerjaan_sd untuk pilihan menu_id di laporan_progres
         let roleParam = activeUser ? activeUser.role : 'DINAS';
         let npsnParam = activeUser ? (activeUser.npsn || activeUser.username) : '';
         let resPaket = await fetch(`${API_URL}?action=getData&sheet=paket_pekerjaan_sd&role=${roleParam}&npsn=${npsnParam}`);
@@ -239,7 +260,7 @@
         if (jsonPaket.data) {
           globalListMenuIdPekerjaan = jsonPaket.data.map(row => {
             for (let k in row) {
-              if (k.toLowerCase().includes('menu_id') || k.toLowerCase().includes('menuid')) {
+              if (k.toLowerCase().includes('paket_id') || k.toLowerCase().includes('paketid')) {
                 return String(row[k]);
               }
             }
@@ -273,23 +294,15 @@
             for (let key in found) {
               let k = key.toLowerCase();
               let val = found[key];
-              if (k.includes('nama_sekolah') || k.includes('namasekolah') || k.includes('nama sekolah') || k.includes('satuan_pendidikan')) {
+              if (k.includes('nama_sekolah') || k.includes('namasekolah') || k.includes('satuan_pendidikan')) {
                 activeUser.nama_sekolah = val;
               }
-              if (k.includes('kecamatan')) {
-                activeUser.kecamatan = val;
-              }
-              if (k.includes('alamat')) {
-                activeUser.alamat_lengkap = val;
-              }
+              if (k.includes('kecamatan')) activeUser.kecamatan = val;
+              if (k.includes('alamat')) activeUser.alamat_lengkap = val;
             }
           }
         }
-        
-        if (!activeUser.nama_sekolah) activeUser.nama_sekolah = activeUser.nama_pengguna || activeUser.nama || 'Sekolah Pengguna';
-        if (!activeUser.kecamatan) activeUser.kecamatan = '-';
-        if (!activeUser.alamat_lengkap) activeUser.alamat_lengkap = '-';
-
+        if (!activeUser.nama_sekolah) activeUser.nama_sekolah = activeUser.nama_pengguna || 'Sekolah Pengguna';
         sessionStorage.setItem('sivit26_user', JSON.stringify(activeUser));
       } catch (err) {
         console.error("Gagal mengambil profil sekolah:", err);
@@ -354,7 +367,6 @@
         `;
         document.querySelectorAll('.dinas-only').forEach(el => el.classList.add('hidden'));
       }
-      
       document.getElementById('user-profile-container').innerHTML = profileHtml;
     }
 
@@ -443,11 +455,16 @@
             }
             html += `<td>${val}</td>`;
           });
+
           let canEdit = (activeUser.role === "DINAS") || (activeUser.role === "SEKOLAH" && currentSheet === 'paket_pekerjaan_sd');
           let canDel = (activeUser.role === "DINAS");
+          
           if (currentSheet !== 'riwayat_pagu' && (canEdit || canDel)) {
             html += `<td>`;
             if (canEdit) html += `<button class="btn-action btn-edit" onclick="openModalForEdit(${originalIndex})">Edit</button> `;
+            if (activeUser.role === "SEKOLAH" && currentSheet === 'paket_pekerjaan_sd') {
+              html += `<button class="btn-action btn-pagu" onclick="openRubahPaguModal(${originalIndex})">Rubah Pagu</button> `;
+            }
             if (canDel) html += `<button class="btn-action btn-del" onclick="hapusData(${row._rowIndex})">Hapus</button>`;
             html += `</td>`;
           } else {
@@ -487,6 +504,63 @@
       document.getElementById('formModal').style.display = "flex";
     }
 
+    function openRubahPaguModal(dataIndex) {
+      selectedPaketRowForPagu = globalRawData[dataIndex];
+      let paketId = '';
+      let paguTercatat = '';
+
+      for (let k in selectedPaketRowForPagu) {
+        let kl = k.toLowerCase();
+        if (kl.includes('paket_id') || kl.includes('paketid')) paketId = selectedPaketRowForPagu[k];
+        if (kl.includes('pagu_tercatat') || kl.includes('pagutercatat') || kl.includes('pagu_awal') || kl.includes('pagu')) {
+          if (!paguTercatat) paguTercatat = selectedPaketRowForPagu[k];
+        }
+      }
+
+      document.getElementById('pagu-paket-id').value = paketId;
+      document.getElementById('pagu-lama').value = paguTercatat;
+      document.getElementById('pagu-baru').value = '';
+      document.getElementById('paguModal').style.display = "flex";
+    }
+
+    function closePaguModal() {
+      document.getElementById('paguModal').style.display = "none";
+    }
+
+    async function submitRubahPagu() {
+      let paketId = document.getElementById('pagu-paket-id').value;
+      let paguLama = document.getElementById('pagu-lama').value;
+      let paguBaru = document.getElementById('pagu-baru').value;
+
+      if (!paguBaru || isNaN(paguBaru)) {
+        alert("Masukkan nilai pagu baru yang valid!");
+        return;
+      }
+
+      try {
+        let res = await fetch(API_URL, {
+          method: "POST",
+          body: JSON.stringify({
+            action: "updatePagu",
+            paket_id: paketId,
+            pagu_lama: paguLama,
+            pagu_baru: paguBaru,
+            role: activeUser.role,
+            npsn: activeUser.npsn || activeUser.username,
+            rowIndex: selectedPaketRowForPagu._rowIndex
+          })
+        });
+        let data = await res.json();
+        alert(data.pesan);
+        if (data.status === "success") {
+          closePaguModal();
+          loadData('paket_pekerjaan_sd');
+        }
+      } catch (err) {
+        alert("Gagal merubah pagu: " + err);
+      }
+    }
+
     function renderFormFields(rowData) {
       let fieldsHtml = '';
       let isEditMode = (currentEditRowIndex !== null);
@@ -494,48 +568,36 @@
       currentHeader.forEach(h => {
         let hLower = String(h).toLowerCase().trim();
         let val = rowData[h] !== undefined ? rowData[h] : '';
-        let isHiddenId = (currentSheet === 'riwayat_pagu' && hLower === 'id_') || (currentSheet === 'paket_pekerjaan_sd' && (hLower === 'id_' || hLower === 'id'));
+        let isHiddenId = (currentSheet === 'riwayat_pagu' && hLower === 'id_riwayat') || (currentSheet === 'paket_pekerjaan_sd' && hLower === 'paket_id');
         let displayStyle = isHiddenId ? 'style="display:none;"' : '';
-        
         let fieldElement = '';
         
         if (!isEditMode) {
-          if (hLower === 'id' || hLower === 'id_' || hLower === 'id_user' || hLower === 'id_menu') {
-            if (!val) {
-              let prefix = currentSheet === 'users' ? 'USR' : (currentSheet === 'menu_pekerjaan' ? 'MNU' : (currentSheet === 'laporan_progres' ? 'LPR' : 'ID'));
-              let randomNum = Math.floor(1000 + Math.random() * 9000);
-              val = `${prefix}-${Date.now().toString().slice(-6)}${randomNum}`;
-            }
-            fieldElement = `<input type="text" id="field-${h}" class="form-control" value="${val}" readonly style="background-color: #f1f5f9; cursor: not-allowed;" title="ID dibuat otomatis oleh sistem">`;
-          } else if (currentSheet === 'paket_pekerjaan_sd' && (hLower === 'paket_id' || hLower === 'user_id')) {
-            if (!val) {
-              let prefix = hLower === 'paket_id' ? 'PKT' : 'USR';
-              let randomNum = Math.floor(1000 + Math.random() * 9000);
-              val = `${prefix}-${Date.now().toString().slice(-6)}${randomNum}`;
-            }
-            fieldElement = `<input type="text" id="field-${h}" class="form-control" value="${val}" readonly style="background-color: #f1f5f9; cursor: not-allowed;" title="Terisi otomatis oleh sistem">`;
+          if (hLower === 'id' || hLower === 'id_user' || hLower === 'id_menu' || hLower === 'paket_id' || hLower === 'id_riwayat') {
+            let prefix = currentSheet === 'users' ? 'USR' : (currentSheet === 'menu_pekerjaan' ? 'MNU' : (currentSheet === 'laporan_progres' ? 'LPR' : (currentSheet === 'riwayat_pagu' ? 'RWY' : 'PKT')));
+            let randomNum = Math.floor(1000 + Math.random() * 9000);
+            val = `${prefix}-${Date.now().toString().slice(-6)}${randomNum}`;
+            fieldElement = `<input type="text" id="field-${h}" class="form-control" value="${val}" readonly style="background-color: #f1f5f9; cursor: not-allowed;" title="ID otomatis">`;
+          } else if (currentSheet === 'paket_pekerjaan_sd' && (hLower === 'pagu_tercatat' || hLower === 'pagutercatat')) {
+            fieldElement = `<input type="number" id="field-${h}" class="form-control" placeholder="Masukkan nilai pagu">`;
+          }
+        } else {
+          if (currentSheet === 'paket_pekerjaan_sd' && (hLower === 'pagu_tercatat' || hLower === 'pagutercatat')) {
+            fieldElement = `<input type="number" id="field-${h}" class="form-control" value="${val}" readonly style="background-color: #f1f5f9;" title="Gunakan tombol Rubah Pagu">`;
           }
         }
 
-        // Dropdown untuk menu_id di paket_pekerjaan_sd
         if (currentSheet === 'paket_pekerjaan_sd' && (hLower === 'menu_id' || hLower === 'menuid')) {
-          fieldElement = `<select id="field-${h}" class="form-control">`;
-          fieldElement += `<option value="">-- Pilih Menu Pekerjaan --</option>`;
+          fieldElement = `<select id="field-${h}" class="form-control"><option value="">-- Pilih Menu Pekerjaan --</option>`;
           globalListMenuPekerjaan.forEach(item => {
-            let itemKey = '';
-            let itemVal = '';
+            let itemKey = '', itemVal = '';
             for (let k in item) {
               let kl = k.toLowerCase();
-              if (kl.includes('id') || kl.includes('menu')) {
-                if (!itemKey) itemKey = item[k];
-              }
-              if (kl.includes('nama') || kl.includes('menu')) {
-                itemVal = item[k];
-              }
+              if (kl.includes('id') || kl.includes('menu')) { if (!itemKey) itemKey = item[k]; }
+              if (kl.includes('nama') || kl.includes('menu')) { itemVal = item[k]; }
             }
             if (!itemKey) itemKey = Object.values(item)[0];
             if (!itemVal) itemVal = itemKey;
-            
             let selected = (String(itemKey) === String(val)) ? 'selected' : '';
             fieldElement += `<option value="${itemKey}" ${selected}>${itemKey} - ${itemVal}</option>`;
           });
@@ -543,38 +605,16 @@
         }
 
         if (activeUser && activeUser.role === "SEKOLAH") {
-          if (hLower.includes('npsn')) {
+          if (hLower.includes('npsn') || hLower.includes('user_id')) {
             val = activeUser.npsn || activeUser.username || '';
             fieldElement = `<input type="text" id="field-${h}" class="form-control" value="${val}" readonly style="background-color: #f1f5f9; cursor: not-allowed;">`;
-          } else if (hLower.includes('nama_sekolah') || hLower.includes('namasekolah') || hLower.includes('nama sekolah') || hLower.includes('satuan_pendidikan')) {
-            val = activeUser.nama_sekolah || '';
-            fieldElement = `<input type="text" id="field-${h}" class="form-control" value="${val}" readonly style="background-color: #f1f5f9; cursor: not-allowed;">`;
-          } else if (hLower.includes('kecamatan')) {
-            val = activeUser.kecamatan || '';
-            fieldElement = `<input type="text" id="field-${h}" class="form-control" value="${val}" readonly style="background-color: #f1f5f9; cursor: not-allowed;">`;
-          } else if (hLower.includes('alamat')) {
-            val = activeUser.alamat_lengkap || '';
-            fieldElement = `<input type="text" id="field-${h}" class="form-control" value="${val}" readonly style="background-color: #f1f5f9; cursor: not-allowed;">`;
-          } else if (currentSheet === 'laporan_progres') {
-            if (hLower === 'paket_id' || hLower === 'id_paket' || hLower === 'menu_id' || hLower === 'menuid') {
-              if (globalListMenuIdPekerjaan && globalListMenuIdPekerjaan.length > 0) {
-                fieldElement = `<select id="field-${h}" class="form-control">`;
-                fieldElement += `<option value="">-- Pilih Menu ID dari Paket Pekerjaan --</option>`;
-                globalListMenuIdPekerjaan.forEach(pid => {
-                  let selected = (pid === String(val)) ? 'selected' : '';
-                  fieldElement += `<option value="${pid}" ${selected}>${pid}</option>`;
-                });
-                fieldElement += `</select>`;
-              } else {
-                fieldElement = `<input type="text" id="field-${h}" class="form-control" value="${val}" placeholder="Input data Paket Pekerjaan SD terlebih dahulu" readonly>`;
-              }
-            } else if (hLower === 'id' || hLower === 'id_') {
-              if (!isEditMode && !val) {
-                let randomNum = Math.floor(1000 + Math.random() * 9000);
-                val = `LPR-${Date.now().toString().slice(-6)}${randomNum}`;
-              }
-              fieldElement = `<input type="text" id="field-${h}" class="form-control" value="${val}" readonly style="background-color: #f1f5f9; cursor: not-allowed;" title="Terisi otomatis oleh sistem">`;
-            }
+          } else if (currentSheet === 'laporan_progres' && (hLower === 'paket_id' || hLower === 'id_paket')) {
+            fieldElement = `<select id="field-${h}" class="form-control"><option value="">-- Pilih Paket ID --</option>`;
+            globalListMenuIdPekerjaan.forEach(pid => {
+              let selected = (pid === String(val)) ? 'selected' : '';
+              fieldElement += `<option value="${pid}" ${selected}>${pid}</option>`;
+            });
+            fieldElement += `</select>`;
           }
         }
 
@@ -596,6 +636,21 @@
         let el = document.getElementById('field-' + h);
         if (el) formData[h] = el.value;
       });
+
+      // Sinkronkan pagu_awal dengan pagu_tercatat jika tambah paket baru
+      if (currentSheet === 'paket_pekerjaan_sd' && currentEditRowIndex === null) {
+        for (let h in formData) {
+          let hl = h.toLowerCase();
+          if (hl.includes('pagu_awal')) {
+            let paguVal = formData[h];
+            currentHeader.forEach(th => {
+              if (th.toLowerCase().includes('pagu_tercatat') || th.toLowerCase().includes('pagutercatat')) {
+                formData[th] = paguVal;
+              }
+            });
+          }
+        }
+      }
 
       try {
         let res = await fetch(API_URL, {
