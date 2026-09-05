@@ -1,94 +1,166 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SIVIT26 - Pemantauan Revitalisasi SD</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    * { box-sizing: border-box; }
-    body { font-family: Arial, sans-serif; margin: 0; display: flex; height: 100vh; background: #f4f7f6; }
-    .auth-wrapper { margin: auto; width: 380px; padding: 25px; background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-    .auth-wrapper h3 { text-align: center; color: #2c3e50; margin-bottom: 20px; }
-    .tab-toggle { display: flex; margin-bottom: 20px; border-bottom: 2px solid #ecf0f1; }
-    .tab-toggle button { flex: 1; padding: 10px; background: none; border: none; cursor: pointer; font-weight: bold; color: #7f8c8d; }
-    .tab-toggle button.active { color: #3498db; border-bottom: 2px solid #3498db; margin-bottom: -2px; }
-    .sidebar { width: 260px; background: #2c3e50; color: white; padding: 20px; display: flex; flex-direction: column; }
-    .sidebar h2 { font-size: 1.1rem; margin-bottom: 20px; border-bottom: 1px solid #34495e; padding-bottom: 10px; }
-    .sidebar a { color: #bdc3c7; text-decoration: none; padding: 10px 0; display: block; cursor: pointer; transition: 0.2s; }
-    .sidebar a:hover, .sidebar a.active { color: white; padding-left: 5px; font-weight: bold; }
-    .logout-btn { color: #e74c3c !important; margin-top: auto; border-top: 1px solid #34495e; padding-top: 15px !important; }
-    .content { flex: 1; padding: 30px; overflow-y: auto; }
-    .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-    input, select, button.btn-submit { padding: 10px; margin: 5px 0 15px 0; width: 100%; border: 1px solid #ccc; border-radius: 4px; }
-    button.btn-submit { background-color: #3498db; color: white; border: none; cursor: pointer; font-weight: bold; }
-    button.btn-submit:hover { background-color: #2980b9; }
-    .btn-action { padding: 5px 10px; margin-right: 5px; border: none; border-radius: 3px; cursor: pointer; font-size: 0.8rem; color: white; }
-    .btn-edit { background-color: #f39c12; }
-    .btn-del { background-color: #e74c3c; }
-    .btn-tambah { background-color: #27ae60; width: auto; padding: 10px 20px; display: inline-block; }
-    .table-header-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; }
-    .search-box { padding: 8px 12px; width: 280px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.9rem; margin: 0; }
-    table { width: 100%; border-collapse: collapse; margin-top: 5px; }
-    th, td { border: 1px solid #ddd; padding: 10px; text-align: left; font-size: 0.9rem; }
-    th { background-color: #f8f9fa; }
-    .modal { display: none; position: fixed; z-index: 99; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
-    .modal-content { background-color: white; margin: 10% auto; padding: 20px; width: 50%; border-radius: 8px; max-height: 80vh; overflow-y: auto; }
-    .close { float: right; font-size: 1.5rem; font-weight: bold; cursor: pointer; }
+    :root {
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --success: #059669;
+      --warning: #d97706;
+      --danger: #dc2626;
+      --bg-main: #f8fafc;
+      --bg-card: #ffffff;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --radius: 10px;
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+    body { background-color: var(--bg-main); color: var(--text-main); height: 100vh; display: flex; overflow: hidden; }
+
+    /* AUTH SCREEN */
+    .auth-container { width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%); }
+    .auth-card { background: var(--bg-card); width: 100%; max-width: 400px; padding: 35px; border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--border); }
+    .auth-card h3 { text-align: center; color: var(--primary); font-size: 1.5rem; font-weight: 700; margin-bottom: 25px; }
+    
+    .tab-toggle { display: flex; background: var(--bg-main); padding: 4px; border-radius: 8px; margin-bottom: 20px; }
+    .tab-toggle button { flex: 1; padding: 10px; background: none; border: none; font-size: 0.9rem; font-weight: 600; color: var(--text-muted); cursor: pointer; border-radius: 6px; transition: all 0.2s; }
+    .tab-toggle button.active { background: var(--bg-card); color: var(--primary); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-main); margin-bottom: 6px; }
+    .form-control { width: 100%; padding: 11px 14px; font-size: 0.95rem; border: 1px solid var(--border); border-radius: 8px; outline: none; transition: border-color 0.2s; background: #fff; }
+    .form-control:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+
+    .btn { width: 100%; padding: 12px; font-size: 0.95rem; font-weight: 600; border: none; border-radius: 8px; cursor: pointer; transition: background 0.2s; }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--primary-hover); }
+
+    /* DASHBOARD LAYOUT */
+    .app-layout { display: flex; width: 100%; height: 100vh; }
+    .sidebar { width: 280px; background: #0f172a; color: white; display: flex; flex-direction: column; border-right: 1px solid #1e293b; }
+    .sidebar-header { padding: 25px 20px; font-size: 1.1rem; font-weight: 700; border-bottom: 1px solid #1e293b; color: #f8fafc; display: flex; align-items: center; gap: 10px; }
+    .sidebar-menu { padding: 15px 10px; flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; }
+    .sidebar-menu a { color: #94a3b8; text-decoration: none; padding: 12px 16px; border-radius: 8px; font-size: 0.9rem; font-weight: 500; display: flex; align-items: center; gap: 12px; transition: all 0.2s; cursor: pointer; }
+    .sidebar-menu a:hover, .sidebar-menu a.active { background: #1e293b; color: white; }
+    .logout-item { color: #f87171 !important; margin-top: auto; border-top: 1px solid #1e293b; padding-top: 15px !important; border-radius: 0 !important; }
+    .logout-item:hover { background: rgba(239, 68, 68, 0.1) !important; color: #ef4444 !important; }
+
+    .main-content { flex: 1; display: flex; flex-direction: column; background: var(--bg-main); overflow: hidden; }
+    .topbar { background: var(--bg-card); padding: 15px 30px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .topbar h2 { font-size: 1.25rem; font-weight: 600; color: var(--text-main); }
+    
+    .content-body { padding: 25px 30px; flex: 1; overflow-y: auto; }
+    .card { background: var(--bg-card); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); padding: 25px; }
+
+    /* PROFILE & TABLE CONTROLS */
+    .profile-box { background: #eff6ff; border: 1px solid #bfdbfe; border-left: 4px solid var(--primary); padding: 16px; border-radius: 8px; margin-bottom: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+    .profile-box p { font-size: 0.9rem; color: #1e40af; }
+
+    .table-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; gap: 15px; flex-wrap: wrap; }
+    .search-input { padding: 10px 16px; width: 300px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.9rem; outline: none; transition: border-color 0.2s; }
+    .search-input:focus { border-color: var(--primary); }
+
+    /* BUTTONS & TABLE */
+    .btn-action { padding: 8px 14px; border-radius: 6px; border: none; font-size: 0.85rem; font-weight: 600; cursor: pointer; color: white; transition: opacity 0.2s; }
+    .btn-action:hover { opacity: 0.9; }
+    .btn-edit { background: var(--warning); }
+    .btn-del { background: var(--danger); }
+    .btn-add { background: var(--success); display: inline-flex; align-items: center; gap: 6px; }
+
+    .table-responsive { width: 100%; overflow-x: auto; border: 1px solid var(--border); border-radius: 8px; background: white; }
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    th, td { padding: 12px 16px; font-size: 0.9rem; border-bottom: 1px solid var(--border); white-space: nowrap; }
+    th { background: #f8fafc; font-weight: 600; color: var(--text-muted); }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #f8fafc; }
+
+    /* MODAL */
+    .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(4px); align-items: center; justify-content: center; }
+    .modal-content { background: var(--bg-card); width: 100%; max-width: 550px; border-radius: var(--radius); padding: 30px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); max-height: 85vh; overflow-y: auto; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .modal-header h3 { font-size: 1.1rem; font-weight: 700; }
+    .close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted); }
+
     .hidden { display: none !important; }
-    .profile-box { background: #f8f9fa; border-left: 4px solid #3498db; padding: 15px; margin-bottom: 20px; border-radius: 4px; }
-    .profile-box p { margin: 5px 0; font-size: 0.95rem; color: #2c3e50; }
   </style>
 </head>
 <body>
 
   <!-- Layar Login / Register -->
-  <div id="auth-screen" class="auth-wrapper">
-    <h3>SIVIT26 - Sisten Informasi Pemantau Progres Revitalisasi SD Kabupaten Rembang 2026</h3>
-    <div class="tab-toggle">
-      <button id="tab-login-btn" class="active" onclick="switchTab('login')">Masuk</button>
-      <button id="tab-register-btn" onclick="switchTab('register')">Daftar Sekolah</button>
-    </div>
+  <div id="auth-screen" class="auth-container">
+    <div class="auth-card">
+      <h3>SIVIT26</h3>
+      <div class="tab-toggle">
+        <button id="tab-login-btn" class="active" onclick="switchTab('login')">Masuk</button>
+        <button id="tab-register-btn" onclick="switchTab('register')">Daftar Sekolah</button>
+      </div>
 
-    <div id="form-login">
-      <label>Username / NPSN Sekolah:</label>
-      <input type="text" id="log-user" placeholder="Username DINAS atau NPSN">
-      <label>Password:</label>
-      <input type="password" id="log-pass" placeholder="Password">
-      <button class="btn-submit" onclick="handleLogin()">Masuk Aplikasi</button>
-    </div>
+      <div id="form-login">
+        <div class="form-group">
+          <label>Username / NPSN Sekolah</label>
+          <input type="text" id="log-user" class="form-control" placeholder="Masukkan username atau NPSN">
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="log-pass" class="form-control" placeholder="Masukkan password">
+        </div>
+        <button class="btn btn-primary" onclick="handleLogin()">Masuk Aplikasi</button>
+      </div>
 
-    <div id="form-register" class="hidden">
-      <label>NPSN Sekolah:</label>
-      <input type="text" id="reg-npsn" placeholder="NPSN">
-      <label>Password:</label>
-      <input type="password" id="reg-pass" placeholder="Password">
-      <label>Nama Sekolah / PIC:</label>
-      <input type="text" id="reg-nama" placeholder="Nama Instansi">
-      <button class="btn-submit" onclick="handleRegister()">Daftar Sekarang</button>
+      <div id="form-register" class="hidden">
+        <div class="form-group">
+          <label>NPSN Sekolah</label>
+          <input type="text" id="reg-npsn" class="form-control" placeholder="Nomor Pokok Sekolah Nasional">
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="reg-pass" class="form-control" placeholder="Buat password aman">
+        </div>
+        <div class="form-group">
+          <label>Nama Sekolah / PIC</label>
+          <input type="text" id="reg-nama" class="form-control" placeholder="Nama instansi/sekolah">
+        </div>
+        <button class="btn btn-primary" onclick="handleRegister()">Daftar Sekarang</button>
+      </div>
     </div>
   </div>
 
   <!-- Layar Utama Dashboard -->
-  <div id="app-screen" class="hidden" style="display: flex; width: 100%; height: 100%;">
+  <div id="app-screen" class="app-layout hidden">
     <div class="sidebar">
-      <h2>SIVIT26 Dashboard</h2>
-      <a href="#" class="menu-item dinas-only" onclick="loadData('sekolah', this)">📁 Data Sekolah</a>
-      <a href="#" class="menu-item dinas-only" onclick="loadData('users', this)">👥 Manajemen User</a>
-      <a href="#" class="menu-item dinas-only" onclick="loadData('menu_pekerjaan', this)">📋 Menu Pekerjaan</a>
-      <a href="#" class="menu-item" onclick="loadData('paket_pekerjaan_sd', this)">🏗️ Paket Pekerjaan SD</a>
-      <a href="#" class="menu-item" onclick="loadData('laporan_progres', this)">📊 Laporan Progres</a>
-      <a href="#" class="menu-item" onclick="loadData('riwayat_pagu', this)">💰 Riwayat Pagu</a>
-      <a href="#" class="logout-btn" onclick="logout()">🚪 Keluar / Logout</a>
+      <div class="sidebar-header">🏢 SIVIT26 Dashboard</div>
+      <div class="sidebar-menu">
+        <a class="menu-item dinas-only" onclick="loadData('sekolah', this)">📁 Data Sekolah</a>
+        <a class="menu-item dinas-only" onclick="loadData('users', this)">👥 Manajemen User</a>
+        <a class="menu-item dinas-only" onclick="loadData('menu_pekerjaan', this)">📋 Menu Pekerjaan</a>
+        <a class="menu-item" onclick="loadData('paket_pekerjaan_sd', this)">🏗️ Paket Pekerjaan SD</a>
+        <a class="menu-item" onclick="loadData('laporan_progres', this)">📊 Laporan Progres</a>
+        <a class="menu-item" onclick="loadData('riwayat_pagu', this)">💰 Riwayat Pagu</a>
+        <a class="logout-item" onclick="logout()">🚪 Keluar / Logout</a>
+      </div>
     </div>
 
-    <div class="content">
-      <div class="card">
-        <h3 id="page-title">Selamat Datang</h3>
-        <div id="user-profile-container"></div>
-        <div class="table-header-controls">
-          <div id="action-container"></div>
-          <input type="text" id="search-input" class="search-box hidden" placeholder="🔍 Cari data di tabel..." onkeyup="filterTable()">
+    <div class="main-content">
+      <div class="topbar">
+        <h2 id="page-title">Selamat Datang</h2>
+        <span id="user-badge" style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted); background: var(--border); padding: 6px 12px; border-radius: 20px;"></span>
+      </div>
+      <div class="content-body">
+        <div class="card">
+          <div id="user-profile-container"></div>
+          <div class="table-actions">
+            <div id="action-container"></div>
+            <input type="text" id="search-input" class="search-input hidden" placeholder="🔍 Cari data di tabel..." onkeyup="filterTable()">
+          </div>
+          <div id="table-container"><p style="color: var(--text-muted); font-size: 0.9rem;">Silakan pilih menu di sebelah kiri untuk melihat data.</p></div>
         </div>
-        <div id="table-container"><p>Silakan pilih menu di sebelah kiri.</p></div>
       </div>
     </div>
   </div>
@@ -96,15 +168,16 @@
   <!-- Modal Form Input/Edit Data -->
   <div id="formModal" class="modal">
     <div class="modal-content">
-      <span class="close" onclick="closeModal()">&times;</span>
-      <h3 id="modal-title">Form Data</h3>
+      <div class="modal-header">
+        <h3 id="modal-title">Form Data</h3>
+        <button class="close-btn" onclick="closeModal()">&times;</button>
+      </div>
       <div id="dynamic-form-fields"></div>
-      <button class="btn-submit" onclick="submitForm()">Simpan Data</button>
+      <button class="btn btn-primary" style="margin-top: 15px;" onclick="submitForm()">Simpan Data</button>
     </div>
   </div>
 
   <script>
-    // MASUKKAN URL WEB APP GOOGLE APPS SCRIPT ANDA DI SINI (Akhiran /exec)
     const API_URL = "https://script.google.com/macros/s/AKfycbyVSSHJ-4wHah4HB9FH6tay1f4nTgDYGfM1VFfTS5JXUtyDbu3QwHxRMcC_eeAW5H9wRA/exec";
 
     let activeUser = null;
@@ -213,15 +286,17 @@
       document.getElementById('auth-screen').classList.add('hidden');
       document.getElementById('app-screen').classList.remove('hidden');
       
-      let profileHtml = `<p style="font-style: italic; color: #7f8c8d; font-size: 0.9rem; margin-bottom: 10px;">Masuk sebagai: <b>${activeUser.nama_pengguna || activeUser.nama || 'User'}</b> | Role: <b>${activeUser.role}</b></p>`;
+      let userName = activeUser.nama_pengguna || activeUser.nama || 'User';
+      document.getElementById('user-badge').innerText = `${userName} (${activeUser.role})`;
       
+      let profileHtml = '';
       if (activeUser.role === "SEKOLAH") {
-        profileHtml += `
+        profileHtml = `
           <div class="profile-box">
             <p><strong>NPSN:</strong> ${activeUser.npsn || '-'}</p>
             <p><strong>Nama Sekolah:</strong> ${activeUser.nama_sekolah || '-'}</p>
             <p><strong>Kecamatan:</strong> ${activeUser.kecamatan || '-'}</p>
-            <p><strong>Alamat Lengkap:</strong> ${activeUser.alamat_lengkap || '-'}</p>
+            <p><strong>Alamat:</strong> ${activeUser.alamat_lengkap || '-'}</p>
           </div>
         `;
         document.querySelectorAll('.dinas-only').forEach(el => el.classList.add('hidden'));
@@ -260,7 +335,7 @@
       currentSheet = sheetName;
       document.getElementById('page-title').innerText = "Memuat data " + sheetName + "...";
       if (element) {
-        document.querySelectorAll('.sidebar a.menu-item').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.sidebar-menu a').forEach(el => el.classList.remove('active'));
         element.classList.add('active');
       }
 
@@ -276,7 +351,7 @@
         let canAdd = (activeUser.role === "DINAS") || (activeUser.role === "SEKOLAH" && (sheetName === 'paket_pekerjaan_sd' || sheetName === 'laporan_progres'));
         let actionHtml = '';
         if (canAdd && sheetName !== 'riwayat_pagu') {
-          actionHtml += `<button class="btn-action btn-tambah" onclick="openModalForAdd()">+ Tambah Data Baru</button>`;
+          actionHtml += `<button class="btn-action btn-add" onclick="openModalForAdd()">+ Tambah Data Baru</button>`;
         }
         document.getElementById('action-container').innerHTML = actionHtml;
         
@@ -295,7 +370,7 @@
     }
 
     function renderTableContent(dataList) {
-      let html = `<table id="dataTable"><tr>`;
+      let html = `<div class="table-responsive"><table><tr>`;
       currentHeader.forEach(h => { html += `<th>${h}</th>`; });
       if (activeUser.role === "DINAS" || (activeUser.role === "SEKOLAH" && currentSheet === 'paket_pekerjaan_sd')) {
         html += `<th>Aksi</th>`;
@@ -318,7 +393,7 @@
           let canDel = (activeUser.role === "DINAS");
           if (currentSheet !== 'riwayat_pagu' && (canEdit || canDel)) {
             html += `<td>`;
-            if (canEdit) html += `<button class="btn-action btn-edit" onclick="openModalForEdit(${originalIndex})">Edit</button>`;
+            if (canEdit) html += `<button class="btn-action btn-edit" onclick="openModalForEdit(${originalIndex})">Edit</button> `;
             if (canDel) html += `<button class="btn-action btn-del" onclick="hapusData(${row._rowIndex})">Hapus</button>`;
             html += `</td>`;
           } else {
@@ -326,9 +401,9 @@
           }
           html += `</tr>`;
         });
-        html += `</table>`;
+        html += `</table></div>`;
       } else {
-        html += `</table><p style="margin-top:15px; color:#666;">Belum ada data atau data tidak ditemukan.</p>`;
+        html += `</table></div><p style="margin-top:15px; color:var(--text-muted); font-size: 0.9rem;">Belum ada data atau data tidak ditemukan.</p>`;
       }
       document.getElementById('table-container').innerHTML = html;
     }
@@ -348,14 +423,14 @@
       currentEditRowIndex = null;
       document.getElementById('modal-title').innerText = "Tambah Data (" + currentSheet + ")";
       renderFormFields({});
-      document.getElementById('formModal').style.display = "block";
+      document.getElementById('formModal').style.display = "flex";
     }
 
     function openModalForEdit(dataIndex) {
       currentEditRowIndex = globalRawData[dataIndex]._rowIndex;
       document.getElementById('modal-title').innerText = "Edit Data (" + currentSheet + ")";
       renderFormFields(globalRawData[dataIndex]);
-      document.getElementById('formModal').style.display = "block";
+      document.getElementById('formModal').style.display = "flex";
     }
 
     function renderFormFields(rowData) {
@@ -370,33 +445,31 @@
         
         let fieldElement = '';
         
-        // Logika otomatisasi ID untuk DINAS / umum saat Tambah Data baru
         if (!isEditMode && (hLower === 'id' || hLower === 'id_' || hLower === 'id_user' || hLower === 'id_menu')) {
           if (!val) {
             let prefix = currentSheet === 'users' ? 'USR' : (currentSheet === 'menu_pekerjaan' ? 'MNU' : 'ID');
             let randomNum = Math.floor(1000 + Math.random() * 9000);
             val = `${prefix}-${Date.now().toString().slice(-6)}${randomNum}`;
           }
-          fieldElement = `<input type="text" id="field-${h}" value="${val}" readonly style="background-color: #e9ecef; cursor: not-allowed;" title="ID dibuat otomatis oleh sistem">`;
+          fieldElement = `<input type="text" id="field-${h}" class="form-control" value="${val}" readonly style="background-color: #f1f5f9; cursor: not-allowed;" title="ID dibuat otomatis oleh sistem">`;
         }
 
-        // Logika untuk role SEKOLAH
         if (activeUser && activeUser.role === "SEKOLAH") {
           if (hLower.includes('npsn')) {
             val = activeUser.npsn || activeUser.username || '';
-            fieldElement = `<input type="text" id="field-${h}" value="${val}" readonly style="background-color: #e9ecef; cursor: not-allowed;">`;
+            fieldElement = `<input type="text" id="field-${h}" class="form-control" value="${val}" readonly style="background-color: #f1f5f9; cursor: not-allowed;">`;
           } else if (hLower.includes('nama_sekolah') || hLower.includes('namasekolah') || hLower.includes('nama sekolah') || hLower.includes('satuan_pendidikan')) {
             val = activeUser.nama_sekolah || '';
-            fieldElement = `<input type="text" id="field-${h}" value="${val}" readonly style="background-color: #e9ecef; cursor: not-allowed;">`;
+            fieldElement = `<input type="text" id="field-${h}" class="form-control" value="${val}" readonly style="background-color: #f1f5f9; cursor: not-allowed;">`;
           } else if (hLower.includes('kecamatan')) {
             val = activeUser.kecamatan || '';
-            fieldElement = `<input type="text" id="field-${h}" value="${val}" readonly style="background-color: #e9ecef; cursor: not-allowed;">`;
+            fieldElement = `<input type="text" id="field-${h}" class="form-control" value="${val}" readonly style="background-color: #f1f5f9; cursor: not-allowed;">`;
           } else if (hLower.includes('alamat')) {
             val = activeUser.alamat_lengkap || '';
-            fieldElement = `<input type="text" id="field-${h}" value="${val}" readonly style="background-color: #e9ecef; cursor: not-allowed;">`;
+            fieldElement = `<input type="text" id="field-${h}" class="form-control" value="${val}" readonly style="background-color: #f1f5f9; cursor: not-allowed;">`;
           } else if (currentSheet === 'laporan_progres' && (hLower === 'paket_id' || hLower === 'id_paket' || hLower === 'id_' || hLower === 'id')) {
             if (globalListPaketId && globalListPaketId.length > 0) {
-              fieldElement = `<select id="field-${h}">`;
+              fieldElement = `<select id="field-${h}" class="form-control">`;
               fieldElement += `<option value="">-- Pilih Paket Pekerjaan --</option>`;
               globalListPaketId.forEach(pid => {
                 let selected = (pid === String(val)) ? 'selected' : '';
@@ -404,16 +477,16 @@
               });
               fieldElement += `</select>`;
             } else {
-              fieldElement = `<input type="text" id="field-${h}" value="${val}" placeholder="Input data Paket Pekerjaan SD terlebih dahulu" readonly>`;
+              fieldElement = `<input type="text" id="field-${h}" class="form-control" value="${val}" placeholder="Input data Paket Pekerjaan SD terlebih dahulu" readonly>`;
             }
           }
         }
 
         if (!fieldElement) {
-          fieldElement = `<input type="text" id="field-${h}" value="${val}">`;
+          fieldElement = `<input type="text" id="field-${h}" class="form-control" value="${val}">`;
         }
 
-        fieldsHtml += `<div ${displayStyle}><label>${h}:</label>${fieldElement}</div>`;
+        fieldsHtml += `<div class="form-group" ${displayStyle}><label>${h}</label>${fieldElement}</div>`;
       });
       
       document.getElementById('dynamic-form-fields').innerHTML = fieldsHtml;
