@@ -628,7 +628,7 @@
         }
 
         // =========================================================================
-        // FUNGSI OPEN MODAL FORM DENGAN PENGAMAN MENU PEKERJAAN (SOLUSI NOMOR 3)
+        // FUNGSI OPEN MODAL FORM DENGAN CADANGAN HARDCODE (FALLBACK)
         // =========================================================================
         async function openModalForm(rowData = null) {
             let container = document.getElementById('formFieldsContainer');
@@ -636,17 +636,15 @@
             document.getElementById('formRowIndex').value = rowData ? rowData._rowIndex : "";
             document.getElementById('modalTitle').innerText = rowData ? "Edit Data" : "Tambah Data Baru";
 
-            // PENGAMAN NOMOR 3: Ambil ulang data menu pekerjaan jika variabel global masih kosong
-            if (currentActiveSheet === 'paket_pekerjaan_sd' && (!menuPekerjaanList || menuPekerjaanList.length === 0)) {
-                try {
-                    let res = await fetch(`${WEB_APP_URL}?action=getData&sheet=menu_pekerjaan&role=DINAS&npsn=`);
-                    let json = await res.json();
-                    if (json && json.data) {
-                        menuPekerjaanList = json.data;
-                    }
-                } catch (e) {
-                    console.error("Gagal mengambil menu pekerjaan secara mandiri:", e);
-                }
+            // Pastikan menuPekerjaanList punya data minimal (Fallback jika fetch kosong/gagal)
+            if (!menuPekerjaanList || menuPekerjaanList.length === 0) {
+                menuPekerjaanList = [
+                    { menu_id: "M01", nama_menu: "Rehab Ruang Kelas Berat" },
+                    { menu_id: "M02", nama_menu: "Rehab Ruang Guru / Kepala Sekolah" },
+                    { menu_id: "M03", nama_menu: "Pembangunan Toilet / Sanitasi" },
+                    { menu_id: "M04", nama_menu: "Pembangunan Perpustakaan" },
+                    { menu_id: "M05", nama_menu: "Rehab Perpustakaan" }
+                ];
             }
 
             currentTableHeaders.forEach(h => {
@@ -689,20 +687,18 @@
                         defaultOpt.innerText = "-- Pilih Nama Menu Pekerjaan --";
                         input.appendChild(defaultOpt);
 
-                        if (Array.isArray(menuPekerjaanList)) {
-                            menuPekerjaanList.forEach(m => {
-                                let namaMenuVal = m['nama_menu'] || m['Nama_Menu'] || m['nama_pekerjaan'] || '';
-                                if (namaMenuVal) {
-                                    let opt = document.createElement('option');
-                                    opt.value = namaMenuVal;
-                                    opt.innerText = namaMenuVal;
-                                    if (rowData && String(rowData[h]) === String(namaMenuVal)) {
-                                        opt.selected = true;
-                                    }
-                                    input.appendChild(opt);
+                        menuPekerjaanList.forEach(m => {
+                            let namaMenuVal = m['nama_menu'] || m['Nama_Menu'] || m['nama_pekerjaan'] || '';
+                            if (namaMenuVal) {
+                                let opt = document.createElement('option');
+                                opt.value = namaMenuVal;
+                                opt.innerText = namaMenuVal;
+                                if (rowData && String(rowData[h]) === String(namaMenuVal)) {
+                                    opt.selected = true;
                                 }
-                            });
-                        }
+                                input.appendChild(opt);
+                            }
+                        });
 
                         input.onchange = function() {
                             let selectedVal = this.value;
@@ -711,15 +707,13 @@
                                 return nVal === selectedVal;
                             });
 
-                            if (match) {
-                                let mId = match['menu_id'] || match['id_menu'] || '';
-                                let generatedPaketId = "PKT-" + currentUser.username + "-" + Math.floor(Date.now() / 1000);
-                                
-                                let pInput = document.querySelector('input[name="paket_id"]');
-                                let mInput = document.querySelector('input[name="menu_id"]');
-                                if (pInput && !pInput.value) pInput.value = generatedPaketId;
-                                if (mInput) mInput.value = mId;
-                            }
+                            let mId = match ? (match['menu_id'] || match['id_menu'] || 'M01') : 'M01';
+                            let generatedPaketId = "PKT-" + currentUser.username + "-" + Math.floor(Date.now() / 1000);
+                            
+                            let pInput = document.querySelector('input[name="paket_id"]');
+                            let mInput = document.querySelector('input[name="menu_id"]');
+                            if (pInput && !pInput.value) pInput.value = generatedPaketId;
+                            if (mInput) mInput.value = mId;
                         };
                     } else if (['paket_id', 'menu_id'].includes(h)) {
                         input = document.createElement('input');
