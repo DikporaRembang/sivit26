@@ -186,9 +186,60 @@
         </div>
     </div>
 
+    <!-- ================= MODAL POPUP RIWAYAT PAGU ================= -->
+    <div class="modal fade fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center p-4 z-50" id="modalRiwayatPagu" tabindex="-1" aria-hidden="true">
+      <div class="bg-white rounded-xl max-w-4xl w-full p-6 shadow-xl border border-slate-100">
+        <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-100 bg-dark text-white p-3 rounded-t-xl -mt-6 -mx-6 bg-slate-800">
+          <h5 class="font-bold text-sm flex items-center">
+            <i class="fa-solid fa-clock-rotate-left mr-2"></i> Jejak Riwayat Pagu Anggaran
+          </h5>
+          <button type="button" class="text-slate-300 hover:text-white" onclick="closeRiwayatModal()"><i class="fa-solid fa-xmark text-lg"></i></button>
+        </div>
+        
+        <div class="space-y-4 pt-2">
+          <!-- KOTAK INFORMASI SEKOLAH & MENU PEKERJAAN -->
+          <div class="bg-slate-50 rounded-lg p-3 border border-slate-200">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <span class="text-slate-400 block text-[10px] uppercase font-bold">Nama Sekolah / NPSN</span>
+                <h6 id="infoNamaSekolah" class="text-blue-600 font-bold text-xs mt-0.5">Memuat...</h6>
+              </div>
+              <div>
+                <span class="text-slate-400 block text-[10px] uppercase font-bold">Menu Pekerjaan</span>
+                <h6 id="infoNamaMenu" class="text-slate-700 font-bold text-xs mt-0.5">Memuat...</h6>
+              </div>
+            </div>
+          </div>
+
+          <!-- TABEL RIWAYAT -->
+          <div class="overflow-x-auto max-h-[50vh]">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead class="bg-slate-100 text-slate-600 uppercase tracking-wider border-b border-slate-200 text-center">
+                <tr>
+                  <th class="p-2.5">No</th>
+                  <th class="p-2.5">Waktu Perubahan</th>
+                  <th class="p-2.5 text-right">Pagu Lama</th>
+                  <th class="p-2.5 text-right">Pagu Baru</th>
+                  <th class="p-2.5">Selisih</th>
+                  <th class="p-2.5">Keterangan / Alasan</th>
+                </tr>
+              </thead>
+              <tbody id="tabelRiwayatBody" class="divide-y divide-slate-100 text-slate-700">
+                <!-- Data dimuat dinamis via JavaScript -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+        
+        <div class="flex justify-end pt-4 mt-4 border-t border-slate-100">
+          <button type="button" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-xs font-medium" onclick="closeRiwayatModal()">Tutup</button>
+        </div>
+      </div>
+    </div>
+
     <!-- ================= SCRIPT LOGIC ================= -->
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwHSYRbz3IG0K0hGv8x8uTaf5ynsUdGII884UCBKIAwBRhlcFOlcTTx3Mn-GwJE0XGqOQ/exec";
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxkSUx1yOzmUP9aCN6q52Pc6LoMo9qigd5wcN-5gFv6ov6xybtEXnbctebxlXsepp_C1w/exec";
 
         let currentUser = null;
         let currentActiveSheet = "";
@@ -523,6 +574,14 @@
                         btnEdit.onclick = () => openModalForm(row);
                         tdAct.appendChild(btnEdit);
                     } else {
+                        if (sheetName === 'paket_pekerjaan_sd') {
+                            let btnRiwayat = document.createElement('button');
+                            btnRiwayat.className = "px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded text-[11px] font-medium border border-indigo-200 mr-1";
+                            btnRiwayat.innerHTML = `<i class="fa-solid fa-clock-rotate-left mr-1"></i> Riwayat Pagu`;
+                            btnRiwayat.onclick = () => bukaRiwayatPagu(row.npsn || currentUser.username, row.paket_id);
+                            tdAct.appendChild(btnRiwayat);
+                        }
+
                         let btnEdit = document.createElement('button');
                         btnEdit.className = "px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-600 rounded text-[11px] font-medium border border-amber-200";
                         btnEdit.innerHTML = `<i class="fa-solid fa-pen-to-square"></i>`;
@@ -745,6 +804,74 @@
         function closeModal() {
             document.getElementById('dataModal').classList.add('hidden');
             document.getElementById('dataModal').classList.remove('flex');
+        }
+
+        // ================= LOGIKA RIWAYAT PAGU =================
+        function bukaRiwayatPagu(npsn, paketId) {
+            let tbody = document.getElementById('tabelRiwayatBody');
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-slate-500">Memuat data riwayat...</td></tr>';
+            
+            document.getElementById('infoNamaSekolah').innerText = "Memuat...";
+            document.getElementById('infoNamaMenu').innerText = "Memuat...";
+            
+            let modal = document.getElementById('modalRiwayatPagu');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+
+            fetch(`${WEB_APP_URL}?action=getData&sheet=riwayat_pagu&role=DINAS&npsn=`)
+            .then(res => res.json())
+            .then(res => {
+                let filtered = res.data.filter(item => String(item.npsn) === String(npsn) && String(item.paket_id) === String(paketId));
+                tbody.innerHTML = "";
+                
+                if (filtered.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-slate-400 py-4">Belum ada riwayat perubahan pagu untuk paket ini.</td></tr>';
+                    document.getElementById('infoNamaSekolah').innerText = "NPSN: " + npsn;
+                    document.getElementById('infoNamaMenu').innerText = "Paket ID: " + paketId;
+                    return;
+                }
+                
+                document.getElementById('infoNamaSekolah').innerText = "NPSN: " + npsn;
+                document.getElementById('infoNamaMenu').innerText = "Paket ID: " + paketId;
+                
+                filtered.forEach(function(item, index) {
+                    let paguLama = Number(item.pagu_lama) || 0;
+                    let paguBaru = Number(item.pagu_baru) || 0;
+                    let selisih = paguBaru - paguLama;
+                    let badgeSelisih = "";
+                    
+                    if (selisih > 0) {
+                        badgeSelisih = `<span class="text-emerald-600 font-bold">+ Rp ${formatRupiah(selisih)} (Naik)</span>`;
+                    } else if (selisih < 0) {
+                        badgeSelisih = `<span class="text-red-600 font-bold">- Rp ${formatRupiah(Math.abs(selisih))} (Turun)</span>`;
+                    } else {
+                        badgeSelisih = `<span class="text-slate-500">Tetap</span>`;
+                    }
+                    
+                    let row = `<tr class="hover:bg-slate-50">
+                        <td class="text-center p-2.5">${index + 1}</td>
+                        <td class="p-2.5"><small>${item.timestamp || '-'}</small></td>
+                        <td class="text-right p-2.5">Rp ${formatRupiah(paguLama)}</td>
+                        <td class="text-right p-2.5">Rp ${formatRupiah(paguBaru)}</td>
+                        <td class="text-center p-2.5">${badgeSelisih}</td>
+                        <td class="p-2.5">${item.alasan || '-'}</td>
+                    </tr>`;
+                    tbody.innerHTML += row;
+                });
+            })
+            .catch(err => {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center text-red-500 py-3">Gagal memuat data riwayat.</td></tr>`;
+            });
+        }
+
+        function closeRiwayatModal() {
+            let modal = document.getElementById('modalRiwayatPagu');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function formatRupiah(angka) {
+            return Number(angka).toLocaleString('id-ID');
         }
 
         function handleFormSubmit(e) {
