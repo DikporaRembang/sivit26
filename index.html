@@ -893,6 +893,17 @@
                 container.appendChild(div);
             });
 
+            // Logic tambahan: Jika mengedit paket_pekerjaan_sd, tambahkan field input Alasan Perubahan Pagu secara dinamis
+            if (currentActiveSheet === 'paket_pekerjaan_sd' && rowData) {
+                let divAlasan = document.createElement('div');
+                divAlasan.className = "space-y-1 pt-2 border-t border-slate-100";
+                divAlasan.innerHTML = `
+                    <label class="block text-xs font-semibold text-amber-600 uppercase">Alasan Perubahan Pagu (Opsional)</label>
+                    <input type="text" name="alasan_pagu" placeholder="Keterangan / alasan jika pagu berubah..." class="w-full px-3 py-2 border border-amber-300 rounded-lg text-xs focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                `;
+                container.appendChild(divAlasan);
+            }
+
             if (currentActiveSheet === 'laporan_progres' && rowData && rowData['paket_id']) {
                 updateMingguKeOptions(rowData['paket_id'], rowData['minggu_ke']);
             }
@@ -1061,8 +1072,18 @@
             let formData = {};
 
             document.querySelectorAll('#formFieldsContainer input, #formFieldsContainer select, #formFieldsContainer textarea').forEach(input => {
-                formData[input.name] = input.value;
+                if(input.name) {
+                    formData[input.name] = input.value;
+                }
             });
+
+            // Clean currency formatting for numeric submission
+            if (formData['pagu']) {
+                formData['pagu'] = formData['pagu'].toString().replace(/[^0-9]/g, '');
+            }
+            if (formData['penggunaan_anggaran']) {
+                formData['penggunaan_anggaran'] = formData['penggunaan_anggaran'].toString().replace(/[^0-9]/g, '');
+            }
 
             if (currentUser.role === 'SEKOLAH') {
                 if (formData['npsn'] !== undefined) formData['npsn'] = currentUser.username;
