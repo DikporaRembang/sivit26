@@ -252,18 +252,13 @@
 
       // Tombol ENTER
       if (event.key === 'Enter') {
-        // Jika berada di dalam modal form
         if (formModal.style.display === 'flex') {
           event.preventDefault();
           submitForm();
-        }
-        // Jika berada di dalam modal rubah pagu
-        else if (paguModal.style.display === 'flex') {
+        } else if (paguModal.style.display === 'flex') {
           event.preventDefault();
           submitRubahPagu();
-        }
-        // Jika berada di layar login/register
-        else if (!authScreen.classList.contains('hidden')) {
+        } else if (!authScreen.classList.contains('hidden')) {
           event.preventDefault();
           let isLoginActive = !document.getElementById('form-login').classList.contains('hidden');
           if (isLoginActive) {
@@ -271,9 +266,7 @@
           } else {
             handleRegister();
           }
-        }
-        // Jika sedang mengetik di kolom pencarian tabel
-        else if (document.activeElement === searchInput) {
+        } else if (document.activeElement === searchInput) {
           event.preventDefault();
           filterTable();
         }
@@ -484,7 +477,14 @@
         globalRawData = result.data || [];
         document.getElementById('page-title').innerText = "Data: " + sheetName;
 
-        let canAdd = (activeUser.role === "DINAS") || (activeUser.role === "SEKOLAH" && (sheetName === 'paket_pekerjaan_sd' || sheetName === 'laporan_progres'));
+        // Logika pembatasan tombol Tambah Data Baru yang sudah disesuaikan
+        let canAdd = false;
+        if (activeUser.role === "SEKOLAH") {
+          canAdd = (sheetName === 'paket_pekerjaan_sd' || sheetName === 'laporan_progres');
+        } else if (activeUser.role === "DINAS") {
+          canAdd = (sheetName !== 'paket_pekerjaan_sd' && sheetName !== 'laporan_progres' && sheetName !== 'riwayat_pagu');
+        }
+
         let actionHtml = '';
         if (canAdd && sheetName !== 'riwayat_pagu') {
           actionHtml += `<button class="btn-action btn-add" onclick="openModalForAdd()">+ Tambah Data Baru</button>`;
