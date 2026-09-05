@@ -313,7 +313,6 @@
             let actionContainer = document.getElementById('actionButtonContainer');
             actionContainer.innerHTML = "";
 
-            // Pengaturan Tombol Tambah & Cetak Berdasarkan Role & Menu
             let canAdd = false;
             let canPrint = false;
 
@@ -378,7 +377,7 @@
             
             let showActionColumn = true;
             if (currentUser.role === 'DINAS' && ['paket_pekerjaan_sd', 'laporan_progres', 'riwayat_pagu'].includes(sheetName)) {
-                showActionColumn = false; // Dinas hanya bisa lihat dan cetak pada menu ini
+                showActionColumn = false;
             }
 
             if (showActionColumn) {
@@ -426,14 +425,12 @@
                         btnReject.onclick = () => verifyReg(row.username || row.npsn, 'REJECTED');
                         tdAct.appendChild(btnReject);
                     } else {
-                        // Tombol Edit
                         let btnEdit = document.createElement('button');
                         btnEdit.className = "px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-600 rounded text-[11px] font-medium border border-amber-200";
                         btnEdit.innerHTML = `<i class="fa-solid fa-pen-to-square"></i>`;
                         btnEdit.onclick = () => openModalForm(row);
                         tdAct.appendChild(btnEdit);
 
-                        // Tombol Hapus (DINAS bisa hapus data sekolah & menu_pekerjaan; SEKOLAH tidak bisa hapus sama sekali)
                         if (currentUser.role === 'DINAS') {
                             let btnDel = document.createElement('button');
                             btnDel.className = "px-2.5 py-1 bg-red-50 hover:bg-red-100 text-red-600 rounded text-[11px] font-medium border border-red-200";
@@ -507,7 +504,8 @@
 
         function handleFormSubmit(e) {
             e.preventDefault();
-            let rowIndex = document.getElementById('formRowIndex').value;
+            let rawRowIndex = document.getElementById('formRowIndex').value;
+            let rowIndex = rawRowIndex ? Number(rawRowIndex) : null;
             let formData = {};
 
             document.querySelectorAll('#formFieldsContainer input').forEach(input => {
@@ -538,7 +536,7 @@
             })
             .catch(err => {
                 document.getElementById('btnSaveModal').innerText = "Simpan Data";
-                alert("Kesalahan jaringan.");
+                alert("Kesalahan jaringan saat menyimpan data.");
             });
         }
 
@@ -547,7 +545,7 @@
 
             fetch(WEB_APP_URL, {
                 method: "POST",
-                body: JSON.stringify({ action: "deleteData", sheet: currentActiveSheet, rowIndex: rowIndex })
+                body: JSON.stringify({ action: "deleteData", sheet: currentActiveSheet, rowIndex: Number(rowIndex) })
             })
             .then(res => res.json())
             .then(res => {
