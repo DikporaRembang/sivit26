@@ -73,7 +73,7 @@
       <a href="#" class="menu-item" onclick="loadData('paket_pekerjaan_sd', this)">🏗️ Paket Pekerjaan SD</a>
       <a href="#" class="menu-item" onclick="loadData('laporan_progres', this)">📊 Laporan Progres</a>
       <a href="#" class="menu-item" onclick="loadData('riwayat_pagu', this)">💰 Riwayat Pagu</a>
-      <a href="#" class="logout-btn" onclick="location.reload()">🚪 Keluar / Logout</a>
+      <a href="#" class="logout-btn" onclick="logout()">🚪 Keluar / Logout</a>
     </div>
 
     <div class="content">
@@ -107,6 +107,15 @@
     let globalRawData = [];
     let globalListPaketId = [];
 
+    // Cek sesi login saat halaman pertama kali dimuat / di-refresh
+    window.onload = function() {
+      let savedUser = sessionStorage.getItem('sivit26_user');
+      if (savedUser) {
+        activeUser = JSON.parse(savedUser);
+        tampilkanDashboardUtama();
+      }
+    };
+
     function switchTab(target) {
       if (target === 'login') {
         document.getElementById('form-login').classList.remove('hidden');
@@ -131,19 +140,30 @@
         let data = await res.json();
         if (data.status === "success") {
           activeUser = data;
-          document.getElementById('auth-screen').classList.add('hidden');
-          document.getElementById('app-screen').classList.remove('hidden');
-          document.getElementById('user-info').innerText = `Masuk sebagai: ${activeUser.nama} | Role: ${activeUser.role} ${activeUser.npsn ? '(NPSN: '+activeUser.npsn+')' : ''}`;
-          
-          if (activeUser.role === "SEKOLAH") {
-            document.querySelectorAll('.dinas-only').forEach(el => el.classList.add('hidden'));
-          }
+          // Simpan sesi ke sessionStorage agar tahan saat refresh
+          sessionStorage.setItem('sivit26_user', JSON.stringify(activeUser));
+          tampilkanDashboardUtama();
         } else {
           alert(data.pesan);
         }
       } catch (err) {
         alert("Gagal koneksi ke server: " + err);
       }
+    }
+
+    function tampilkanDashboardUtama() {
+      document.getElementById('auth-screen').classList.add('hidden');
+      document.getElementById('app-screen').classList.remove('hidden');
+      document.getElementById('user-info').innerText = `Masuk sebagai: ${activeUser.nama} | Role: ${activeUser.role} ${activeUser.npsn ? '(NPSN: '+activeUser.npsn+')' : ''}`;
+      
+      if (activeUser.role === "SEKOLAH") {
+        document.querySelectorAll('.dinas-only').forEach(el => el.classList.add('hidden'));
+      }
+    }
+
+    function logout() {
+      sessionStorage.removeItem('sivit26_user');
+      location.reload();
     }
 
     async function handleRegister() {
@@ -196,6 +216,7 @@
         if (globalRawData.length > 0) {
           globalRawData.forEach((row, index) => {
             html += `<tr>`;
+            currentHeader.querySelector?.(h => {}); // Safe traversal check
             currentHeader.forEach(h => {
               html += `<td>${row[h] !== undefined && row[h] !== null ? row[h] : ''}</td>`;
             });
@@ -224,77 +245,44 @@
     function openModalForAdd() {
       currentEditRowIndex = null;
       document.getElementById('modal-title').innerText = "Tambah Data (" + currentSheet + ")";
-      let fieldsHtml = '';
-      
-      currentHeader.forEach(h => {
-        let hLower = String(h).toLowerCase().trim();
-        let isHiddenId = (currentSheet === 'riwayat_pagu' && hLower === 'id_') || (currentSheet === 'paket_pekerjaan_sd' && ['id_', 'id', 'id_paket'].includes(hLower));
-        let displayStyle = isHiddenId ? 'style="display:none;"' : '';
-        
-        let fieldElement = '';
-        
-        if (activeUser.role === "SEKOLAH") {
-          // 1. Kolom NPSN otomatis terisi & terkunci
-          if (hLower === 'npsn') {
-            fieldElement = `<input type="text" id="field-${h}" value="${activeUser.npsn}" readonly style="background-color: #e9ecef; cursor: not-allowed;">`;
-          } 
-          // 2. Kolom Nama Sekolah otomatis terisi & terkunci
-          else if (hLower === 'nama_sekolah' || hLower === 'nama sekolah') {
-            fieldElement = `<input type="text" id="field-${h}" value="${activeUser.nama}" readonly style="background-color: #e9ecef; cursor: not-allowed;">`;
-          } 
-          // 3. Kolom paket_id pada laporan_progres diubah menjadi Dropdown pilihan paket_id milik sekolah tersebut
-          else if (currentSheet === 'laporan_progres' && ['paket_id', 'id_paket', 'id_'].includes(hLower)) {
-            if (globalListPaketId.length > 0) {
-              fieldElement = `<select id="field-${h}">`;
-              fieldElement += `<option value="">-- Pilih Paket Pekerjaan --</option>`;
-              globalListPaketId.forEach(pid => {
-                fieldElement += `<option value="${pid}">${pid}</option>`;
-              });
-              fieldElement += `</select>`;
-            } else {
-              fieldElement = `<input type="text" id="field-${h}" placeholder="Belum ada Paket Pekerjaan terinput" readonly>`;
-            }
-          }
-        }
-
-        // Jika belum terisi oleh aturan khusus di atas, buat input teks standar
-        if (!fieldElement) {
-          fieldElement = `<input type="text" id="field-${h}" value="">`;
-        }
-
-        fieldsHtml += `<div ${displayStyle}><label>${h}:</label>${fieldElement}</div>`;
-      });
-      
-      document.getElementById('dynamic-form-fields').innerHTML = fieldsHtml;
+      renderFormFields({});
       document.getElementById('formModal').style.display = "block";
     }
 
     function openModalForEdit(dataIndex) {
       currentEditRowIndex = globalRawData[dataIndex]._rowIndex;
       document.getElementById('modal-title').innerText = "Edit Data (" + currentSheet + ")";
-      let rowData = globalRawData[dataIndex];
+      renderFormFields(globalRawData[dataIndex]);
+      document.getElementById('formModal').style.display = "block";
+    }
+
+    function renderFormFields(rowData) {
       let fieldsHtml = '';
       
       currentHeader.forEach(h => {
         let hLower = String(h).toLowerCase().trim();
         let val = rowData[h] !== undefined ? rowData[h] : '';
+        let isHiddenId = (currentSheet === 'riwayat_pagu' && hLower === 'id_') || (currentSheet === 'paket_pekerjaan_sd' && (hLower === 'id_' || hLower === 'id' || hLower === 'id_paket'));
+        let displayStyle = isHiddenId ? 'style="display:none;"' : '';
+        
         let fieldElement = '';
         
         if (activeUser.role === "SEKOLAH") {
           if (hLower === 'npsn') {
             fieldElement = `<input type="text" id="field-${h}" value="${activeUser.npsn}" readonly style="background-color: #e9ecef; cursor: not-allowed;">`;
-          } else if (hLower === 'nama_sekolah' || hLower === 'nama sekolah') {
+          } else if (hLower === 'nama_sekolah' || hLower === 'nama sekolah' || hLower === 'namasekolah') {
             fieldElement = `<input type="text" id="field-${h}" value="${activeUser.nama}" readonly style="background-color: #e9ecef; cursor: not-allowed;">`;
-          } else if (currentSheet === 'laporan_progres' && ['paket_id', 'id_paket', 'id_'].includes(hLower)) {
+          } else if (currentSheet === 'laporan_progres' && (hLower === 'paket_id' || hLower === 'id_paket' || hLower === 'id_' || hLower === 'id')) {
             if (globalListPaketId.length > 0) {
               fieldElement = `<select id="field-${h}">`;
+              fieldElement += `<option value="">-- Pilih Paket Pekerjaan --</option>`;
               globalListPaketId.forEach(pid => {
                 let selected = (pid === String(val)) ? 'selected' : '';
                 fieldElement += `<option value="${pid}" ${selected}>${pid}</option>`;
               });
               fieldElement += `</select>`;
             } else {
-              fieldElement = `<input type="text" id="field-${h}" value="${val}">`;
+              fieldElement = `<input type="text" id="field-${h}" value="${val}" placeholder="Input data Paket Pekerjaan SD terlebih dahulu" readonly>`;
             }
           }
         }
@@ -303,11 +291,10 @@
           fieldElement = `<input type="text" id="field-${h}" value="${val}">`;
         }
 
-        fieldsHtml += `<div><label>${h}:</label>${fieldElement}</div>`;
+        fieldsHtml += `<div ${displayStyle}><label>${h}:</label>${fieldElement}</div>`;
       });
       
       document.getElementById('dynamic-form-fields').innerHTML = fieldsHtml;
-      document.getElementById('formModal').style.display = "block";
     }
 
     function closeModal() { document.getElementById('formModal').style.display = "none"; }
