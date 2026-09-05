@@ -627,11 +627,27 @@
             }
         }
 
-        function openModalForm(rowData = null) {
+        // =========================================================================
+        // FUNGSI OPEN MODAL FORM DENGAN PENGAMAN MENU PEKERJAAN (SOLUSI NOMOR 3)
+        // =========================================================================
+        async function openModalForm(rowData = null) {
             let container = document.getElementById('formFieldsContainer');
             container.innerHTML = "";
             document.getElementById('formRowIndex').value = rowData ? rowData._rowIndex : "";
             document.getElementById('modalTitle').innerText = rowData ? "Edit Data" : "Tambah Data Baru";
+
+            // PENGAMAN NOMOR 3: Ambil ulang data menu pekerjaan jika variabel global masih kosong
+            if (currentActiveSheet === 'paket_pekerjaan_sd' && (!menuPekerjaanList || menuPekerjaanList.length === 0)) {
+                try {
+                    let res = await fetch(`${WEB_APP_URL}?action=getData&sheet=menu_pekerjaan&role=DINAS&npsn=`);
+                    let json = await res.json();
+                    if (json && json.data) {
+                        menuPekerjaanList = json.data;
+                    }
+                } catch (e) {
+                    console.error("Gagal mengambil menu pekerjaan secara mandiri:", e);
+                }
+            }
 
             currentTableHeaders.forEach(h => {
                 if(h.toLowerCase().includes('id_riwayat')) return;
