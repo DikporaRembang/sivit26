@@ -24,8 +24,10 @@
     .btn-action { padding: 5px 10px; margin-right: 5px; border: none; border-radius: 3px; cursor: pointer; font-size: 0.8rem; color: white; }
     .btn-edit { background-color: #f39c12; }
     .btn-del { background-color: #e74c3c; }
-    .btn-tambah { background-color: #27ae60; margin-bottom: 15px; width: auto; padding: 10px 20px; }
-    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+    .btn-tambah { background-color: #27ae60; width: auto; padding: 10px 20px; display: inline-block; }
+    .table-header-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; }
+    .search-box { padding: 8px 12px; width: 280px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.9rem; margin: 0; }
+    table { width: 100%; border-collapse: collapse; margin-top: 5px; }
     th, td { border: 1px solid #ddd; padding: 10px; text-align: left; font-size: 0.9rem; }
     th { background-color: #f8f9fa; }
     .modal { display: none; position: fixed; z-index: 99; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
@@ -82,7 +84,10 @@
       <div class="card">
         <h3 id="page-title">Selamat Datang</h3>
         <div id="user-profile-container"></div>
-        <div id="action-container"></div>
+        <div class="table-header-controls">
+          <div id="action-container"></div>
+          <input type="text" id="search-input" class="search-box hidden" placeholder="🔍 Cari data di tabel..." onkeyup="filterTable()">
+        </div>
         <div id="table-container"><p>Silakan pilih menu di sebelah kiri.</p></div>
       </div>
     </div>
@@ -100,7 +105,7 @@
 
   <script>
     // MASUKKAN URL WEB APP GOOGLE APPS SCRIPT ANDA DI SINI (Akhiran /exec)
-    const API_URL = "https://script.google.com/macros/s/AKfycbyVSSHJ-4wHah4HB9FH6tay1f4nTgDYGfM1VFfTS5JXUtyDbu3QwHxRMcC_eeAW5H9wRA/exec";
+    const API_URL = "AKfycbyVSSHJ-4wHah4HB9FH6tay1f4nTgDYGfM1VFfTS5JXUtyDbu3QwHxRMcC_eeAW5H9wRA";
 
     let activeUser = null;
     let currentSheet = '';
@@ -114,9 +119,7 @@
       if (savedUser) {
         activeUser = JSON.parse(savedUser);
         if (activeUser.role === "SEKOLAH") {
-          if (!activeUser.npsn) {
-            activeUser.npsn = activeUser.username;
-          }
+          if (!activeUser.npsn) activeUser.npsn = activeUser.username;
           await fetchSchoolProfile();
         }
         tampilkanDashboardUtama();
@@ -248,6 +251,11 @@
       }
     }
 
+    function formatRupiah(angka) {
+      if (!angka || isNaN(angka)) return angka;
+      return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka);
+    }
+
     async function loadData(sheetName, element) {
       currentSheet = sheetName;
       document.getElementById('page-title').innerText = "Memuat data " + sheetName + "...";
@@ -271,40 +279,71 @@
           actionHtml += `<button class="btn-action btn-tambah" onclick="openModalForAdd()">+ Tambah Data Baru</button>`;
         }
         document.getElementById('action-container').innerHTML = actionHtml;
-
-        let html = `<table><tr>`;
-        currentHeader.forEach(h => { html += `<th>${h}</th>`; });
-        if (activeUser.role === "DINAS" || (activeUser.role === "SEKOLAH" && sheetName === 'paket_pekerjaan_sd')) {
-          html += `<th>Aksi</th>`;
-        }
-        html += `</tr>`;
-
+        
+        // Tampilkan kotak pencarian jika data ada
+        let searchInputEl = document.getElementById('search-input');
         if (globalRawData.length > 0) {
-          globalRawData.forEach((row, index) => {
-            html += `<tr>`;
-            currentHeader.forEach(h => {
-              html += `<td>${row[h] !== undefined && row[h] !== null ? row[h] : ''}</td>`;
-            });
-            let canEdit = (activeUser.role === "DINAS") || (activeUser.role === "SEKOLAH" && sheetName === 'paket_pekerjaan_sd');
-            let canDel = (activeUser.role === "DINAS");
-            if (sheetName !== 'riwayat_pagu' && (canEdit || canDel)) {
-              html += `<td>`;
-              if (canEdit) html += `<button class="btn-action btn-edit" onclick="openModalForEdit(${index})">Edit</button>`;
-              if (canDel) html += `<button class="btn-action btn-del" onclick="hapusData(${row._rowIndex})">Hapus</button>`;
-              html += `</td>`;
-            } else {
-              html += `<td>-</td>`;
-            }
-            html += `</tr>`;
-          });
-          html += `</table>`;
+          searchInputEl.classList.remove('hidden');
+          searchInputEl.value = '';
         } else {
-          html += `</table><p style="margin-top:15px; color:#666;">Belum ada data untuk instansi Anda.</p>`;
+          searchInputEl.classList.add('hidden');
         }
-        document.getElementById('table-container').innerHTML = html;
+
+        renderTableContent(globalRawData);
       } catch (err) {
         alert("Gagal memuat data: " + err);
       }
+    }
+
+    function renderTableContent(dataList) {
+      let html = `<table id="dataTable"><tr>`;
+      currentHeader.forEach(h => { html += `<th>${h}</th>`; });
+      if (activeUser.role === "DINAS" || (activeUser.role === "SEKOLAH" && currentSheet === 'paket_pekerjaan_sd')) {
+        html += `<th>Aksi</th>`;
+      }
+      html += `</tr>`;
+
+      if (dataList.length > 0) {
+        dataList.forEach((row, index) => {
+          let originalIndex = globalRawData.indexOf(row);
+          html += `<tr>`;
+          currentHeader.forEach(h => {
+            let val = row[h] !== undefined && row[h] !== null ? row[h] : '';
+            let hLower = String(h).toLowerCase();
+            // Format otomatis jika kolom terkait keuangan/pagu/nilai
+            if ((hLower.includes('pagu') || hLower.includes('nilai') || hLower.includes('anggaran') || hLower.includes('biaya')) && !isNaN(val) && val !== '') {
+              val = formatRupiah(val);
+            }
+            html += `<td>${val}</td>`;
+          });
+          let canEdit = (activeUser.role === "DINAS") || (activeUser.role === "SEKOLAH" && currentSheet === 'paket_pekerjaan_sd');
+          let canDel = (activeUser.role === "DINAS");
+          if (currentSheet !== 'riwayat_pagu' && (canEdit || canDel)) {
+            html += `<td>`;
+            if (canEdit) html += `<button class="btn-action btn-edit" onclick="openModalForEdit(${originalIndex})">Edit</button>`;
+            if (canDel) html += `<button class="btn-action btn-del" onclick="hapusData(${row._rowIndex})">Hapus</button>`;
+            html += `</td>`;
+          } else {
+            html += `<td>-</td>`;
+          }
+          html += `</tr>`;
+        });
+        html += `</table>`;
+      } else {
+        html += `</table><p style="margin-top:15px; color:#666;">Belum ada data atau data tidak ditemukan.</p>`;
+      }
+      document.getElementById('table-container').innerHTML = html;
+    }
+
+    function filterTable() {
+      let query = document.getElementById('search-input').value.toLowerCase();
+      let filtered = globalRawData.filter(row => {
+        return currentHeader.some(h => {
+          let val = String(row[h] || '').toLowerCase();
+          return val.includes(query);
+        });
+      });
+      renderTableContent(filtered);
     }
 
     function openModalForAdd() {
