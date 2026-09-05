@@ -1147,5 +1147,81 @@
             .catch(err => alert("Gagal menghapus data."));
         }
     </script>
+    <script>
+/**
+ * Fungsi utama untuk membuka dan menampilkan riwayat pagu berdasarkan npsn dan paket id.
+ */
+function bukaRiwayatPagu(npsn, paketId) {
+    Swal.fire({
+        title: 'Memuat Riwayat Pagu...',
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
+
+    google.script.run
+        .withSuccessHandler(function(res) {
+            Swal.close();
+            if (res.status === 'success') {
+                // Filter data secara aman di sisi klien (mengabaikan spasi dan perbedaan kapital)
+                let filtered = res.data.filter(item => {
+                    let itemNpsn = String(item.npsn || item.NPSN || '').trim();
+                    let itemPaket = String(item.paket_id || item.ID_Paket || '').trim();
+                    return itemNpsn === String(npsn).trim() && itemPaket === String(paketId).trim();
+                });
+
+                renderTabelRiwayatModal(filtered);
+            } else {
+                Swal.fire('Gagal', res.message, 'error');
+            }
+        })
+        .withFailureHandler(function(err) {
+            Swal.close();
+            Swal.fire('Error', err.message, 'error');
+        })
+        .getData('riwayat_pagu', currentUser.role, currentUser.username);
+}
+
+/**
+ * Fungsi untuk merender tampilan modal tabel riwayat pagu.
+ */
+function renderTabelRiwayatModal(dataList) {
+    let html = `<div class="table-responsive"><table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>ID Riwayat</th>
+                <th>Pagu Lama</th>
+                <th>Pagu Baru</th>
+                <th>Tanggal</th>
+                <th>Keterangan</th>
+            </tr>
+        </thead>
+        <tbody>`;
+
+    if (dataList.length === 0) {
+        html += `<tr><td colspan="5" class="text-center">Tidak ada riwayat pagu untuk paket ini.</td></tr>`;
+    } else {
+        dataList.forEach(row => {
+            html += `<tr>
+                <td>${row.id_riwayat || '-'}</td>
+                <td>Rp ${Number(row.pagu_lama || 0).toLocaleString('id-ID')}</td>
+                <td>Rp ${Number(row.pagu_baru || 0).toLocaleString('id-ID')}</td>
+                <td>${row.tanggal ? new Date(row.tanggal).toLocaleString('id-ID') : '-'}</td>
+                <td>${row.keterangan || '-'}</td>
+            </tr>`;
+        });
+    }
+
+    html += `</tbody></table></div>`;
+
+    Swal.fire({
+        title: 'Riwayat Perubahan Pagu',
+        html: html,
+        width: '800px',
+        confirmButtonText: 'Tutup'
+    });
+}
+</script>
 </body>
 </html>
