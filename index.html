@@ -36,6 +36,7 @@
 </head>
 <body>
 
+  <!-- Layar Login / Register -->
   <div id="auth-screen" class="auth-wrapper">
     <h3>SIVIT26 - Revitalisasi SD</h3>
     <div class="tab-toggle">
@@ -62,6 +63,7 @@
     </div>
   </div>
 
+  <!-- Layar Utama Dashboard -->
   <div id="app-screen" class="hidden" style="display: flex; width: 100%; height: 100%;">
     <div class="sidebar">
       <h2>SIVIT26 Dashboard</h2>
@@ -84,6 +86,7 @@
     </div>
   </div>
 
+  <!-- Modal Form Input/Edit Data -->
   <div id="formModal" class="modal">
     <div class="modal-content">
       <span class="close" onclick="closeModal()">&times;</span>
@@ -94,7 +97,7 @@
   </div>
 
   <script>
-    // MASUKKAN URL WEB APP GOOGLE APPS SCRIPT ANDA DI SINI
+    // MASUKKAN URL WEB APP GOOGLE APPS SCRIPT ANDA DI SINI (Akhiran /exec)
     const API_URL = "https://script.google.com/macros/s/AKfycbyVSSHJ-4wHah4HB9FH6tay1f4nTgDYGfM1VFfTS5JXUtyDbu3QwHxRMcC_eeAW5H9wRA/exec";
 
     let activeUser = null;
@@ -129,7 +132,8 @@
           activeUser = data;
           document.getElementById('auth-screen').classList.add('hidden');
           document.getElementById('app-screen').classList.remove('hidden');
-          document.getElementById('user-info').innerText = `Masuk sebagai: ${activeUser.nama} | Role: ${activeUser.role}`;
+          document.getElementById('user-info').innerText = `Masuk sebagai: ${activeUser.nama} | Role: ${activeUser.role} ${activeUser.npsn ? '(NPSN: '+activeUser.npsn+')' : ''}`;
+          
           if (activeUser.role === "SEKOLAH") {
             document.querySelectorAll('.dinas-only').forEach(el => el.classList.add('hidden'));
           }
@@ -207,7 +211,7 @@
           });
           html += `</table>`;
         } else {
-          html += `</table><p style="margin-top:15px; color:#666;">Belum ada data.</p>`;
+          html += `</table><p style="margin-top:15px; color:#666;">Belum ada data untuk instansi Anda.</p>`;
         }
         document.getElementById('table-container').innerHTML = html;
       } catch (err) {
@@ -219,12 +223,23 @@
       currentEditRowIndex = null;
       document.getElementById('modal-title').innerText = "Tambah Data (" + currentSheet + ")";
       let fieldsHtml = '';
+      
       currentHeader.forEach(h => {
-        let isHiddenId = (currentSheet === 'riwayat_pagu' && h === 'id_') || (currentSheet === 'paket_pekerjaan_sd' && ['id_', 'id', 'id_paket'].includes(h));
+        let hLower = String(h).toLowerCase().trim();
+        let isHiddenId = (currentSheet === 'riwayat_pagu' && hLower === 'id_') || (currentSheet === 'paket_pekerjaan_sd' && ['id_', 'id', 'id_paket'].includes(hLower));
         let displayStyle = isHiddenId ? 'style="display:none;"' : '';
-        let isReadOnly = (activeUser.role === "SEKOLAH" && h.toLowerCase() === 'npsn') ? `readonly value="${activeUser.npsn}"` : '';
-        fieldsHtml += `<div ${displayStyle}><label>${h}:</label><input type="text" id="field-${h}" ${isReadOnly}></div>`;
+        
+        let isReadOnly = '';
+        let val = '';
+        // Kunci kolom NPSN otomatis jika role SEKOLAH
+        if (activeUser.role === "SEKOLAH" && hLower === 'npsn') {
+          isReadOnly = 'readonly style="background-color: #e9ecef; cursor: not-allowed;"';
+          val = activeUser.npsn;
+        }
+        
+        fieldsHtml += `<div ${displayStyle}><label>${h}:</label><input type="text" id="field-${h}" value="${val}" ${isReadOnly}></div>`;
       });
+      
       document.getElementById('dynamic-form-fields').innerHTML = fieldsHtml;
       document.getElementById('formModal').style.display = "block";
     }
@@ -234,11 +249,21 @@
       document.getElementById('modal-title').innerText = "Edit Data (" + currentSheet + ")";
       let rowData = globalRawData[dataIndex];
       let fieldsHtml = '';
+      
       currentHeader.forEach(h => {
+        let hLower = String(h).toLowerCase().trim();
         let val = rowData[h] !== undefined ? rowData[h] : '';
-        let isReadOnly = (activeUser.role === "SEKOLAH" && h.toLowerCase() === 'npsn') ? 'readonly' : '';
-        fieldsHtml += `<label>${h}:</label><input type="text" id="field-${h}" value="${val}" ${isReadOnly}>`;
+        
+        let isReadOnly = '';
+        // Kunci kolom NPSN saat edit jika role SEKOLAH
+        if (activeUser.role === "SEKOLAH" && hLower === 'npsn') {
+          isReadOnly = 'readonly style="background-color: #e9ecef; cursor: not-allowed;"';
+          val = activeUser.npsn;
+        }
+        
+        fieldsHtml += `<div><label>${h}:</label><input type="text" id="field-${h}" value="${val}" ${isReadOnly}></div>`;
       });
+      
       document.getElementById('dynamic-form-fields').innerHTML = fieldsHtml;
       document.getElementById('formModal').style.display = "block";
     }
