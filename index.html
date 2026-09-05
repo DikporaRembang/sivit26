@@ -1,918 +1,558 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SIVIT26 - Pemantauan Revitalisasi SD</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --primary: #2563eb;
-      --primary-hover: #1d4ed8;
-      --success: #059669;
-      --warning: #d97706;
-      --danger: #dc2626;
-      --bg-main: #f8fafc;
-      --bg-card: #ffffff;
-      --text-main: #1e293b;
-      --text-muted: #64748b;
-      --border: #e2e8f0;
-      --radius: 10px;
-      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
-    body { background-color: var(--bg-main); color: var(--text-main); height: 100vh; display: flex; overflow: hidden; }
-
-    .auth-container { width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%); }
-    .auth-card { background: var(--bg-card); width: 100%; max-width: 400px; padding: 35px; border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--border); }
-    .auth-card h3 { text-align: center; color: var(--primary); font-size: 1.5rem; font-weight: 700; margin-bottom: 25px; }
-    
-    .tab-toggle { display: flex; background: var(--bg-main); padding: 4px; border-radius: 8px; margin-bottom: 20px; }
-    .tab-toggle button { flex: 1; padding: 10px; background: none; border: none; font-size: 0.9rem; font-weight: 600; color: var(--text-muted); cursor: pointer; border-radius: 6px; transition: all 0.2s; }
-    .tab-toggle button.active { background: var(--bg-card); color: var(--primary); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-
-    .form-group { margin-bottom: 16px; }
-    .form-group label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-main); margin-bottom: 6px; }
-    .password-wrapper { position: relative; display: flex; align-items: center; }
-    .form-control { width: 100%; padding: 11px 14px; font-size: 0.95rem; border: 1px solid var(--border); border-radius: 8px; outline: none; transition: border-color 0.2s; background: #fff; }
-    .form-control:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
-    .password-toggle { position: absolute; right: 12px; background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 0.9rem; font-weight: 600; }
-    .password-toggle:hover { color: var(--primary); }
-
-    .btn { width: 100%; padding: 12px; font-size: 0.95rem; font-weight: 600; border: none; border-radius: 8px; cursor: pointer; transition: background 0.2s; }
-    .btn-primary { background: var(--primary); color: white; }
-    .btn-primary:hover { background: var(--primary-hover); }
-
-    .app-layout { display: flex; width: 100%; height: 100vh; }
-    .sidebar { width: 280px; background: #0f172a; color: white; display: flex; flex-direction: column; border-right: 1px solid #1e293b; }
-    .sidebar-header { padding: 25px 20px; font-size: 1.1rem; font-weight: 700; border-bottom: 1px solid #1e293b; color: #f8fafc; display: flex; align-items: center; gap: 10px; }
-    .sidebar-menu { padding: 15px 10px; flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; }
-    .sidebar-menu a { color: #94a3b8; text-decoration: none; padding: 12px 16px; border-radius: 8px; font-size: 0.9rem; font-weight: 500; display: flex; align-items: center; gap: 12px; transition: all 0.2s; cursor: pointer; }
-    .sidebar-menu a:hover, .sidebar-menu a.active { background: #1e293b; color: white; }
-    .logout-item { color: #f87171 !important; margin-top: auto; border-top: 1px solid #1e293b; padding-top: 15px !important; border-radius: 0 !important; }
-    .logout-item:hover { background: rgba(239, 68, 68, 0.1) !important; color: #ef4444 !important; }
-
-    .main-content { flex: 1; display: flex; flex-direction: column; background: var(--bg-main); overflow: hidden; }
-    .topbar { background: var(--bg-card); padding: 15px 30px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-    .topbar h2 { font-size: 1.25rem; font-weight: 600; color: var(--text-main); }
-    
-    .content-body { padding: 25px 30px; flex: 1; overflow-y: auto; }
-    .card { background: var(--bg-card); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); padding: 25px; }
-
-    .profile-box { background: #eff6ff; border: 1px solid #bfdbfe; border-left: 4px solid var(--primary); padding: 16px; border-radius: 8px; margin-bottom: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
-    .profile-box p { font-size: 0.9rem; color: #1e40af; }
-
-    .table-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; gap: 15px; flex-wrap: wrap; }
-    .search-input { padding: 10px 16px; width: 300px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.9rem; outline: none; transition: border-color 0.2s; }
-    .search-input:focus { border-color: var(--primary); }
-
-    .btn-action { padding: 8px 14px; border-radius: 6px; border: none; font-size: 0.85rem; font-weight: 600; cursor: pointer; color: white; transition: opacity 0.2s; }
-    .btn-action:hover { opacity: 0.9; }
-    .btn-edit { background: var(--warning); }
-    .btn-del { background: var(--danger); }
-    .btn-pagu { background: #0284c7; }
-    .btn-add { background: var(--success); display: inline-flex; align-items: center; gap: 6px; }
-
-    .table-responsive { width: 100%; overflow-x: auto; border: 1px solid var(--border); border-radius: 8px; background: white; }
-    table { width: 100%; border-collapse: collapse; text-align: left; }
-    th, td { padding: 12px 16px; font-size: 0.9rem; border-bottom: 1px solid var(--border); white-space: nowrap; }
-    th { background: #f8fafc; font-weight: 600; color: var(--text-muted); }
-    tr:last-child td { border-bottom: none; }
-    tr:hover td { background: #f8fafc; }
-
-    .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(4px); align-items: center; justify-content: center; }
-    .modal-content { background: var(--bg-card); width: 100%; max-width: 550px; border-radius: var(--radius); padding: 30px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); max-height: 85vh; overflow-y: auto; }
-    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-    .modal-header h3 { font-size: 1.1rem; font-weight: 700; }
-    .close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted); }
-
-    .hidden { display: none !important; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIVIT26 - Sistem Informasi Manajemen</title>
+    <!-- Tailwind CSS untuk styling modern -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased">
 
-  <!-- Layar Login / Register -->
-  <div id="auth-screen" class="auth-container">
-    <div class="auth-card">
-      <h3>SIVIT26</h3>
-      <div class="tab-toggle">
-        <button id="tab-login-btn" class="active" onclick="switchTab('login')">Masuk</button>
-        <button id="tab-register-btn" onclick="switchTab('register')">Daftar Sekolah</button>
-      </div>
+    <!-- ================= AUTH CONTAINER (LOGIN & REGISTER) ================= -->
+    <div id="authContainer" class="min-h-screen flex items-center justify-center p-4">
+        <div class="max-w-md w-full bg-white rounded-xl shadow-lg p-8 border border-slate-100">
+            <div class="text-center mb-6">
+                <h1 class="text-2xl font-bold text-blue-600 tracking-wide">SIVIT26</h1>
+                <p class="text-sm text-slate-500 mt-1">Sistem Informasi & Verifikasi Terpadu</p>
+            </div>
 
-      <div id="form-login">
-        <div class="form-group">
-          <label>Username / NPSN Sekolah</label>
-          <input type="text" id="log-user" class="form-control" placeholder="Masukkan username atau NPSN">
-        </div>
-        <div class="form-group">
-          <label>Password</label>
-          <div class="password-wrapper">
-            <input type="password" id="log-pass" class="form-control" placeholder="Masukkan password">
-            <button type="button" class="password-toggle" onclick="togglePasswordVisibility('log-pass', this)">Lihat</button>
-          </div>
-        </div>
-        <button class="btn btn-primary" onclick="handleLogin()">Masuk Aplikasi</button>
-      </div>
+            <!-- Tab Switcher -->
+            <div class="flex border-b border-slate-200 mb-6">
+                <button id="tabLogin" onclick="switchTab('login')" class="flex-1 pb-3 font-semibold text-blue-600 border-b-2 border-blue-600 transition-all">Masuk</button>
+                <button id="tabRegister" onclick="switchTab('register')" class="flex-1 pb-3 font-semibold text-slate-400 border-b-2 border-transparent transition-all">Daftar Sekolah</button>
+            </div>
 
-      <div id="form-register" class="hidden">
-        <div class="form-group">
-          <label>NPSN Sekolah</label>
-          <input type="text" id="reg-npsn" class="form-control" placeholder="Nomor Pokok Sekolah Nasional">
-        </div>
-        <div class="form-group">
-          <label>Password</label>
-          <div class="password-wrapper">
-            <input type="password" id="reg-pass" class="form-control" placeholder="Buat password aman">
-            <button type="button" class="password-toggle" onclick="togglePasswordVisibility('reg-pass', this)">Lihat</button>
-          </div>
-        </div>
-        <div class="form-group">
-          <label>Nama Sekolah / PIC</label>
-          <input type="text" id="reg-nama" class="form-control" placeholder="Nama instansi/sekolah">
-        </div>
-        <button class="btn btn-primary" onclick="handleRegister()">Daftar Sekarang</button>
-      </div>
-    </div>
-  </div>
+            <!-- Form Login -->
+            <form id="formLogin" onsubmit="handleLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Username / NPSN</label>
+                    <input type="text" id="loginUser" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Password</label>
+                    <input type="password" id="loginPass" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                </div>
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 rounded-lg transition-colors text-sm shadow-sm">Masuk Sistem</button>
+            </form>
 
-  <!-- Layar Utama Dashboard -->
-  <div id="app-screen" class="app-layout hidden">
-    <div class="sidebar">
-      <div class="sidebar-header">🏢 SIVIT26 Dashboard</div>
-      <div class="sidebar-menu">
-        <a class="menu-item dinas-only" onclick="loadData('sekolah', this)">📁 Data Sekolah</a>
-        <a class="menu-item dinas-only" onclick="loadData('users', this)">👥 Manajemen User</a>
-        <a class="menu-item dinas-only" onclick="loadData('menu_pekerjaan', this)">📋 Menu Pekerjaan</a>
-        <a class="menu-item" onclick="loadData('paket_pekerjaan_sd', this)">🏗️ Paket Pekerjaan SD</a>
-        <a class="menu-item" onclick="loadData('laporan_progres', this)">📊 Laporan Progres</a>
-        <a class="menu-item" onclick="loadData('riwayat_pagu', this)">💰 Riwayat Pagu</a>
-        <a class="logout-item" onclick="logout()">🚪 Keluar / Logout</a>
-      </div>
+            <!-- Form Register (Sekolah) -->
+            <form id="formRegister" onsubmit="handleRegister(event)" class="space-y-4 hidden">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">NPSN Sekolah</label>
+                    <input type="text" id="regNpsn" required placeholder="Masukkan NPSN resmi..." class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                    <p class="text-[11px] text-slate-400 mt-1">Nama sekolah akan terisi otomatis setelah NPSN selesai diketik.</p>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Nama Sekolah (Autofill)</label>
+                    <input type="text" id="regNamaSekolah" readonly placeholder="Otomatis dari database dinas..." class="w-full px-3 py-2 bg-slate-100 border border-slate-300 rounded-lg text-slate-600 text-sm cursor-not-allowed">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Password Akun</label>
+                    <input type="password" id="regPass" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                </div>
+                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2 rounded-lg transition-colors text-sm shadow-sm">Daftarkan Sekolah</button>
+            </form>
+            
+            <div id="authLoading" class="hidden text-center mt-4">
+                <p class="text-xs text-blue-600 animate-pulse font-medium"><i class="fa-solid fa-spinner fa-spin mr-1"></i> Sedang memproses...</p>
+            </div>
+        </div>
     </div>
 
-    <div class="main-content">
-      <div class="topbar">
-        <h2 id="page-title">Selamat Datang</h2>
-        <span id="user-badge" style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted); background: var(--border); padding: 6px 12px; border-radius: 20px;"></span>
-      </div>
-      <div class="content-body">
-        <div class="card">
-          <div id="user-profile-container"></div>
-          <div class="table-actions">
-            <div id="action-container"></div>
-            <input type="text" id="search-input" class="search-input hidden" placeholder="🔍 Cari data di tabel..." onkeyup="filterTable()">
-          </div>
-          <div id="table-container"><p style="color: var(--text-muted); font-size: 0.9rem;">Silakan pilih menu di sebelah kiri untuk melihat data.</p></div>
+    <!-- ================= MAIN APP CONTAINER ================= -->
+    <div id="appContainer" class="hidden min-h-screen flex flex-col">
+        <!-- Top Navbar -->
+        <header class="bg-white border-b border-slate-200 sticky top-0 z-30">
+            <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="bg-blue-600 text-white p-2 rounded-lg font-bold text-sm">S26</div>
+                    <div>
+                        <h2 class="font-bold text-slate-800 text-base" id="appNameTitle">SIVIT26 Dashboard</h2>
+                        <p class="text-xs text-slate-500" id="userRoleSubtitle">Role: -</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="text-right hidden sm:block">
+                        <p class="text-xs font-bold text-slate-700" id="userNameDisplay">-</p>
+                        <p class="text-[11px] text-slate-400" id="userNpsnDisplay">-</p>
+                    </div>
+                    <button onclick="logout()" class="bg-red-50 hover:bg-red-100 text-red-600 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border border-red-200">
+                        <i class="fa-solid fa-power-off mr-1"></i> Keluar
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Body Layout (Sidebar & Content) -->
+        <div class="flex-1 flex max-w-7xl w-full mx-auto">
+            <!-- Sidebar Navigation -->
+            <aside class="w-64 bg-white border-r border-slate-200 p-4 hidden md:block space-y-1">
+                <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-3 mb-2">Menu Navigasi</p>
+                <div id="sidebarMenuContainer" class="space-y-1">
+                    <!-- Dinamik menu berdasarkan role -->
+                </div>
+            </aside>
+
+            <!-- Main Content Area -->
+            <main class="flex-1 p-4 md:p-6 overflow-x-auto">
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-100">
+                        <div>
+                            <h3 class="text-lg font-bold text-slate-800" id="contentTitle">Pilih Menu</h3>
+                            <p class="text-xs text-slate-500" id="contentSubtitle">Kelola dan pantau data pekerjaan.</p>
+                        </div>
+                        <div id="actionButtonContainer">
+                            <!-- Tombol Tambah Data / Aksi Khusus -->
+                        </div>
+                    </div>
+
+                    <!-- Tabel Data Dinamis -->
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-sm">
+                            <thead id="tableHead" class="bg-slate-50 text-slate-600 text-xs uppercase tracking-wider border-b border-slate-200">
+                                <!-- Header dinamis -->
+                            </thead>
+                            <tbody id="tableBody" class="divide-y divide-slate-100 text-slate-700">
+                                <!-- Data baris dinamis -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </main>
         </div>
-      </div>
     </div>
-  </div>
 
-  <!-- Modal Form Input/Edit Data -->
-  <div id="formModal" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3 id="modal-title">Form Data</h3>
-        <button class="close-btn" onclick="closeModal()">&times;</button>
-      </div>
-      <div id="dynamic-form-fields"></div>
-      <button class="btn btn-primary" style="margin-top: 15px;" onclick="submitForm()">Simpan Data</button>
+    <!-- ================= MODAL FORM INPUT / EDIT ================= -->
+    <div id="dataModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-xl max-w-lg w-full p-6 shadow-xl border border-slate-100">
+            <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-100">
+                <h3 id="modalTitle" class="font-bold text-slate-800 text-base">Form Data</h3>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form id="dynamicForm" onsubmit="handleFormSubmit(event)" class="space-y-4">
+                <input type="hidden" id="formRowIndex">
+                <div id="formFieldsContainer" class="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
+                    <!-- Input fields dinamis -->
+                </div>
+                <div class="flex justify-end space-x-2 pt-3 border-t border-slate-100">
+                    <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-xs font-medium">Batal</button>
+                    <button type="submit" id="btnSaveModal" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-medium">Simpan Data</button>
+                </div>
+            </form>
+        </div>
     </div>
-  </div>
 
-  <!-- Modal Khusus Rubah Pagu -->
-  <div id="paguModal" class="modal">
-    <div class="modal-content" style="max-width: 400px;">
-      <div class="modal-header">
-        <h3>Rubah Nilai Pagu</h3>
-        <button class="close-btn" onclick="closePaguModal()">&times;</button>
-      </div>
-      <div class="form-group">
-        <label>Paket ID</label>
-        <input type="text" id="pagu-paket-id" class="form-control" readonly style="background:#f1f5f9;">
-      </div>
-      <div class="form-group">
-        <label>Nilai Pagu Saat Ini</label>
-        <input type="text" id="pagu-lama" class="form-control" readonly style="background:#f1f5f9;">
-      </div>
-      <div class="form-group">
-        <label>Nilai Pagu Baru</label>
-        <input type="text" id="pagu-baru" class="form-control" placeholder="Contoh: 150.000.000" oninput="formatInputRupiah(this)">
-      </div>
-      <button class="btn btn-primary" style="margin-top: 10px;" onclick="submitRubahPagu()">Simpan Perubahan Pagu</button>
-    </div>
-  </div>
+    <!-- ================= JAVASCRIPT LOGIC ================= -->
+    <script>
+        // Masukkan URL Web App Google Apps Script Anda di sini
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyr0s9Q2dV0HgdWbNcIEQcwOJqObTfacZ0DsH3VKUxslCuEa19nSzut_CvSk4Ypszp9-Q/exec";
 
-  <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbyr0s9Q2dV0HgdWbNcIEQcwOJqObTfacZ0DsH3VKUxslCuEa19nSzut_CvSk4Ypszp9-Q/exec";
+        let currentUser = null;
+        let currentActiveSheet = "";
+        let currentTableHeaders = [];
 
-    let activeUser = null;
-    let currentSheet = '';
-    let currentHeader = [];
-    let currentEditRowIndex = null;
-    let globalRawData = [];
-    let globalListMenuPekerjaan = [];
-    let globalListPaketPekerjaan = [];
-    let globalListUsers = [];
-    let globalListSekolah = [];
-    let selectedPaketRowForPagu = null;
-
-    window.onload = async function() {
-      let savedUser = sessionStorage.getItem('sivit26_user');
-      if (savedUser) {
-        activeUser = JSON.parse(savedUser);
-        if (activeUser && activeUser.role === "SEKOLAH") {
-          if (!activeUser.npsn) activeUser.npsn = activeUser.username;
-          await fetchSchoolAndUserProfile();
-        }
-        tampilkanDashboardUtama();
-      }
-      await fetchDropdownReferences();
-    };
-
-    document.addEventListener('keydown', function(event) {
-      let formModal = document.getElementById('formModal');
-      let paguModal = document.getElementById('paguModal');
-      let authScreen = document.getElementById('auth-screen');
-      let searchInput = document.getElementById('search-input');
-
-      if (event.key === 'Escape') {
-        if (formModal.style.display === 'flex') {
-          closeModal();
-        } else if (paguModal.style.display === 'flex') {
-          closePaguModal();
-        } else if (document.activeElement === searchInput) {
-          searchInput.value = '';
-          filterTable();
-          searchInput.blur();
-        }
-      }
-
-      if (event.key === 'Enter') {
-        if (formModal.style.display === 'flex') {
-          event.preventDefault();
-          submitForm();
-        } else if (paguModal.style.display === 'flex') {
-          event.preventDefault();
-          submitRubahPagu();
-        } else if (!authScreen.classList.contains('hidden')) {
-          event.preventDefault();
-          let isLoginActive = !document.getElementById('form-login').classList.contains('hidden');
-          if (isLoginActive) {
-            handleLogin();
-          } else {
-            handleRegister();
-          }
-        } else if (document.activeElement === searchInput) {
-          event.preventDefault();
-          filterTable();
-        }
-      }
-    });
-
-    function togglePasswordVisibility(fieldId, btnEl) {
-      let inputEl = document.getElementById(fieldId);
-      if (inputEl.type === "password") {
-        inputEl.type = "text";
-        btnEl.innerText = "Sembunyi";
-      } else {
-        inputEl.type = "password";
-        btnEl.innerText = "Lihat";
-      }
-    }
-
-    function formatInputRupiah(inputEl) {
-      let angkaBersih = inputEl.value.replace(/[^,\d]/g, '');
-      let split = angkaBersih.split(',');
-      let sisa = split[0].length % 3;
-      let rupiah = split[0].substr(0, sisa);
-      let ribuan = split[0].substr(sisa).match(/\d{3}/gi);
-
-      if (ribuan) {
-        let separator = sisa ? '.' : '';
-        rupiah += separator + ribuan.join('.');
-      }
-      inputEl.value = split[1] !== undefined ? rupiah + ',' + split[1] : rupiah;
-    }
-
-    function formatTanggalIndonesia(tanggalStr) {
-      if (!tanggalStr) return '';
-      let str = String(tanggalStr).trim();
-      if (/^\d{2}\/\d{2}\/\d{4}$/.test(str)) return str;
-      
-      let parts = str.split('T')[0].split('-');
-      if (parts.length === 3 && parts[0].length === 4) {
-        return `${parts[2]}/${parts[1]}/${parts[0]}`;
-      }
-      
-      let d = new Date(str);
-      if (!isNaN(d.getTime())) {
-        let day = String(d.getDate()).padStart(2, '0');
-        let month = String(d.getMonth() + 1).padStart(2, '0');
-        let year = d.getFullYear();
-        return `${day}/${month}/${year}`;
-      }
-      return str;
-    }
-
-    async function fetchDropdownReferences() {
-      try {
-        let resMenu = await fetch(`${API_URL}?action=getData&sheet=menu_pekerjaan&role=DINAS`);
-        let jsonMenu = await resMenu.json();
-        if (jsonMenu.data) globalListMenuPekerjaan = jsonMenu.data;
-
-        let resUsers = await fetch(`${API_URL}?action=getData&sheet=users&role=DINAS`);
-        let jsonUsers = await resUsers.json();
-        if (jsonUsers.data) globalListUsers = jsonUsers.data;
-
-        let resSekolah = await fetch(`${API_URL}?action=getData&sheet=sekolah&role=DINAS`);
-        let jsonSekolah = await resSekolah.json();
-        if (jsonSekolah.data) globalListSekolah = jsonSekolah.data;
-
-        let roleParam = activeUser ? activeUser.role : 'DINAS';
-        let npsnParam = activeUser ? (activeUser.npsn || activeUser.username) : '';
-        let resPaket = await fetch(`${API_URL}?action=getData&sheet=paket_pekerjaan_sd&role=${roleParam}&npsn=${npsnParam}`);
-        let jsonPaket = await resPaket.json();
-        if (jsonPaket.data) {
-          globalListPaketPekerjaan = jsonPaket.data;
-        }
-      } catch (err) {
-        console.error("Gagal memuat referensi:", err);
-      }
-    }
-
-    async function fetchSchoolAndUserProfile() {
-      try {
-        let targetNpsn = String(activeUser.npsn || activeUser.username).trim();
-
-        // 1. Ambil Data dari tabel "sekolah" (Nama Sekolah, Kecamatan, Alamat) berdasarkan NPSN
-        let resSekolah = await fetch(`${API_URL}?action=getData&sheet=sekolah&role=DINAS`);
-        let jsonSekolah = await resSekolah.json();
-        if (jsonSekolah.data && jsonSekolah.data.length > 0) {
-          let foundSekolah = jsonSekolah.data.find(row => {
-            let rowNpsn = '';
-            for (let key in row) {
-              if (key.toLowerCase().includes('npsn')) {
-                rowNpsn = String(row[key]).trim();
-                break;
-              }
+        // Switch Tab Auth
+        function switchTab(tab) {
+            if(tab === 'login') {
+                document.getElementById('formLogin').classList.remove('hidden');
+                document.getElementById('formRegister').classList.add('hidden');
+                document.getElementById('tabLogin').className = "flex-1 pb-3 font-semibold text-blue-600 border-b-2 border-blue-600 transition-all";
+                document.getElementById('tabRegister').className = "flex-1 pb-3 font-semibold text-slate-400 border-b-2 border-transparent transition-all";
+            } else {
+                document.getElementById('formLogin').classList.add('hidden');
+                document.getElementById('formRegister').classList.remove('hidden');
+                document.getElementById('tabRegister').className = "flex-1 pb-3 font-semibold text-emerald-600 border-b-2 border-emerald-600 transition-all";
+                document.getElementById('tabLogin').className = "flex-1 pb-3 font-semibold text-slate-400 border-b-2 border-transparent transition-all";
             }
-            return rowNpsn === targetNpsn;
-          });
-
-          if (foundSekolah) {
-            for (let key in foundSekolah) {
-              let k = key.toLowerCase();
-              let val = foundSekolah[key];
-              if ((k.includes('nama_sekolah') || k.includes('namasekolah')) && val) {
-                activeUser.nama_sekolah = val;
-              } else if (!activeUser.nama_sekolah && (k === 'nama' || k.includes('nama_instansi'))) {
-                if (val && val !== 'SD') activeUser.nama_sekolah = val;
-              }
-              if (k.includes('kecamatan') && val) activeUser.kecamatan = val;
-              if ((k.includes('alamat') || k.includes('jalan')) && val) activeUser.alamat_lengkap = val;
-            }
-          }
         }
 
-        // 2. Ambil Data dari tabel "users" (Perencana, Pengawas) berdasarkan login NPSN
-        let resUsers = await fetch(`${API_URL}?action=getData&sheet=users&role=DINAS`);
-        let jsonUsers = await resUsers.json();
-        if (jsonUsers.data && jsonUsers.data.length > 0) {
-          let foundUser = jsonUsers.data.find(row => {
-            let rowUser = '';
-            for (let key in row) {
-              let kl = key.toLowerCase();
-              if (kl.includes('npsn') || kl.includes('username')) {
-                rowUser = String(row[key]).trim();
-                break;
-              }
-            }
-            return rowUser === targetNpsn;
-          });
+        // Fitur Autofill Nama Sekolah Berdasarkan NPSN saat Registrasi
+        const regNpsnInput = document.getElementById('regNpsn');
+        if(regNpsnInput) {
+            regNpsnInput.addEventListener('blur', function() {
+                let npsnVal = this.value.trim();
+                let inputNama = document.getElementById('regNamaSekolah');
+                if(!npsnVal) return;
 
-          if (foundUser) {
-            for (let key in foundUser) {
-              let k = key.toLowerCase();
-              let val = foundUser[key];
-              if (k.includes('perencana') && val) activeUser.perencana = val;
-              if (k.includes('pengawas') && val) activeUser.pengawas = val;
-            }
-          }
-        }
+                inputNama.value = "Memeriksa database Dinas...";
 
-        // Fallback jika Nama Sekolah kosong
-        if (!activeUser.nama_sekolah || activeUser.nama_sekolah === 'SD') {
-          activeUser.nama_sekolah = activeUser.nama_pengguna || 'Sekolah Pengguna';
-        }
-        sessionStorage.setItem('sivit26_user', JSON.stringify(activeUser));
-      } catch (err) {
-        console.error("Gagal mengambil profil sekolah & user:", err);
-      }
-    }
-
-    function switchTab(target) {
-      if (target === 'login') {
-        document.getElementById('form-login').classList.remove('hidden');
-        document.getElementById('form-register').classList.add('hidden');
-        document.getElementById('tab-login-btn').classList.add('active');
-        document.getElementById('tab-register-btn').classList.remove('active');
-      } else {
-        document.getElementById('form-login').classList.add('hidden');
-        document.getElementById('form-register').classList.remove('hidden');
-        document.getElementById('tab-register-btn').classList.add('active');
-        document.getElementById('tab-login-btn').classList.remove('active');
-      }
-    }
-
-    async function handleLogin() {
-      let u = document.getElementById('log-user').value;
-      let p = document.getElementById('log-pass').value;
-      if (!u || !p) { alert('Isi username dan password!'); return; }
-
-      try {
-        let res = await fetch(`${API_URL}?action=login&username=${encodeURIComponent(u)}&password=${encodeURIComponent(p)}`);
-        let data = await res.json();
-        if (data.status === "success") {
-          activeUser = data;
-          if (activeUser.role === "SEKOLAH") {
-            if (!activeUser.npsn) activeUser.npsn = activeUser.username || u;
-            await fetchSchoolAndUserProfile();
-          }
-          sessionStorage.setItem('sivit26_user', JSON.stringify(activeUser));
-          tampilkanDashboardUtama();
-          await fetchDropdownReferences();
-        } else {
-          alert(data.pesan);
-        }
-      } catch (err) {
-        alert("Gagal koneksi: " + err);
-      }
-    }
-
-    async function tampilkanDashboardUtama() {
-      document.getElementById('auth-screen').classList.add('hidden');
-      document.getElementById('app-screen').classList.remove('hidden');
-      
-      if (activeUser && activeUser.role === "SEKOLAH") {
-        await fetchSchoolAndUserProfile();
-      }
-
-      let userName = activeUser.nama_sekolah || activeUser.nama_pengguna || 'User';
-      document.getElementById('user-badge').innerText = `${userName} (${activeUser.role})`;
-      
-      let profileHtml = '';
-      if (activeUser.role === "SEKOLAH") {
-        profileHtml = `
-          <div class="profile-box">
-            <p><strong>NPSN:</strong> ${activeUser.npsn || '-'}</p>
-            <p><strong>Nama Sekolah:</strong> ${activeUser.nama_sekolah || '-'}</p>
-            <p><strong>Kecamatan:</strong> ${activeUser.kecamatan || '-'}</p>
-            <p><strong>Alamat:</strong> ${activeUser.alamat_lengkap || '-'}</p>
-            <p><strong>Perencana:</strong> ${activeUser.perencana || '-'}</p>
-            <p><strong>Pengawas:</strong> ${activeUser.pengawas || '-'}</p>
-          </div>
-        `;
-        document.querySelectorAll('.dinas-only').forEach(el => el.classList.add('hidden'));
-      }
-      document.getElementById('user-profile-container').innerHTML = profileHtml;
-    }
-
-    function logout() {
-      sessionStorage.removeItem('sivit26_user');
-      location.reload();
-    }
-
-    async function handleRegister() {
-      let npsn = document.getElementById('reg-npsn').value;
-      let pass = document.getElementById('reg-pass').value;
-      let nama = document.getElementById('reg-nama').value;
-      if (!npsn || !pass || !nama) { alert('Semua kolom wajib diisi!'); return; }
-
-      try {
-        let res = await fetch(`${API_URL}?action=register&npsn=${encodeURIComponent(npsn)}&password=${encodeURIComponent(pass)}&nama_lengkap=${encodeURIComponent(nama)}`);
-        let data = await res.json();
-        alert(data.pesan);
-        if (data.status === "success") switchTab('login');
-      } catch (err) {
-        alert("Gagal mendaftar: " + err);
-      }
-    }
-
-    function formatRupiah(angka) {
-      if (!angka || isNaN(angka)) return angka;
-      return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka);
-    }
-
-    async function loadData(sheetName, element) {
-      currentSheet = sheetName;
-      document.getElementById('page-title').innerText = "Memuat data " + sheetName + "...";
-      if (element) {
-        document.querySelectorAll('.sidebar-menu a').forEach(el => el.classList.remove('active'));
-        element.classList.add('active');
-      }
-
-      try {
-        await fetchDropdownReferences();
-        let res = await fetch(`${API_URL}?action=getData&sheet=${sheetName}&role=${activeUser.role}&npsn=${activeUser.npsn || activeUser.username}`);
-        let result = await res.json();
-        
-        currentHeader = result.header || [];
-        globalRawData = result.data || [];
-        document.getElementById('page-title').innerText = "Data: " + sheetName;
-
-        let canAdd = false;
-        if (activeUser.role === "SEKOLAH") {
-          canAdd = (sheetName === 'paket_pekerjaan_sd' || sheetName === 'laporan_progres');
-        } else if (activeUser.role === "DINAS") {
-          canAdd = (sheetName !== 'paket_pekerjaan_sd' && sheetName !== 'laporan_progres' && sheetName !== 'riwayat_pagu');
-        }
-
-        let actionHtml = '';
-        if (canAdd && sheetName !== 'riwayat_pagu') {
-          actionHtml += `<button class="btn-action btn-add" onclick="openModalForAdd()">+ Tambah Data Baru</button>`;
-        }
-        document.getElementById('action-container').innerHTML = actionHtml;
-        
-        let searchInputEl = document.getElementById('search-input');
-        if (globalRawData.length > 0) {
-          searchInputEl.classList.remove('hidden');
-          searchInputEl.value = '';
-        } else {
-          searchInputEl.classList.add('hidden');
-        }
-
-        renderTableContent(globalRawData);
-      } catch (err) {
-        alert("Gagal memuat data: " + err);
-      }
-    }
-
-    function renderTableContent(dataList) {
-      let html = `<div class="table-responsive"><table><tr>`;
-      currentHeader.forEach(h => { html += `<th>${h}</th>`; });
-      if (activeUser.role === "DINAS" || (activeUser.role === "SEKOLAH" && currentSheet === 'paket_pekerjaan_sd')) {
-        html += `<th>Aksi</th>`;
-      }
-      html += `</tr>`;
-
-      if (dataList.length > 0) {
-        dataList.forEach((row, index) => {
-          let originalIndex = globalRawData.indexOf(row);
-          html += `<tr>`;
-          currentHeader.forEach(h => {
-            let val = row[h] !== undefined && row[h] !== null ? row[h] : '';
-            let hLower = String(h).toLowerCase();
-            if ((hLower.includes('pagu') || hLower.includes('nilai') || hLower.includes('anggaran') || hLower.includes('biaya')) && !isNaN(val) && val !== '') {
-              val = formatRupiah(val);
-            } else if ((hLower.includes('tanggal') || hLower.includes('tgl')) && val !== '') {
-              val = formatTanggalIndonesia(val);
-            }
-            html += `<td>${val}</td>`;
-          });
-
-          let canEdit = (activeUser.role === "DINAS") || (activeUser.role === "SEKOLAH" && currentSheet === 'paket_pekerjaan_sd');
-          let canDel = (activeUser.role === "DINAS");
-          
-          if (currentSheet !== 'riwayat_pagu' && (canEdit || canDel)) {
-            html += `<td>`;
-            if (canEdit) html += `<button class="btn-action btn-edit" onclick="openModalForEdit(${originalIndex})">Edit</button> `;
-            if (activeUser.role === "SEKOLAH" && currentSheet === 'paket_pekerjaan_sd') {
-              html += `<button class="btn-action btn-pagu" onclick="openRubahPaguModal(${originalIndex})">Rubah Pagu</button> `;
-            }
-            if (canDel) html += `<button class="btn-action btn-del" onclick="hapusData(${row._rowIndex})">Hapus</button>`;
-            html += `</td>`;
-          } else {
-            html += `<td>-</td>`;
-          }
-          html += `</tr>`;
-        });
-        html += `</table></div>`;
-      } else {
-        html += `</table></div><p style="margin-top:15px; color:var(--text-muted); font-size: 0.9rem;">Belum ada data.</p>`;
-      }
-      document.getElementById('table-container').innerHTML = html;
-    }
-
-    function filterTable() {
-      let query = document.getElementById('search-input').value.toLowerCase();
-      let filtered = globalRawData.filter(row => {
-        return currentHeader.some(h => {
-          let val = String(row[h] || '').toLowerCase();
-          return val.includes(query);
-        });
-      });
-      renderTableContent(filtered);
-    }
-
-    function openModalForAdd() {
-      currentEditRowIndex = null;
-      document.getElementById('modal-title').innerText = "Tambah Data (" + currentSheet + ")";
-      renderFormFields({});
-      document.getElementById('formModal').style.display = "flex";
-    }
-
-    function openModalForEdit(dataIndex) {
-      currentEditRowIndex = globalRawData[dataIndex]._rowIndex;
-      document.getElementById('modal-title').innerText = "Edit Data (" + currentSheet + ")";
-      renderFormFields(globalRawData[dataIndex]);
-      document.getElementById('formModal').style.display = "flex";
-    }
-
-    function openRubahPaguModal(dataIndex) {
-      selectedPaketRowForPagu = globalRawData[dataIndex];
-      let paketId = '';
-      let nilaiPagu = '';
-
-      for (let k in selectedPaketRowForPagu) {
-        let kl = k.toLowerCase();
-        if (kl.includes('paket_id') || kl.includes('paketid')) paketId = selectedPaketRowForPagu[k];
-        if (kl === 'pagu' || kl.includes('pagu')) {
-          if (!nilaiPagu) nilaiPagu = selectedPaketRowForPagu[k];
-        }
-      }
-
-      document.getElementById('pagu-paket-id').value = paketId;
-      document.getElementById('pagu-lama').value = nilaiPagu;
-      document.getElementById('pagu-baru').value = '';
-      document.getElementById('paguModal').style.display = "flex";
-    }
-
-    function closePaguModal() {
-      document.getElementById('paguModal').style.display = "none";
-    }
-
-    async function submitRubahPagu() {
-      let paketId = document.getElementById('pagu-paket-id').value;
-      let paguLama = document.getElementById('pagu-lama').value;
-      let paguBaruFormatted = document.getElementById('pagu-baru').value;
-      let paguBaru = paguBaruFormatted.replace(/\./g, '');
-
-      if (!paguBaru || isNaN(paguBaru)) {
-        alert("Masukkan nilai pagu baru yang valid!");
-        return;
-      }
-
-      try {
-        let res = await fetch(API_URL, {
-          method: "POST",
-          body: JSON.stringify({
-            action: "updatePagu",
-            paket_id: paketId,
-            pagu_lama: paguLama,
-            pagu_baru: paguBaru,
-            role: activeUser.role,
-            npsn: activeUser.npsn || activeUser.username,
-            rowIndex: selectedPaketRowForPagu._rowIndex
-          })
-        });
-        let data = await res.json();
-        alert(data.pesan);
-        if (data.status === "success") {
-          closePaguModal();
-          loadData('paket_pekerjaan_sd');
-        }
-      } catch (err) {
-        alert("Gagal merubah pagu: " + err);
-      }
-    }
-
-    function setupDynamicCalculations() {
-      let menuSelect = document.getElementById('field-menu_id') || document.getElementById('field-menuid');
-      let namaPaketInput = document.getElementById('field-nama_paket') || document.getElementById('field-namapaket');
-      let tglMulaiInput = document.getElementById('field-tanggal_mulai') || document.getElementById('field-tanggalmulai');
-      let lamaHariInput = document.getElementById('field-lama_hari') || document.getElementById('field-lamahari');
-      let tglSelesaiInput = document.getElementById('field-tgl_selesai') || document.getElementById('field-tglselesai');
-
-      if (menuSelect && namaPaketInput) {
-        menuSelect.addEventListener('change', function() {
-          let selectedMenuId = this.value;
-          let matchedMenu = globalListMenuPekerjaan.find(item => {
-            for (let k in item) {
-              if (String(item[k]) === String(selectedMenuId)) return true;
-            }
-            return false;
-          });
-
-          if (matchedMenu) {
-            let menuName = '';
-            for (let k in matchedMenu) {
-              let kl = k.toLowerCase();
-              if (kl.includes('nama') || kl.includes('menu')) {
-                menuName = matchedMenu[k];
-              }
-            }
-            if (!menuName) menuName = Object.values(matchedMenu)[1] || Object.values(matchedMenu)[0];
-            namaPaketInput.value = menuName;
-          } else {
-            namaPaketInput.value = '';
-          }
-        });
-      }
-
-      function hitungTanggalSelesai() {
-        if (tglMulaiInput && lamaHariInput && tglSelesaiInput) {
-          let tglMulaiVal = tglMulaiInput.value;
-          let lamaHariVal = parseInt(lamaHariInput.value);
-
-          if (tglMulaiVal && !isNaN(lamaHariVal) && lamaHariVal > 0) {
-            let date = new Date(tglMulaiVal);
-            date.setDate(date.getDate() + lamaHariVal);
-            let year = date.getFullYear();
-            let month = String(date.getMonth() + 1).padStart(2, '0');
-            let day = String(date.getDate()).padStart(2, '0');
-            tglSelesaiInput.value = `${year}-${month}-${day}`;
-          } else {
-            tglSelesaiInput.value = '';
-          }
-        }
-      }
-
-      if (tglMulaiInput) tglMulaiInput.addEventListener('change', hitungTanggalSelesai);
-      if (lamaHariInput) lamaHariInput.addEventListener('input', hitungTanggalSelesai);
-    }
-
-    function renderFormFields(rowData) {
-      let fieldsHtml = '';
-      let isEditMode = (currentEditRowIndex !== null);
-      
-      currentHeader.forEach(h => {
-        let hLower = String(h).toLowerCase().trim();
-        let val = rowData[h] !== undefined ? rowData[h] : '';
-        let isHiddenId = (currentSheet === 'riwayat_pagu' && hLower === 'id_riwayat') || (currentSheet === 'paket_pekerjaan_sd' && hLower === 'paket_id');
-        let displayStyle = isHiddenId ? 'style="display:none;"' : '';
-        let fieldElement = '';
-        
-        if (!isEditMode) {
-          if (hLower === 'id' || hLower === 'id_user' || hLower === 'id_menu' || hLower === 'paket_id' || hLower === 'id_riwayat' || hLower === 'id_laporan') {
-            let prefix = currentSheet === 'users' ? 'USR' : (currentSheet === 'menu_pekerjaan' ? 'MNU' : (currentSheet === 'laporan_progres' ? 'LPR' : (currentSheet === 'riwayat_pagu' ? 'RWY' : 'PKT')));
-            let randomNum = Math.floor(1000 + Math.random() * 9000);
-            val = `${prefix}-${Date.now().toString().slice(-6)}${randomNum}`;
-            fieldElement = `<input type="text" id="field-${h}" class="form-control" value="${val}" readonly style="background-color: #f1f5f9; cursor: not-allowed;">`;
-          } else if (currentSheet === 'paket_pekerjaan_sd' && hLower === 'pagu') {
-            fieldElement = `<input type="text" id="field-${h}" class="form-control" placeholder="Contoh: 150.000.000" oninput="formatInputRupiah(this)">`;
-          }
-        } else {
-          if (currentSheet === 'paket_pekerjaan_sd' && hLower === 'pagu') {
-            let formattedVal = !isNaN(val) && val !== '' ? Number(val).toLocaleString('id-ID') : val;
-            fieldElement = `<input type="text" id="field-${h}" class="form-control" value="${formattedVal}" readonly style="background-color: #f1f5f9;" title="Gunakan tombol Rubah Pagu untuk mengubah nilai">`;
-          }
-        }
-
-        if (currentSheet === 'paket_pekerjaan_sd' && hLower.includes('perencana')) {
-          if (!isEditMode && activeUser) {
-            val = activeUser.perencana || '';
-          }
-          fieldElement = `<input type="text" id="field-${h}" class="form-control" value="${val}" readonly style="background-color: #f1f5f9; cursor: not-allowed;" title="Diambil otomatis dari tabel users">`;
-        }
-
-        if (currentSheet === 'paket_pekerjaan_sd' && hLower.includes('pengawas')) {
-          if (!isEditMode && activeUser) {
-            val = activeUser.pengawas || '';
-          }
-          fieldElement = `<input type="text" id="field-${h}" class="form-control" value="${val}" readonly style="background-color: #f1f5f9; cursor: not-allowed;" title="Diambil otomatis dari tabel users">`;
-        }
-
-        if (currentSheet === 'paket_pekerjaan_sd' && (hLower === 'menu_id' || hLower === 'menuid')) {
-          fieldElement = `<select id="field-${h}" class="form-control"><option value="">-- Pilih Menu Pekerjaan --</option>`;
-          globalListMenuPekerjaan.forEach(item => {
-            let itemKey = '', itemVal = '';
-            for (let k in item) {
-              let kl = k.toLowerCase();
-              if (kl.includes('id') || kl.includes('menu')) { if (!itemKey) itemKey = item[k]; }
-              if (kl.includes('nama') || kl.includes('menu')) { itemVal = item[k]; }
-            }
-            if (!itemKey) itemKey = Object.values(item)[0];
-            if (!itemVal) itemVal = itemKey;
-            let selected = (String(itemKey) === String(val)) ? 'selected' : '';
-            fieldElement += `<option value="${itemKey}" ${selected}>${itemKey} - ${itemVal}</option>`;
-          });
-          fieldElement += `</select>`;
-        }
-
-        if (currentSheet === 'paket_pekerjaan_sd' && (hLower === 'nama_paket' || hLower === 'namapaket')) {
-          fieldElement = `<input type="text" id="field-${h}" class="form-control" value="${val}" readonly style="background-color: #f1f5f9; cursor: not-allowed;" placeholder="Otomatis terisi dari menu pekerjaan">`;
-        }
-
-        if (currentSheet === 'paket_pekerjaan_sd' && (hLower === 'tanggal_mulai' || hLower === 'tanggalmulai')) {
-          fieldElement = `<input type="date" id="field-${h}" class="form-control" value="${val}">`;
-        }
-        if (currentSheet === 'paket_pekerjaan_sd' && (hLower === 'tgl_selesai' || hLower === 'tglselesai')) {
-          fieldElement = `<input type="date" id="field-${h}" class="form-control" value="${val}" readonly style="background-color: #f1f5f9; cursor: not-allowed;">`;
-        }
-
-        if (activeUser && activeUser.role === "SEKOLAH") {
-          if (hLower.includes('npsn') || hLower.includes('user_id')) {
-            val = activeUser.npsn || activeUser.username || '';
-            fieldElement = `<input type="text" id="field-${h}" class="form-control" value="${val}" readonly style="background-color: #f1f5f9; cursor: not-allowed;">`;
-          } else if (currentSheet === 'laporan_progres' && (hLower === 'paket_id' || hLower === 'id_paket')) {
-            fieldElement = `<select id="field-${h}" class="form-control"><option value="">-- Pilih Paket ID Anda --</option>`;
-            globalListPaketPekerjaan.forEach(pkt => {
-              let pktId = '', pktNama = '';
-              for (let k in pkt) {
-                let kl = k.toLowerCase();
-                if (kl.includes('paket_id') || kl.includes('paketid')) pktId = pkt[k];
-                if (kl.includes('nama_paket') || kl.includes('namapaket')) pktNama = pkt[k];
-              }
-              if (pktId) {
-                let selected = (String(pktId) === String(val)) ? 'selected' : '';
-                fieldElement += `<option value="${pktId}" ${selected}>${pktId} - ${pktNama || ''}</option>`;
-              }
+                fetch(`${WEB_APP_URL}?action=checkNpsn&npsn=${npsnVal}`)
+                .then(res => res.json())
+                .then(res => {
+                    if(res && res.status === 'success') {
+                        inputNama.value = res.nama_lengkap;
+                    } else {
+                        alert(res && res.pesan ? res.pesan : "NPSN tidak ditemukan.");
+                        inputNama.value = "";
+                        document.getElementById('regNpsn').focus();
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert("Gagal terhubung ke server pengecekan NPSN.");
+                    inputNama.value = "";
+                });
             });
-            fieldElement += `</select>`;
-          }
         }
 
-        if (activeUser && activeUser.role === "DINAS") {
-          if (currentSheet === 'laporan_progres' && (hLower === 'paket_id' || hLower === 'id_paket')) {
-            fieldElement = `<select id="field-${h}" class="form-control"><option value="">-- Pilih Paket ID --</option>`;
-            globalListPaketPekerjaan.forEach(pkt => {
-              let pktId = '', pktNama = '';
-              for (let k in pkt) {
-                let kl = k.toLowerCase();
-                if (kl.includes('paket_id') || kl.includes('paketid')) pktId = pkt[k];
-                if (kl.includes('nama_paket') || kl.includes('namapaket')) pktNama = pkt[k];
-              }
-              if (pktId) {
-                let selected = (String(pktId) === String(val)) ? 'selected' : '';
-                fieldElement += `<option value="${pktId}" ${selected}>${pktId} - ${pktNama || ''}</option>`;
-              }
+        // Proses Login
+        function handleLogin(e) {
+            e.preventDefault();
+            let u = document.getElementById('loginUser').value;
+            let p = document.getElementById('loginPass').value;
+            setAuthLoading(true);
+
+            fetch(`${WEB_APP_URL}?action=login&username=${encodeURIComponent(u)}&password=${encodeURIComponent(p)}`)
+            .then(res => res.json())
+            .then(res => {
+                setAuthLoading(false);
+                if(res && res.status === 'success') {
+                    currentUser = res;
+                    localStorage.setItem('sivit_user', JSON.stringify(res));
+                    initApp();
+                } else {
+                    alert(res && res.pesan ? res.pesan : "Gagal login.");
+                }
+            })
+            .catch(err => {
+                setAuthLoading(false);
+                alert("Kesalahan koneksi saat login.");
             });
-            fieldElement += `</select>`;
-          }
         }
 
-        if (!fieldElement) {
-          fieldElement = `<input type="text" id="field-${h}" class="form-control" value="${val}">`;
+        // Proses Register Sekolah
+        function handleRegister(e) {
+            e.preventDefault();
+            let npsn = document.getElementById('regNpsn').value;
+            let nama = document.getElementById('regNamaSekolah').value;
+            let pass = document.getElementById('regPass').value;
+
+            if(!nama) {
+                alert("NPSN belum divalidasi atau tidak terdaftar di sistem dinas!");
+                return;
+            }
+
+            setAuthLoading(true);
+            fetch(`${WEB_APP_URL}?action=register&npsn=${encodeURIComponent(npsn)}&password=${encodeURIComponent(pass)}&nama_lengkap=${encodeURIComponent(nama)}`)
+            .then(res => res.json())
+            .then(res => {
+                setAuthLoading(false);
+                alert(res && res.pesan ? res.pesan : "Respon server tidak valid.");
+                if(res && res.status === 'success') {
+                    switchTab('login');
+                    document.getElementById('formRegister').reset();
+                    document.getElementById('regNamaSekolah').value = "";
+                }
+            })
+            .catch(err => {
+                setAuthLoading(false);
+                alert("Kesalahan jaringan saat registrasi.");
+            });
         }
 
-        fieldsHtml += `<div class="form-group" ${displayStyle}><label>${h}</label>${fieldElement}</div>`;
-      });
-      
-      document.getElementById('dynamic-form-fields').innerHTML = fieldsHtml;
-      setupDynamicCalculations();
-    }
-
-    function closeModal() { document.getElementById('formModal').style.display = "none"; }
-
-    async function submitForm() {
-      let formData = {};
-      currentHeader.forEach(h => {
-        let el = document.getElementById('field-' + h);
-        if (el) {
-          let val = el.value;
-          let hLower = String(h).toLowerCase();
-          if (currentSheet === 'paket_pekerjaan_sd' && hLower === 'pagu') {
-            val = val.replace(/\./g, '');
-          }
-          formData[h] = val;
+        function setAuthLoading(show) {
+            let loadingEl = document.getElementById('authLoading');
+            if(!loadingEl) return;
+            if(show) loadingEl.classList.remove('hidden');
+            else loadingEl.classList.add('hidden');
         }
-      });
 
-      try {
-        let res = await fetch(API_URL, {
-          method: "POST",
-          body: JSON.stringify({
-            action: "saveData",
-            sheet: currentSheet,
-            formData: formData,
-            rowIndex: currentEditRowIndex,
-            role: activeUser.role,
-            npsn: activeUser.npsn || activeUser.username
-          })
-        });
-        let data = await res.json();
-        alert(data.pesan);
-        if (data.status === "success") {
-          closeModal();
-          loadData(currentSheet);
+        // Cek Session saat Halaman Dimuat
+        window.onload = function() {
+            let saved = localStorage.getItem('sivit_user');
+            if(saved) {
+                try {
+                    currentUser = JSON.parse(saved);
+                    if(currentUser) initApp();
+                } catch(e) {
+                    localStorage.removeItem('sivit_user');
+                }
+            }
+        };
+
+        function logout() {
+            localStorage.removeItem('sivit_user');
+            currentUser = null;
+            document.getElementById('appContainer').classList.add('hidden');
+            document.getElementById('authContainer').classList.remove('hidden');
         }
-      } catch (err) {
-        alert("Gagal menyimpan: " + err);
-      }
-    }
 
-    async function hapusData(rowIndex) {
-      if (!confirm("Yakin ingin menghapus data ini?")) return;
-      try {
-        let res = await fetch(API_URL, {
-          method: "POST",
-          body: JSON.stringify({
-            action: "deleteData",
-            sheet: currentSheet,
-            rowIndex: rowIndex,
-            role: activeUser.role
-          })
-        });
-        let data = await res.json();
-        alert(data.pesan);
-        if (data.status === "success") loadData(currentSheet);
-      } catch (err) {
-        alert("Gagal menghapus: " + err);
-      }
-    }
-  </script>
+        function initApp() {
+            if(!currentUser) return;
+            document.getElementById('authContainer').classList.add('hidden');
+            document.getElementById('appContainer').classList.remove('hidden');
+            document.getElementById('userNameDisplay').innerText = currentUser.nama_pengguna || "-";
+            document.getElementById('userNpsnDisplay').innerText = "NPSN/ID: " + (currentUser.username || "-");
+            document.getElementById('userRoleSubtitle').innerText = "Role Hak Akses: " + (currentUser.role || "-");
+
+            buildSidebar();
+            
+            // Muat menu default pertama
+            if(currentUser.role === 'DINAS') {
+                loadTableData('paket_pekerjaan_sd');
+            } else {
+                loadTableData('laporan_progres');
+            }
+        }
+
+        // Bangun Sidebar berdasarkan Role
+        function buildSidebar() {
+            let container = document.getElementById('sidebarMenuContainer');
+            if(!container) return;
+            container.innerHTML = "";
+            let menus = [];
+
+            if(currentUser && currentUser.role === 'DINAS') {
+                menus = [
+                    { name: 'Paket Pekerjaan SD', sheet: 'paket_pekerjaan_sd', icon: 'fa-folder-open' },
+                    { name: 'Laporan Progres', sheet: 'laporan_progres', icon: 'fa-chart-line' },
+                    { name: 'Data Sekolah', sheet: 'sekolah', icon: 'fa-school' },
+                    { name: 'Menu Pekerjaan', sheet: 'menu_pekerjaan', icon: 'fa-list-check' },
+                    { name: 'Riwayat Pagu', sheet: 'riwayat_pagu', icon: 'fa-clock-rotate-left' }
+                ];
+            } else {
+                menus = [
+                    { name: 'Paket Pekerjaan SD', sheet: 'paket_pekerjaan_sd', icon: 'fa-folder-open' },
+                    { name: 'Laporan Progres', sheet: 'laporan_progres', icon: 'fa-chart-line' }
+                ];
+            }
+
+            menus.forEach(m => {
+                let btn = document.createElement('button');
+                btn.className = `w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-medium transition-colors text-slate-600 hover:bg-slate-100`;
+                btn.innerHTML = `<i class="fa-solid ${m.icon} w-4 text-slate-400"></i><span>${m.name}</span>`;
+                btn.onclick = () => loadTableData(m.sheet, m.name);
+                container.appendChild(btn);
+            });
+        }
+
+        // Ambil dan Tampilkan Data Tabel
+        function loadTableData(sheetName, customTitle = "") {
+            currentActiveSheet = sheetName;
+            document.getElementById('contentTitle').innerText = customTitle || sheetName.replace(/_/g, ' ').toUpperCase();
+            document.getElementById('tableHead').innerHTML = `<tr><th class="p-3 text-center">Memuat data...</th></tr>`;
+            document.getElementById('tableBody').innerHTML = "";
+            document.getElementById('actionButtonContainer').innerHTML = "";
+
+            // Tombol tambah data jika diizinkan (kecuali riwayat)
+            if(sheetName !== 'riwayat_pagu' && sheetName !== 'sekolah') {
+                let addBtn = document.createElement('button');
+                addBtn.className = "bg-blue-600 hover:bg-blue-700 text-white px-3.5 py-2 rounded-lg text-xs font-medium transition-colors shadow-sm";
+                addBtn.innerHTML = `<i class="fa-solid fa-plus mr-1"></i> Tambah Data`;
+                addBtn.onclick = () => openModalForm(null);
+                document.getElementById('actionButtonContainer').appendChild(addBtn);
+            }
+
+            fetch(`${WEB_APP_URL}?action=getData&sheet=${sheetName}&role=${currentUser.role}&npsn=${currentUser.username}`)
+            .then(res => res.json())
+            .then(res => {
+                if(res) {
+                    currentTableHeaders = res.header || [];
+                    renderTable(res.header || [], res.data || []);
+                } else {
+                    renderTable([], []);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                document.getElementById('tableBody').innerHTML = `<tr><td class="p-3 text-red-500 text-center">Gagal memuat data dari server.</td></tr>`;
+            });
+        }
+
+        function renderTable(headers, data) {
+            let headEl = document.getElementById('tableHead');
+            let bodyEl = document.getElementById('tableBody');
+
+            if(!headers || headers.length === 0) {
+                headEl.innerHTML = `<tr><th class="p-3 text-center text-slate-400">Tidak ada kolom ditemukan</th></tr>`;
+                bodyEl.innerHTML = `<tr><td class="p-3 text-center text-slate-400">Belum ada record data.</td></tr>`;
+                return;
+            }
+
+            // Render Header
+            let trHead = document.createElement('tr');
+            headers.forEach(h => {
+                let th = document.createElement('th');
+                th.className = "p-3 font-semibold text-slate-600";
+                th.innerText = h;
+                trHead.appendChild(th);
+            });
+            // Kolom Aksi
+            let thAction = document.createElement('th');
+            thAction.className = "p-3 font-semibold text-slate-600 text-right";
+            thAction.innerText = "Aksi";
+            trHead.appendChild(thAction);
+            headEl.innerHTML = "";
+            headEl.appendChild(trHead);
+
+            // Render Body
+            bodyEl.innerHTML = "";
+            if(!data || data.length === 0) {
+                let tr = document.createElement('tr');
+                tr.innerHTML = `<td colspan="${headers.length + 1}" class="p-4 text-center text-slate-400 text-xs">Data kosong</td>`;
+                bodyEl.appendChild(tr);
+                return;
+            }
+
+            data.forEach(row => {
+                let tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50/80 transition-colors border-b border-slate-100";
+                
+                headers.forEach(h => {
+                    let td = document.createElement('td');
+                    td.className = "p-3 text-slate-700 text-xs truncate max-w-xs";
+                    td.innerText = row && row[h] !== undefined ? row[h] : "";
+                    tr.appendChild(td);
+                });
+
+                // Tombol Aksi per Baris
+                let tdAct = document.createElement('td');
+                tdAct.className = "p-3 text-right space-x-1";
+                
+                // Edit Data
+                let btnEdit = document.createElement('button');
+                btnEdit.className = "px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-600 rounded text-[11px] font-medium border border-amber-200 transition-colors";
+                btnEdit.innerHTML = `<i class="fa-solid fa-pen-to-square"></i>`;
+                btnEdit.onclick = () => openModalForm(row);
+                tdAct.appendChild(btnEdit);
+
+                // Hapus Data (Khusus DINAS dengan Auto-Refresh otomatis)
+                if(currentUser && currentUser.role === 'DINAS') {
+                    let btnDel = document.createElement('button');
+                    btnDel.className = "px-2.5 py-1 bg-red-50 hover:bg-red-100 text-red-600 rounded text-[11px] font-medium border border-red-200 transition-colors";
+                    btnDel.innerHTML = `<i class="fa-solid fa-trash"></i>`;
+                    btnDel.onclick = () => deleteRowData(row._rowIndex);
+                    tdAct.appendChild(btnDel);
+                }
+
+                tr.appendChild(tdAct);
+                bodyEl.appendChild(tr);
+            });
+        }
+
+        // Modal Form Buka (Tambah/Edit)
+        function openModalForm(rowData = null) {
+            let container = document.getElementById('formFieldsContainer');
+            if(!container) return;
+            container.innerHTML = "";
+            document.getElementById('formRowIndex').value = rowData && rowData._rowIndex !== undefined ? rowData._rowIndex : "";
+            document.getElementById('modalTitle').innerText = rowData ? "Edit Data Record" : "Tambah Data Baru";
+
+            currentTableHeaders.forEach(h => {
+                if(h.toLowerCase().includes('id_riwayat')) return;
+
+                let div = document.createElement('div');
+                div.className = "space-y-1";
+                
+                let label = document.createElement('label');
+                label.className = "block text-xs font-semibold text-slate-600 uppercase";
+                label.innerText = h;
+                div.appendChild(label);
+
+                let input = document.createElement('input');
+                input.type = "text";
+                input.name = h;
+                input.className = "w-full px-3 py-2 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none";
+                input.value = rowData && rowData[h] !== undefined ? rowData[h] : "";
+
+                // Jika user SEKOLAH, kunci input NPSN otomatis
+                if(currentUser && currentUser.role === 'SEKOLAH' && (h.toLowerCase().includes('npsn') || h.toLowerCase().includes('user_id'))) {
+                    input.value = currentUser.username;
+                    input.readOnly = true;
+                    input.className += " bg-slate-100 text-slate-500 cursor-not-allowed";
+                }
+
+                div.appendChild(input);
+                container.appendChild(div);
+            });
+
+            let modalEl = document.getElementById('dataModal');
+            if(modalEl) {
+                modalEl.classList.remove('hidden');
+                modalEl.classList.add('flex');
+            }
+        }
+
+        function closeModal() {
+            let modalEl = document.getElementById('dataModal');
+            if(modalEl) {
+                modalEl.classList.add('hidden');
+                modalEl.classList.remove('flex');
+            }
+        }
+
+        // Simpan Data dengan Auto-Refresh Tabel
+        function handleFormSubmit(e) {
+            e.preventDefault();
+            let rowIndex = document.getElementById('formRowIndex').value;
+            let formData = {};
+
+            let inputs = document.querySelectorAll('#formFieldsContainer input');
+            inputs.forEach(input => {
+                formData[input.name] = input.value;
+            });
+
+            let payload = {
+                action: "saveData",
+                sheet: currentActiveSheet,
+                formData: formData,
+                rowIndex: rowIndex,
+                role: currentUser ? currentUser.role : "",
+                npsn: currentUser ? currentUser.username : ""
+            };
+
+            let btnSave = document.getElementById('btnSaveModal');
+            if(btnSave) btnSave.innerText = "Menyimpan...";
+
+            fetch(WEB_APP_URL, {
+                method: "POST",
+                body: JSON.stringify(payload)
+            })
+            .then(res => res.json())
+            .then(res => {
+                if(btnSave) btnSave.innerText = "Simpan Data";
+                alert(res && res.pesan ? res.pesan : "Berhasil menyimpan data.");
+                if(res && res.status === 'success') {
+                    closeModal();
+                    loadTableData(currentActiveSheet);
+                }
+            })
+            .catch(err => {
+                if(btnSave) btnSave.innerText = "Simpan Data";
+                console.error(err);
+                alert("Terjadi kesalahan jaringan saat menyimpan data.");
+            });
+        }
+
+        // Hapus Data dengan Auto-Refresh Tabel
+        function deleteRowData(rowIndex) {
+            if(!confirm("Apakah Anda yakin ingin menghapus baris data ini secara permanen?")) return;
+
+            let payload = {
+                action: "deleteData",
+                sheet: currentActiveSheet,
+                rowIndex: rowIndex,
+                role: currentUser ? currentUser.role : ""
+            };
+
+            fetch(WEB_APP_URL, {
+                method: "POST",
+                body: JSON.stringify(payload)
+            })
+            .then(res => res.json())
+            .then(res => {
+                alert(res && res.pesan ? res.pesan : "Berhasil menghapus data.");
+                if(res && res.status === 'success') {
+                    loadTableData(currentActiveSheet);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert("Gagal menghapus data.");
+            });
+        }
+    </script>
 </body>
 </html>
