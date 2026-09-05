@@ -24,7 +24,6 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
     body { background-color: var(--bg-main); color: var(--text-main); height: 100vh; display: flex; overflow: hidden; }
 
-    /* AUTH SCREEN */
     .auth-container { width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%); }
     .auth-card { background: var(--bg-card); width: 100%; max-width: 400px; padding: 35px; border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--border); }
     .auth-card h3 { text-align: center; color: var(--primary); font-size: 1.5rem; font-weight: 700; margin-bottom: 25px; }
@@ -45,7 +44,6 @@
     .btn-primary { background: var(--primary); color: white; }
     .btn-primary:hover { background: var(--primary-hover); }
 
-    /* DASHBOARD LAYOUT */
     .app-layout { display: flex; width: 100%; height: 100vh; }
     .sidebar { width: 280px; background: #0f172a; color: white; display: flex; flex-direction: column; border-right: 1px solid #1e293b; }
     .sidebar-header { padding: 25px 20px; font-size: 1.1rem; font-weight: 700; border-bottom: 1px solid #1e293b; color: #f8fafc; display: flex; align-items: center; gap: 10px; }
@@ -62,7 +60,6 @@
     .content-body { padding: 25px 30px; flex: 1; overflow-y: auto; }
     .card { background: var(--bg-card); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); padding: 25px; }
 
-    /* PROFILE & TABLE CONTROLS */
     .profile-box { background: #eff6ff; border: 1px solid #bfdbfe; border-left: 4px solid var(--primary); padding: 16px; border-radius: 8px; margin-bottom: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
     .profile-box p { font-size: 0.9rem; color: #1e40af; }
 
@@ -70,7 +67,6 @@
     .search-input { padding: 10px 16px; width: 300px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.9rem; outline: none; transition: border-color 0.2s; }
     .search-input:focus { border-color: var(--primary); }
 
-    /* BUTTONS & TABLE */
     .btn-action { padding: 8px 14px; border-radius: 6px; border: none; font-size: 0.85rem; font-weight: 600; cursor: pointer; color: white; transition: opacity 0.2s; }
     .btn-action:hover { opacity: 0.9; }
     .btn-edit { background: var(--warning); }
@@ -85,7 +81,6 @@
     tr:last-child td { border-bottom: none; }
     tr:hover td { background: #f8fafc; }
 
-    /* MODAL */
     .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(4px); align-items: center; justify-content: center; }
     .modal-content { background: var(--bg-card); width: 100%; max-width: 550px; border-radius: var(--radius); padding: 30px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); max-height: 85vh; overflow-y: auto; }
     .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
@@ -191,7 +186,7 @@
   <div id="paguModal" class="modal">
     <div class="modal-content" style="max-width: 400px;">
       <div class="modal-header">
-        <h3>Rubah Pagu Anggaran</h3>
+        <h3>Rubah Nilai Pagu</h3>
         <button class="close-btn" onclick="closePaguModal()">&times;</button>
       </div>
       <div class="form-group">
@@ -199,11 +194,11 @@
         <input type="text" id="pagu-paket-id" class="form-control" readonly style="background:#f1f5f9;">
       </div>
       <div class="form-group">
-        <label>Pagu Tercatat Saat Ini</label>
+        <label>Nilai Pagu Saat Ini</label>
         <input type="text" id="pagu-lama" class="form-control" readonly style="background:#f1f5f9;">
       </div>
       <div class="form-group">
-        <label>Pagu Baru</label>
+        <label>Nilai Pagu Baru</label>
         <input type="number" id="pagu-baru" class="form-control" placeholder="Masukkan nilai pagu baru">
       </div>
       <button class="btn btn-primary" style="margin-top: 10px;" onclick="submitRubahPagu()">Simpan Perubahan Pagu</button>
@@ -218,7 +213,6 @@
     let currentHeader = [];
     let currentEditRowIndex = null;
     let globalRawData = [];
-    let globalListPaketId = [];
     let globalListMenuPekerjaan = [];
     let globalListMenuIdPekerjaan = [];
     let selectedPaketRowForPagu = null;
@@ -268,7 +262,7 @@
           }).filter(val => val !== '');
         }
       } catch (err) {
-        console.error("Gagal memuat referensi dropdown:", err);
+        console.error("Gagal memuat referensi:", err);
       }
     }
 
@@ -305,7 +299,7 @@
         if (!activeUser.nama_sekolah) activeUser.nama_sekolah = activeUser.nama_pengguna || 'Sekolah Pengguna';
         sessionStorage.setItem('sivit26_user', JSON.stringify(activeUser));
       } catch (err) {
-        console.error("Gagal mengambil profil sekolah:", err);
+        console.error("Gagal mengambil profil:", err);
       }
     }
 
@@ -344,7 +338,7 @@
           alert(data.pesan);
         }
       } catch (err) {
-        alert("Gagal koneksi ke server: " + err);
+        alert("Gagal koneksi: " + err);
       }
     }
 
@@ -411,7 +405,6 @@
         
         currentHeader = result.header || [];
         globalRawData = result.data || [];
-        globalListPaketId = result.listPaketId || [];
         document.getElementById('page-title').innerText = "Data: " + sheetName;
 
         let canAdd = (activeUser.role === "DINAS") || (activeUser.role === "SEKOLAH" && (sheetName === 'paket_pekerjaan_sd' || sheetName === 'laporan_progres'));
@@ -474,7 +467,7 @@
         });
         html += `</table></div>`;
       } else {
-        html += `</table></div><p style="margin-top:15px; color:var(--text-muted); font-size: 0.9rem;">Belum ada data atau data tidak ditemukan.</p>`;
+        html += `</table></div><p style="margin-top:15px; color:var(--text-muted); font-size: 0.9rem;">Belum ada data.</p>`;
       }
       document.getElementById('table-container').innerHTML = html;
     }
@@ -507,18 +500,18 @@
     function openRubahPaguModal(dataIndex) {
       selectedPaketRowForPagu = globalRawData[dataIndex];
       let paketId = '';
-      let paguTercatat = '';
+      let nilaiPagu = '';
 
       for (let k in selectedPaketRowForPagu) {
         let kl = k.toLowerCase();
         if (kl.includes('paket_id') || kl.includes('paketid')) paketId = selectedPaketRowForPagu[k];
-        if (kl.includes('pagu_tercatat') || kl.includes('pagutercatat') || kl.includes('pagu_awal') || kl.includes('pagu')) {
-          if (!paguTercatat) paguTercatat = selectedPaketRowForPagu[k];
+        if (kl === 'pagu' || kl.includes('pagu')) {
+          if (!nilaiPagu) nilaiPagu = selectedPaketRowForPagu[k];
         }
       }
 
       document.getElementById('pagu-paket-id').value = paketId;
-      document.getElementById('pagu-lama').value = paguTercatat;
+      document.getElementById('pagu-lama').value = nilaiPagu;
       document.getElementById('pagu-baru').value = '';
       document.getElementById('paguModal').style.display = "flex";
     }
@@ -561,7 +554,6 @@
       }
     }
 
-    // Fungsi Kalkulasi Tanggal Selesai Otomatis & Auto Nama Paket
     function setupDynamicCalculations() {
       let menuSelect = document.getElementById('field-menu_id') || document.getElementById('field-menuid');
       let namaPaketInput = document.getElementById('field-nama_paket') || document.getElementById('field-namapaket');
@@ -633,17 +625,16 @@
             let prefix = currentSheet === 'users' ? 'USR' : (currentSheet === 'menu_pekerjaan' ? 'MNU' : (currentSheet === 'laporan_progres' ? 'LPR' : (currentSheet === 'riwayat_pagu' ? 'RWY' : 'PKT')));
             let randomNum = Math.floor(1000 + Math.random() * 9000);
             val = `${prefix}-${Date.now().toString().slice(-6)}${randomNum}`;
-            fieldElement = `<input type="text" id="field-${h}" class="form-control" value="${val}" readonly style="background-color: #f1f5f9; cursor: not-allowed;" title="ID otomatis">`;
-          } else if (currentSheet === 'paket_pekerjaan_sd' && (hLower === 'pagu_tercatat' || hLower === 'pagutercatat')) {
-            fieldElement = `<input type="number" id="field-${h}" class="form-control" placeholder="Masukkan nilai pagu">`;
+            fieldElement = `<input type="text" id="field-${h}" class="form-control" value="${val}" readonly style="background-color: #f1f5f9; cursor: not-allowed;">`;
+          } else if (currentSheet === 'paket_pekerjaan_sd' && hLower === 'pagu') {
+            fieldElement = `<input type="number" id="field-${h}" class="form-control" placeholder="Masukkan nilai pagu anggaran">`;
           }
         } else {
-          if (currentSheet === 'paket_pekerjaan_sd' && (hLower === 'pagu_tercatat' || hLower === 'pagutercatat')) {
-            fieldElement = `<input type="number" id="field-${h}" class="form-control" value="${val}" readonly style="background-color: #f1f5f9;" title="Gunakan tombol Rubah Pagu">`;
+          if (currentSheet === 'paket_pekerjaan_sd' && hLower === 'pagu') {
+            fieldElement = `<input type="number" id="field-${h}" class="form-control" value="${val}" readonly style="background-color: #f1f5f9;" title="Gunakan tombol Rubah Pagu untuk mengubah nilai">`;
           }
         }
 
-        // Dropdown Menu Pekerjaan
         if (currentSheet === 'paket_pekerjaan_sd' && (hLower === 'menu_id' || hLower === 'menuid')) {
           fieldElement = `<select id="field-${h}" class="form-control"><option value="">-- Pilih Menu Pekerjaan --</option>`;
           globalListMenuPekerjaan.forEach(item => {
@@ -661,17 +652,15 @@
           fieldElement += `</select>`;
         }
 
-        // Nama Paket Otomatis & Readonly
         if (currentSheet === 'paket_pekerjaan_sd' && (hLower === 'nama_paket' || hLower === 'namapaket')) {
           fieldElement = `<input type="text" id="field-${h}" class="form-control" value="${val}" readonly style="background-color: #f1f5f9; cursor: not-allowed;" placeholder="Otomatis terisi dari menu pekerjaan">`;
         }
 
-        // Format Tipe Tanggal & Selesai Otomatis
         if (currentSheet === 'paket_pekerjaan_sd' && (hLower === 'tanggal_mulai' || hLower === 'tanggalmulai')) {
           fieldElement = `<input type="date" id="field-${h}" class="form-control" value="${val}">`;
         }
         if (currentSheet === 'paket_pekerjaan_sd' && (hLower === 'tgl_selesai' || hLower === 'tglselesai')) {
-          fieldElement = `<input type="date" id="field-${h}" class="form-control" value="${val}" readonly style="background-color: #f1f5f9; cursor: not-allowed;" placeholder="Otomatis dari tanggal mulai + lama hari">`;
+          fieldElement = `<input type="date" id="field-${h}" class="form-control" value="${val}" readonly style="background-color: #f1f5f9; cursor: not-allowed;">`;
         }
 
         if (activeUser && activeUser.role === "SEKOLAH") {
@@ -707,21 +696,6 @@
         let el = document.getElementById('field-' + h);
         if (el) formData[h] = el.value;
       });
-
-      // Sinkronkan pagu_awal dengan pagu_tercatat jika tambah paket baru
-      if (currentSheet === 'paket_pekerjaan_sd' && currentEditRowIndex === null) {
-        for (let h in formData) {
-          let hl = h.toLowerCase();
-          if (hl.includes('pagu_awal')) {
-            let paguVal = formData[h];
-            currentHeader.forEach(th => {
-              if (th.toLowerCase().includes('pagu_tercatat') || th.toLowerCase().includes('pagutercatat')) {
-                formData[th] = paguVal;
-              }
-            });
-          }
-        }
-      }
 
       try {
         let res = await fetch(API_URL, {
