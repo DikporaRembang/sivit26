@@ -363,8 +363,8 @@
               if (k.includes('nama_sekolah') || k.includes('namasekolah')) activeUser.nama_sekolah = val;
               if (k.includes('kecamatan')) activeUser.kecamatan = val;
               if (k.includes('alamat')) activeUser.alamat_lengkap = val;
-              if (k.includes('perencana')) activeUser.perencana = val; // Mengambil dari tabel users
-              if (k.includes('pengawas')) activeUser.pengawas = val;   // Mengambil dari tabel users
+              if (k.includes('perencana')) activeUser.perencana = val;
+              if (k.includes('pengawas')) activeUser.pengawas = val;
             }
           }
         }
@@ -717,19 +717,18 @@
           }
         }
 
-        // Otomatisasi pengisian Perencana dan Pengawas langsung dari data users/activeUser
         if (currentSheet === 'paket_pekerjaan_sd' && hLower.includes('perencana')) {
           if (!isEditMode && activeUser) {
             val = activeUser.perencana || '';
           }
-          fieldElement = `<input type="text" id="field-${h}" class="form-control" value="${val}" readonly style="background-color: #f1f5f9; cursor: not-allowed;" title="Diambil otomatis dari data user/sekolah">`;
+          fieldElement = `<input type="text" id="field-${h}" class="form-control" value="${val}" readonly style="background-color: #f1f5f9; cursor: not-allowed;" title="Diambil otomatis dari profil user/sekolah">`;
         }
 
         if (currentSheet === 'paket_pekerjaan_sd' && hLower.includes('pengawas')) {
           if (!isEditMode && activeUser) {
             val = activeUser.pengawas || '';
           }
-          fieldElement = `<input type="text" id="field-${h}" class="form-control" value="${val}" readonly style="background-color: #f1f5f9; cursor: not-allowed;" title="Diambil otomatis dari data user/sekolah">`;
+          fieldElement = `<input type="text" id="field-${h}" class="form-control" value="${val}" readonly style="background-color: #f1f5f9; cursor: not-allowed;" title="Diambil otomatis dari profil user/sekolah">`;
         }
 
         if (currentSheet === 'paket_pekerjaan_sd' && (hLower === 'menu_id' || hLower === 'menuid')) {
