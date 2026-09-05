@@ -215,6 +215,7 @@
     let globalRawData = [];
     let globalListMenuPekerjaan = [];
     let globalListPaketPekerjaan = [];
+    let globalListUsers = [];
     let selectedPaketRowForPagu = null;
 
     window.onload = async function() {
@@ -230,14 +231,12 @@
       await fetchDropdownReferences();
     };
 
-    // --- GLOBAL EVENT LISTENER UNTUK TOMBOL ENTER DAN ESC ---
     document.addEventListener('keydown', function(event) {
       let formModal = document.getElementById('formModal');
       let paguModal = document.getElementById('paguModal');
       let authScreen = document.getElementById('auth-screen');
       let searchInput = document.getElementById('search-input');
 
-      // Tombol ESC (Escape)
       if (event.key === 'Escape') {
         if (formModal.style.display === 'flex') {
           closeModal();
@@ -250,7 +249,6 @@
         }
       }
 
-      // Tombol ENTER
       if (event.key === 'Enter') {
         if (formModal.style.display === 'flex') {
           event.preventDefault();
@@ -324,6 +322,10 @@
         let jsonMenu = await resMenu.json();
         if (jsonMenu.data) globalListMenuPekerjaan = jsonMenu.data;
 
+        let resUsers = await fetch(`${API_URL}?action=getData&sheet=users&role=DINAS`);
+        let jsonUsers = await resUsers.json();
+        if (jsonUsers.data) globalListUsers = jsonUsers.data;
+
         let roleParam = activeUser ? activeUser.role : 'DINAS';
         let npsnParam = activeUser ? (activeUser.npsn || activeUser.username) : '';
         let resPaket = await fetch(`${API_URL}?action=getData&sheet=paket_pekerjaan_sd&role=${roleParam}&npsn=${npsnParam}`);
@@ -338,38 +340,38 @@
 
     async function fetchSchoolProfile() {
       try {
-        let res = `${API_URL}?action=getData&sheet=sekolah&role=DINAS&npsn=${activeUser.npsn}`;
+        let res = `${API_URL}?action=getData&sheet=users&role=DINAS`;
         let response = await fetch(res);
         let result = await response.json();
         
         if (result.data && result.data.length > 0) {
           let found = result.data.find(row => {
-            let rowNpsn = '';
+            let rowUser = '';
             for (let key in row) {
-              if (key.toLowerCase().includes('npsn')) {
-                rowNpsn = String(row[key]).trim();
+              if (key.toLowerCase().includes('npsn') || key.toLowerCase().includes('username')) {
+                rowUser = String(row[key]).trim();
                 break;
               }
             }
-            return rowNpsn === String(activeUser.npsn).trim();
+            return rowUser === String(activeUser.npsn || activeUser.username).trim();
           });
 
           if (found) {
             for (let key in found) {
               let k = key.toLowerCase();
               let val = found[key];
-              if (k.includes('nama_sekolah') || k.includes('namasekolah') || k.includes('satuan_pendidikan')) {
-                activeUser.nama_sekolah = val;
-              }
+              if (k.includes('nama_sekolah') || k.includes('namasekolah')) activeUser.nama_sekolah = val;
               if (k.includes('kecamatan')) activeUser.kecamatan = val;
               if (k.includes('alamat')) activeUser.alamat_lengkap = val;
+              if (k.includes('perencana')) activeUser.perencana = val; // Mengambil dari tabel users
+              if (k.includes('pengawas')) activeUser.pengawas = val;   // Mengambil dari tabel users
             }
           }
         }
         if (!activeUser.nama_sekolah) activeUser.nama_sekolah = activeUser.nama_pengguna || 'Sekolah Pengguna';
         sessionStorage.setItem('sivit26_user', JSON.stringify(activeUser));
       } catch (err) {
-        console.error("Gagal mengambil profil:", err);
+        console.error("Gagal mengambil profil user:", err);
       }
     }
 
@@ -477,7 +479,6 @@
         globalRawData = result.data || [];
         document.getElementById('page-title').innerText = "Data: " + sheetName;
 
-        // Logika pembatasan tombol Tambah Data Baru yang sudah disesuaikan
         let canAdd = false;
         if (activeUser.role === "SEKOLAH") {
           canAdd = (sheetName === 'paket_pekerjaan_sd' || sheetName === 'laporan_progres');
@@ -714,6 +715,21 @@
             let formattedVal = !isNaN(val) && val !== '' ? Number(val).toLocaleString('id-ID') : val;
             fieldElement = `<input type="text" id="field-${h}" class="form-control" value="${formattedVal}" readonly style="background-color: #f1f5f9;" title="Gunakan tombol Rubah Pagu untuk mengubah nilai">`;
           }
+        }
+
+        // Otomatisasi pengisian Perencana dan Pengawas langsung dari data users/activeUser
+        if (currentSheet === 'paket_pekerjaan_sd' && hLower.includes('perencana')) {
+          if (!isEditMode && activeUser) {
+            val = activeUser.perencana || '';
+          }
+          fieldElement = `<input type="text" id="field-${h}" class="form-control" value="${val}" readonly style="background-color: #f1f5f9; cursor: not-allowed;" title="Diambil otomatis dari data user/sekolah">`;
+        }
+
+        if (currentSheet === 'paket_pekerjaan_sd' && hLower.includes('pengawas')) {
+          if (!isEditMode && activeUser) {
+            val = activeUser.pengawas || '';
+          }
+          fieldElement = `<input type="text" id="field-${h}" class="form-control" value="${val}" readonly style="background-color: #f1f5f9; cursor: not-allowed;" title="Diambil otomatis dari data user/sekolah">`;
         }
 
         if (currentSheet === 'paket_pekerjaan_sd' && (hLower === 'menu_id' || hLower === 'menuid')) {
