@@ -277,7 +277,7 @@
             document.getElementById('userNpsnDisplay').innerText = "NPSN/ID: " + currentUser.username;
             document.getElementById('userRoleSubtitle').innerText = "Hak Akses: " + currentUser.role;
 
-            // Ambil daftar menu pekerjaan untuk list laporan progres
+            // Ambil daftar menu pekerjaan untuk list nama_paket di form paket_pekerjaan_sd & laporan_progres
             fetch(`${WEB_APP_URL}?action=getData&sheet=menu_pekerjaan&role=DINAS&npsn=`)
             .then(res => res.json())
             .then(res => {
@@ -310,9 +310,10 @@
                     { name: 'Riwayat Pagu', sheet: 'riwayat_pagu', icon: 'fa-clock-rotate-left' }
                 ];
             } else {
+                // Role SEKOLAH kini memiliki akses ke Update Konsultan dan Paket Pekerjaan SD
                 menus = [
                     { name: 'Update Konsultan', sheet: 'users', icon: 'fa-user-gear text-blue-500' },
-                    { name: 'Laporan Progres', sheet: 'laporan_progres', icon: 'fa-chart-line' }
+                    { name: 'Paket Pekerjaan SD', sheet: 'paket_pekerjaan_sd', icon: 'fa-folder-open text-emerald-500' }
                 ];
             }
 
@@ -337,14 +338,14 @@
             let canPrint = false;
 
             if (currentUser.role === 'DINAS') {
-                if (['sekolah', 'menu_pekerjaan', 'users'].includes(sheetName)) {
+                if (['sekolah', 'menu_pekerjaan', 'users', 'paket_pekerjaan_sd'].includes(sheetName)) {
                     canAdd = true;
                 }
                 if (['paket_pekerjaan_sd', 'laporan_progres', 'riwayat_pagu'].includes(sheetName)) {
                     canPrint = true;
                 }
             } else if (currentUser.role === 'SEKOLAH') {
-                if (sheetName === 'laporan_progres') {
+                if (sheetName === 'paket_pekerjaan_sd') {
                     canAdd = true;
                     canPrint = true;
                 }
@@ -396,7 +397,7 @@
             });
             
             let showActionColumn = true;
-            if (currentUser.role === 'DINAS' && ['paket_pekerjaan_sd', 'riwayat_pagu'].includes(sheetName)) {
+            if (currentUser.role === 'DINAS' && ['riwayat_pagu'].includes(sheetName)) {
                 showActionColumn = false;
             }
 
@@ -457,7 +458,7 @@
                         btnEdit.onclick = () => openModalForm(row);
                         tdAct.appendChild(btnEdit);
 
-                        if (currentUser.role === 'DINAS') {
+                        if (currentUser.role === 'DINAS' || sheetName === 'paket_pekerjaan_sd') {
                             let btnDel = document.createElement('button');
                             btnDel.className = "px-2.5 py-1 bg-red-50 hover:bg-red-100 text-red-600 rounded text-[11px] font-medium border border-red-200";
                             btnDel.innerHTML = `<i class="fa-solid fa-trash"></i>`;
@@ -520,8 +521,8 @@
                     }
                 }
 
-                // Logika khusus form laporan_progres
-                if (currentActiveSheet === 'laporan_progres') {
+                // Logika khusus form paket_pekerjaan_sd
+                if (currentActiveSheet === 'paket_pekerjaan_sd') {
                     if (h === 'nama_paket') {
                         input = document.createElement('select');
                         input.name = h;
@@ -551,7 +552,7 @@
                                 
                                 let pInput = document.querySelector('input[name="paket_id"]');
                                 let mInput = document.querySelector('input[name="menu_id"]');
-                                if (pInput) pInput.value = generatedPaketId;
+                                if (pInput && !pInput.value) pInput.value = generatedPaketId;
                                 if (mInput) mInput.value = mId;
                             }
                         };
@@ -561,7 +562,11 @@
                         input.name = h;
                         input.readOnly = true;
                         input.className = "w-full px-3 py-2 bg-slate-100 border border-slate-300 rounded-lg text-xs text-slate-500 cursor-not-allowed";
-                        input.value = rowData ? (rowData[h] !== undefined ? rowData[h] : "") : "";
+                        if (!rowData && h === 'paket_id') {
+                            input.value = "PKT-" + currentUser.username + "-" + Math.floor(Date.now() / 1000);
+                        } else {
+                            input.value = rowData ? (rowData[h] !== undefined ? rowData[h] : "") : "";
+                        }
                     } else if (['tanggal_mulai'].includes(h)) {
                         input = document.createElement('input');
                         input.type = "text";
@@ -642,6 +647,12 @@
             document.querySelectorAll('#formFieldsContainer input, #formFieldsContainer select').forEach(input => {
                 formData[input.name] = input.value;
             });
+
+            // Pastikan jika role sekolah, field npsn/username terisi otomatis
+            if (currentUser.role === 'SEKOLAH') {
+                if (formData['npsn'] !== undefined) formData['npsn'] = currentUser.username;
+                if (formData['username'] !== undefined) formData['username'] = currentUser.username;
+            }
 
             let payload = {
                 action: "saveData",
