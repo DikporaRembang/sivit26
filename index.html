@@ -110,13 +110,35 @@
     let globalListPaketId = [];
 
     // Cek sesi login saat halaman pertama kali dimuat / di-refresh
-    window.onload = function() {
+    window.onload = async function() {
       let savedUser = sessionStorage.getItem('sivit26_user');
       if (savedUser) {
         activeUser = JSON.parse(savedUser);
+        // Jika data profil sekolah belum lengkap di storage, ambil otomatis dari sheet sekolah
+        if (activeUser.role === "SEKOLAH" && (!activeUser.kecamatan || !activeUser.alamat_lengkap)) {
+          await fetchSchoolProfile();
+        }
         tampilkanDashboardUtama();
       }
     };
+
+    async function fetchSchoolProfile() {
+      try {
+        let res = await fetch(`${API_URL}?action=getData&sheet=sekolah&role=DINAS&npsn=${activeUser.npsn}`);
+        let result = await res.json();
+        if (result.data && result.data.length > 0) {
+          let found = result.data.find(row => String(row['npsn'] || row['NPSN']) === String(activeUser.npsn));
+          if (found) {
+            activeUser.nama_sekolah = found['nama_sekolah'] || found['Nama Sekolah'] || found['nama sekolah'] || activeUser.nama;
+            activeUser.kecamatan = found['kecamatan'] || found['Kecamatan'] || '-';
+            activeUser.alamat_lengkap = found['alamat_lengkap'] || found['Alamat Lengkap'] || found['alamat'] || '-';
+            sessionStorage.setItem('sivit26_user', JSON.stringify(activeUser));
+          }
+        }
+      } catch (err) {
+        console.error("Gagal memperbarui profil sekolah:", err);
+      }
+    }
 
     function switchTab(target) {
       if (target === 'login') {
@@ -142,7 +164,12 @@
         let data = await res.json();
         if (data.status === "success") {
           activeUser = data;
-          sessionStorage.setItem('sivit26_user', JSON.stringify(activeUser));
+          if (activeUser.role === "SEKOLAH") {
+            // Ambil data detail profil dari sheet sekolah secara otomatis
+            await fetchSchoolProfile();
+          } else {
+            sessionStorage.setItem('sivit26_user', JSON.stringify(activeUser));
+          }
           tampilkanDashboardUtama();
         } else {
           alert(data.pesan);
