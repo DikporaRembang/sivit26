@@ -146,12 +146,14 @@
 
     <!-- ================= JAVASCRIPT LOGIC ================= -->
     <script>
+        // Masukkan URL Web App Google Apps Script Anda di sini[cite: 1]
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwWzp_dcFmrKtEBiAiVKbFlCEFI75PN5vKz6qOm2Srt97BwtMx3m6i2xhWlUtcwQYdWZQ/exec";
 
         let currentUser = null;
         let currentActiveSheet = "";
         let currentTableHeaders = [];
 
+        // Switch Tab Auth[cite: 1]
         function switchTab(tab) {
             if(tab === 'login') {
                 document.getElementById('formLogin').classList.remove('hidden');
@@ -166,34 +168,33 @@
             }
         }
 
-        const regNpsnInput = document.getElementById('regNpsn');
-        if(regNpsnInput) {
-            regNpsnInput.addEventListener('blur', function() {
-                let npsnVal = this.value.trim();
-                let inputNama = document.getElementById('regNamaSekolah');
-                if(!npsnVal) return;
+        // Fitur Autofill Nama Sekolah Berdasarkan NPSN saat Registrasi[cite: 1]
+        document.getElementById('regNpsn').addEventListener('blur', function() {
+            let npsnVal = this.value.trim();
+            let inputNama = document.getElementById('regNamaSekolah');
+            if(!npsnVal) return;
 
-                inputNama.value = "Memeriksa database Dinas...";
+            inputNama.value = "Memeriksa database Dinas...";
 
-                fetch(`${WEB_APP_URL}?action=checkNpsn&npsn=${npsnVal}`)
-                .then(res => res.json())
-                .then(res => {
-                    if(res && res.status === 'success') {
-                        inputNama.value = res.nama_lengkap;
-                    } else {
-                        alert(res && res.pesan ? res.pesan : "NPSN tidak ditemukan.");
-                        inputNama.value = "";
-                        document.getElementById('regNpsn').focus();
-                    }
-                })
-                .catch(err => {
-                    console.error(err);
-                    alert("Gagal terhubung ke server pengecekan NPSN.");
+            fetch(`${WEB_APP_URL}?action=checkNpsn&npsn=${npsnVal}`)
+            .then(res => res.json())
+            .then(res => {
+                if(res.status === 'success') {
+                    inputNama.value = res.nama_lengkap;
+                } else {
+                    alert(res.pesan);
                     inputNama.value = "";
-                });
+                    document.getElementById('regNpsn').focus();
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert("Gagal terhubung ke server pengecekan NPSN.");
+                inputNama.value = "";
             });
-        }
+        });
 
+        // Proses Login[cite: 1]
         function handleLogin(e) {
             e.preventDefault();
             let u = document.getElementById('loginUser').value;
@@ -204,12 +205,12 @@
             .then(res => res.json())
             .then(res => {
                 setAuthLoading(false);
-                if(res && res.status === 'success') {
+                if(res.status === 'success') {
                     currentUser = res;
                     localStorage.setItem('sivit_user', JSON.stringify(res));
                     initApp();
                 } else {
-                    alert(res && res.pesan ? res.pesan : "Gagal login.");
+                    alert(res.pesan);
                 }
             })
             .catch(err => {
@@ -218,6 +219,7 @@
             });
         }
 
+        // Proses Register Sekolah[cite: 1]
         function handleRegister(e) {
             e.preventDefault();
             let npsn = document.getElementById('regNpsn').value;
@@ -232,13 +234,13 @@
             setAuthLoading(true);
             fetch(WEB_APP_URL, {
                 method: "POST",
-                body: JSON.stringify({ action: "register", npsn: npsn, password: pass, nama_lengkap: nama })
+                body: JSON.stringify({ action: 'register', npsn: npsn, password: pass, nama_lengkap: nama })
             })
             .then(res => res.json())
             .then(res => {
                 setAuthLoading(false);
-                alert(res && res.pesan ? res.pesan : "Respon server tidak valid.");
-                if(res && res.status === 'success') {
+                alert(res.pesan);
+                if(res.status === 'success') {
                     switchTab('login');
                     document.getElementById('formRegister').reset();
                     document.getElementById('regNamaSekolah').value = "";
@@ -252,20 +254,16 @@
 
         function setAuthLoading(show) {
             let loadingEl = document.getElementById('authLoading');
-            if(!loadingEl) return;
             if(show) loadingEl.classList.remove('hidden');
             else loadingEl.classList.add('hidden');
         }
 
+        // Cek Session saat Halaman Dimuat[cite: 1]
         window.onload = function() {
             let saved = localStorage.getItem('sivit_user');
             if(saved) {
-                try {
-                    currentUser = JSON.parse(saved);
-                    if(currentUser) initApp();
-                } catch(e) {
-                    localStorage.removeItem('sivit_user');
-                }
+                currentUser = JSON.parse(saved);
+                initApp();
             }
         };
 
@@ -277,15 +275,15 @@
         }
 
         function initApp() {
-            if(!currentUser) return;
             document.getElementById('authContainer').classList.add('hidden');
             document.getElementById('appContainer').classList.remove('hidden');
-            document.getElementById('userNameDisplay').innerText = currentUser.nama_pengguna || "-";
-            document.getElementById('userNpsnDisplay').innerText = "NPSN/ID: " + (currentUser.username || "-");
-            document.getElementById('userRoleSubtitle').innerText = "Role Hak Akses: " + (currentUser.role || "-");
+            document.getElementById('userNameDisplay').innerText = currentUser.nama_pengguna;
+            document.getElementById('userNpsnDisplay').innerText = "NPSN/ID: " + currentUser.username;
+            document.getElementById('userRoleSubtitle').innerText = "Role Hak Akses: " + currentUser.role;
 
             buildSidebar();
             
+            // Muat menu default pertama[cite: 1]
             if(currentUser.role === 'DINAS') {
                 loadTableData('paket_pekerjaan_sd');
             } else {
@@ -293,17 +291,17 @@
             }
         }
 
+        // Bangun Sidebar berdasarkan Role[cite: 1]
         function buildSidebar() {
             let container = document.getElementById('sidebarMenuContainer');
-            if(!container) return;
             container.innerHTML = "";
             let menus = [];
 
-            if(currentUser && currentUser.role === 'DINAS') {
+            if(currentUser.role === 'DINAS') {
                 menus = [
+                    { name: 'Verifikasi Sekolah', sheet: 'sekolah_pending', icon: 'fa-user-check text-amber-500' },
                     { name: 'Paket Pekerjaan SD', sheet: 'paket_pekerjaan_sd', icon: 'fa-folder-open' },
                     { name: 'Laporan Progres', sheet: 'laporan_progres', icon: 'fa-chart-line' },
-                    { name: 'Verifikasi Sekolah', sheet: 'sekolah_pending', icon: 'fa-user-check' },
                     { name: 'Data Sekolah', sheet: 'sekolah', icon: 'fa-school' },
                     { name: 'Menu Pekerjaan', sheet: 'menu_pekerjaan', icon: 'fa-list-check' },
                     { name: 'Riwayat Pagu', sheet: 'riwayat_pagu', icon: 'fa-clock-rotate-left' }
@@ -324,6 +322,7 @@
             });
         }
 
+        // Ambil dan Tampilkan Data Tabel[cite: 1]
         function loadTableData(sheetName, customTitle = "") {
             currentActiveSheet = sheetName;
             document.getElementById('contentTitle').innerText = customTitle || sheetName.replace(/_/g, ' ').toUpperCase();
@@ -331,6 +330,7 @@
             document.getElementById('tableBody').innerHTML = "";
             document.getElementById('actionButtonContainer').innerHTML = "";
 
+            // Tombol tambah data jika diizinkan (kecuali riwayat dan pending verifikasi)[cite: 1]
             if(sheetName !== 'riwayat_pagu' && sheetName !== 'sekolah' && sheetName !== 'sekolah_pending') {
                 let addBtn = document.createElement('button');
                 addBtn.className = "bg-blue-600 hover:bg-blue-700 text-white px-3.5 py-2 rounded-lg text-xs font-medium transition-colors shadow-sm";
@@ -342,12 +342,8 @@
             fetch(`${WEB_APP_URL}?action=getData&sheet=${sheetName}&role=${currentUser.role}&npsn=${currentUser.username}`)
             .then(res => res.json())
             .then(res => {
-                if(res) {
-                    currentTableHeaders = res.header || [];
-                    renderTable(res.header || [], res.data || []);
-                } else {
-                    renderTable([], []);
-                }
+                currentTableHeaders = res.header;
+                renderTable(res.header, res.data, sheetName);
             })
             .catch(err => {
                 console.error(err);
@@ -355,16 +351,17 @@
             });
         }
 
-        function renderTable(headers, data) {
+        function renderTable(headers, data, sheetName) {
             let headEl = document.getElementById('tableHead');
             let bodyEl = document.getElementById('tableBody');
 
-            if(!headers || headers.length === 0) {
+            if(headers.length === 0) {
                 headEl.innerHTML = `<tr><th class="p-3 text-center text-slate-400">Tidak ada kolom ditemukan</th></tr>`;
                 bodyEl.innerHTML = `<tr><td class="p-3 text-center text-slate-400">Belum ada record data.</td></tr>`;
                 return;
             }
 
+            // Render Header[cite: 1]
             let trHead = document.createElement('tr');
             headers.forEach(h => {
                 let th = document.createElement('th');
@@ -372,6 +369,7 @@
                 th.innerText = h;
                 trHead.appendChild(th);
             });
+            // Kolom Aksi[cite: 1]
             let thAction = document.createElement('th');
             thAction.className = "p-3 font-semibold text-slate-600 text-right";
             thAction.innerText = "Aksi";
@@ -379,8 +377,9 @@
             headEl.innerHTML = "";
             headEl.appendChild(trHead);
 
+            // Render Body[cite: 1]
             bodyEl.innerHTML = "";
-            if(!data || data.length === 0) {
+            if(data.length === 0) {
                 let tr = document.createElement('tr');
                 tr.innerHTML = `<td colspan="${headers.length + 1}" class="p-4 text-center text-slate-400 text-xs">Data kosong</td>`;
                 bodyEl.appendChild(tr);
@@ -394,34 +393,37 @@
                 headers.forEach(h => {
                     let td = document.createElement('td');
                     td.className = "p-3 text-slate-700 text-xs truncate max-w-xs";
-                    td.innerText = row && row[h] !== undefined ? row[h] : "";
+                    td.innerText = row[h] !== undefined ? row[h] : "";
                     tr.appendChild(td);
                 });
 
+                // Tombol Aksi per Baris[cite: 1]
                 let tdAct = document.createElement('td');
                 tdAct.className = "p-3 text-right space-x-1";
                 
-                // Khusus Menu Verifikasi Sekolah Pending
-                if(currentActiveSheet === 'sekolah_pending') {
+                if (sheetName === 'sekolah_pending') {
+                    // Tombol Approve & Reject khusus Verifikasi Sekolah[cite: 1]
                     let btnApprove = document.createElement('button');
-                    btnApprove.className = "px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 rounded text-[11px] font-medium border border-emerald-200 transition-colors mr-1";
-                    btnApprove.innerHTML = `<i class="fa-solid fa-check mr-1"></i> Setujui`;
-                    btnApprove.onclick = () => verifySchool(row.NPSN, 'APPROVED');
+                    btnApprove.className = "px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 rounded text-[11px] font-medium border border-emerald-200 transition-colors";
+                    btnApprove.innerHTML = `<i class="fa-solid fa-check mr-1"></i> Approve`;
+                    btnApprove.onclick = () => verifyReg(row.username || row.npsn, 'APPROVED');
                     tdAct.appendChild(btnApprove);
 
                     let btnReject = document.createElement('button');
                     btnReject.className = "px-2.5 py-1 bg-red-50 hover:bg-red-100 text-red-600 rounded text-[11px] font-medium border border-red-200 transition-colors";
-                    btnReject.innerHTML = `<i class="fa-solid fa-xmark mr-1"></i> Tolak`;
-                    btnReject.onclick = () => verifySchool(row.NPSN, 'REJECTED');
+                    btnReject.innerHTML = `<i class="fa-solid fa-xmark mr-1"></i> Reject`;
+                    btnReject.onclick = () => verifyReg(row.username || row.npsn, 'REJECTED');
                     tdAct.appendChild(btnReject);
                 } else {
+                    // Edit Data[cite: 1]
                     let btnEdit = document.createElement('button');
                     btnEdit.className = "px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-600 rounded text-[11px] font-medium border border-amber-200 transition-colors";
                     btnEdit.innerHTML = `<i class="fa-solid fa-pen-to-square"></i>`;
                     btnEdit.onclick = () => openModalForm(row);
                     tdAct.appendChild(btnEdit);
 
-                    if(currentUser && currentUser.role === 'DINAS') {
+                    // Hapus Data (Khusus DINAS)[cite: 1]
+                    if(currentUser.role === 'DINAS') {
                         let btnDel = document.createElement('button');
                         btnDel.className = "px-2.5 py-1 bg-red-50 hover:bg-red-100 text-red-600 rounded text-[11px] font-medium border border-red-200 transition-colors";
                         btnDel.innerHTML = `<i class="fa-solid fa-trash"></i>`;
@@ -435,32 +437,27 @@
             });
         }
 
-        function verifySchool(npsn, status) {
-            let actionText = status === 'APPROVED' ? 'menyetujui' : 'menolak';
-            if(!confirm(`Apakah Anda yakin ingin ${actionText} pendaftaran sekolah dengan NPSN ${npsn}?`)) return;
-
-            fetch(WEB_APP_URL, {
-                method: "POST",
-                body: JSON.stringify({ action: "verifyRegister", npsn: npsn, status: status })
-            })
-            .then(res => res.json())
-            .then(res => {
-                alert(res && res.pesan ? res.pesan : "Status berhasil diperbarui.");
-                if(res && res.status === 'success') {
-                    loadTableData('sekolah_pending', 'Verifikasi Sekolah');
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                alert("Gagal memproses verifikasi.");
-            });
+        // Fungsi Verifikasi Pendaftaran Sekolah[cite: 1]
+        async function verifyReg(npsn, status) {
+            if(!confirm(`Ubah status pendaftaran akun menjadi ${status}?`)) return;
+            try {
+                const res = await fetch(WEB_APP_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'verifyRegister', npsn: npsn, status: status })
+                });
+                const data = await res.json();
+                alert(data.pesan);
+                loadTableData('sekolah_pending');
+            } catch (err) {
+                alert('Gagal memproses verifikasi.');
+            }
         }
 
+        // Modal Form Buka (Tambah/Edit)[cite: 1]
         function openModalForm(rowData = null) {
             let container = document.getElementById('formFieldsContainer');
-            if(!container) return;
             container.innerHTML = "";
-            document.getElementById('formRowIndex').value = rowData && rowData._rowIndex !== undefined ? rowData._rowIndex : "";
+            document.getElementById('formRowIndex').value = rowData ? rowData._rowIndex : "";
             document.getElementById('modalTitle').innerText = rowData ? "Edit Data Record" : "Tambah Data Baru";
 
             currentTableHeaders.forEach(h => {
@@ -478,9 +475,10 @@
                 input.type = "text";
                 input.name = h;
                 input.className = "w-full px-3 py-2 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none";
-                input.value = rowData && rowData[h] !== undefined ? rowData[h] : "";
+                input.value = rowData ? (rowData[h] !== undefined ? rowData[h] : "") : "";
 
-                if(currentUser && currentUser.role === 'SEKOLAH' && (h.toLowerCase().includes('npsn') || h.toLowerCase().includes('user_id'))) {
+                // Jika user SEKOLAH, kunci input NPSN otomatis[cite: 1]
+                if(currentUser.role === 'SEKOLAH' && (h.toLowerCase().includes('npsn') || h.toLowerCase().includes('user_id'))) {
                     input.value = currentUser.username;
                     input.readOnly = true;
                     input.className += " bg-slate-100 text-slate-500 cursor-not-allowed";
@@ -490,21 +488,16 @@
                 container.appendChild(div);
             });
 
-            let modalEl = document.getElementById('dataModal');
-            if(modalEl) {
-                modalEl.classList.remove('hidden');
-                modalEl.classList.add('flex');
-            }
+            document.getElementById('dataModal').classList.remove('hidden');
+            document.getElementById('dataModal').classList.add('flex');
         }
 
         function closeModal() {
-            let modalEl = document.getElementById('dataModal');
-            if(modalEl) {
-                modalEl.classList.add('hidden');
-                modalEl.classList.remove('flex');
-            }
+            document.getElementById('dataModal').classList.add('hidden');
+            document.getElementById('dataModal').classList.remove('flex');
         }
 
+        // Simpan Data dengan Auto-Refresh Tabel[cite: 1]
         function handleFormSubmit(e) {
             e.preventDefault();
             let rowIndex = document.getElementById('formRowIndex').value;
@@ -520,12 +513,11 @@
                 sheet: currentActiveSheet,
                 formData: formData,
                 rowIndex: rowIndex,
-                role: currentUser ? currentUser.role : "",
-                npsn: currentUser ? currentUser.username : ""
+                role: currentUser.role,
+                npsn: currentUser.username
             };
 
-            let btnSave = document.getElementById('btnSaveModal');
-            if(btnSave) btnSave.innerText = "Menyimpan...";
+            document.getElementById('btnSaveModal').innerText = "Menyimpan...";
 
             fetch(WEB_APP_URL, {
                 method: "POST",
@@ -533,20 +525,21 @@
             })
             .then(res => res.json())
             .then(res => {
-                if(btnSave) btnSave.innerText = "Simpan Data";
-                alert(res && res.pesan ? res.pesan : "Berhasil menyimpan data.");
-                if(res && res.status === 'success') {
+                document.getElementById('btnSaveModal').innerText = "Simpan Data";
+                alert(res.pesan);
+                if(res.status === 'success') {
                     closeModal();
                     loadTableData(currentActiveSheet);
                 }
             })
             .catch(err => {
-                if(btnSave) btnSave.innerText = "Simpan Data";
+                document.getElementById('btnSaveModal').innerText = "Simpan Data";
                 console.error(err);
                 alert("Terjadi kesalahan jaringan saat menyimpan data.");
             });
         }
 
+        // Hapus Data dengan Auto-Refresh Tabel[cite: 1]
         function deleteRowData(rowIndex) {
             if(!confirm("Apakah Anda yakin ingin menghapus baris data ini secara permanen?")) return;
 
@@ -554,7 +547,7 @@
                 action: "deleteData",
                 sheet: currentActiveSheet,
                 rowIndex: rowIndex,
-                role: currentUser ? currentUser.role : ""
+                role: currentUser.role
             };
 
             fetch(WEB_APP_URL, {
@@ -563,8 +556,8 @@
             })
             .then(res => res.json())
             .then(res => {
-                alert(res && res.pesan ? res.pesan : "Berhasil menghapus data.");
-                if(res && res.status === 'success') {
+                alert(res.pesan);
+                if(res.status === 'success') {
                     loadTableData(currentActiveSheet);
                 }
             })
