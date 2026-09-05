@@ -199,14 +199,14 @@
       </div>
       <div class="form-group">
         <label>Nilai Pagu Baru</label>
-        <input type="number" id="pagu-baru" class="form-control" placeholder="Masukkan nilai pagu baru">
+        <input type="text" id="pagu-baru" class="form-control" placeholder="Contoh: 150.000.000" oninput="formatInputRupiah(this)">
       </div>
       <button class="btn btn-primary" style="margin-top: 10px;" onclick="submitRubahPagu()">Simpan Perubahan Pagu</button>
     </div>
   </div>
 
   <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbwxqdVLvJovT0Wk5ZE87VJUI6TG8_EOpPcLK03MRG7LOmIMttT3ewMGVr-0E5tzxHVtfg/exec";
+    const API_URL = "https://script.google.com/macros/s/AKfycbyr0s9Q2dV0HgdWbNcIEQcwOJqObTfacZ0DsH3VKUxslCuEa19nSzut_CvSk4Ypszp9-Q/exec";
 
     let activeUser = null;
     let currentSheet = '';
@@ -214,7 +214,7 @@
     let currentEditRowIndex = null;
     let globalRawData = [];
     let globalListMenuPekerjaan = [];
-    let globalListMenuIdPekerjaan = [];
+    let globalListPaketPekerjaan = [];
     let selectedPaketRowForPagu = null;
 
     window.onload = async function() {
@@ -241,6 +241,20 @@
       }
     }
 
+    function formatInputRupiah(inputEl) {
+      let angkaBersih = inputEl.value.replace(/[^,\d]/g, '');
+      let split = angkaBersih.split(',');
+      let sisa = split[0].length % 3;
+      let rupiah = split[0].substr(0, sisa);
+      let ribuan = split[0].substr(sisa).match(/\d{3}/gi);
+
+      if (ribuan) {
+        let separator = sisa ? '.' : '';
+        rupiah += separator + ribuan.join('.');
+      }
+      inputEl.value = split[1] !== undefined ? rupiah + ',' + split[1] : rupiah;
+    }
+
     async function fetchDropdownReferences() {
       try {
         let resMenu = await fetch(`${API_URL}?action=getData&sheet=menu_pekerjaan&role=DINAS`);
@@ -252,14 +266,7 @@
         let resPaket = await fetch(`${API_URL}?action=getData&sheet=paket_pekerjaan_sd&role=${roleParam}&npsn=${npsnParam}`);
         let jsonPaket = await resPaket.json();
         if (jsonPaket.data) {
-          globalListMenuIdPekerjaan = jsonPaket.data.map(row => {
-            for (let k in row) {
-              if (k.toLowerCase().includes('paket_id') || k.toLowerCase().includes('paketid')) {
-                return String(row[k]);
-              }
-            }
-            return '';
-          }).filter(val => val !== '');
+          globalListPaketPekerjaan = jsonPaket.data;
         }
       } catch (err) {
         console.error("Gagal memuat referensi:", err);
@@ -523,7 +530,8 @@
     async function submitRubahPagu() {
       let paketId = document.getElementById('pagu-paket-id').value;
       let paguLama = document.getElementById('pagu-lama').value;
-      let paguBaru = document.getElementById('pagu-baru').value;
+      let paguBaruFormatted = document.getElementById('pagu-baru').value;
+      let paguBaru = paguBaruFormatted.replace(/\./g, '');
 
       if (!paguBaru || isNaN(paguBaru)) {
         alert("Masukkan nilai pagu baru yang valid!");
@@ -621,17 +629,18 @@
         let fieldElement = '';
         
         if (!isEditMode) {
-          if (hLower === 'id' || hLower === 'id_user' || hLower === 'id_menu' || hLower === 'paket_id' || hLower === 'id_riwayat') {
+          if (hLower === 'id' || hLower === 'id_user' || hLower === 'id_menu' || hLower === 'paket_id' || hLower === 'id_riwayat' || hLower === 'id_laporan') {
             let prefix = currentSheet === 'users' ? 'USR' : (currentSheet === 'menu_pekerjaan' ? 'MNU' : (currentSheet === 'laporan_progres' ? 'LPR' : (currentSheet === 'riwayat_pagu' ? 'RWY' : 'PKT')));
             let randomNum = Math.floor(1000 + Math.random() * 9000);
             val = `${prefix}-${Date.now().toString().slice(-6)}${randomNum}`;
             fieldElement = `<input type="text" id="field-${h}" class="form-control" value="${val}" readonly style="background-color: #f1f5f9; cursor: not-allowed;">`;
           } else if (currentSheet === 'paket_pekerjaan_sd' && hLower === 'pagu') {
-            fieldElement = `<input type="number" id="field-${h}" class="form-control" placeholder="Masukkan nilai pagu anggaran">`;
+            fieldElement = `<input type="text" id="field-${h}" class="form-control" placeholder="Contoh: 150.000.000" oninput="formatInputRupiah(this)">`;
           }
         } else {
           if (currentSheet === 'paket_pekerjaan_sd' && hLower === 'pagu') {
-            fieldElement = `<input type="number" id="field-${h}" class="form-control" value="${val}" readonly style="background-color: #f1f5f9;" title="Gunakan tombol Rubah Pagu untuk mengubah nilai">`;
+            let formattedVal = !isNaN(val) && val !== '' ? Number(val).toLocaleString('id-ID') : val;
+            fieldElement = `<input type="text" id="field-${h}" class="form-control" value="${formattedVal}" readonly style="background-color: #f1f5f9;" title="Gunakan tombol Rubah Pagu untuk mengubah nilai">`;
           }
         }
 
@@ -668,10 +677,37 @@
             val = activeUser.npsn || activeUser.username || '';
             fieldElement = `<input type="text" id="field-${h}" class="form-control" value="${val}" readonly style="background-color: #f1f5f9; cursor: not-allowed;">`;
           } else if (currentSheet === 'laporan_progres' && (hLower === 'paket_id' || hLower === 'id_paket')) {
+            fieldElement = `<select id="field-${h}" class="form-control"><option value="">-- Pilih Paket ID Anda --</option>`;
+            globalListPaketPekerjaan.forEach(pkt => {
+              let pktId = '', pktNama = '';
+              for (let k in pkt) {
+                let kl = k.toLowerCase();
+                if (kl.includes('paket_id') || kl.includes('paketid')) pktId = pkt[k];
+                if (kl.includes('nama_paket') || kl.includes('namapaket')) pktNama = pkt[k];
+              }
+              if (pktId) {
+                let selected = (String(pktId) === String(val)) ? 'selected' : '';
+                fieldElement += `<option value="${pktId}" ${selected}>${pktId} - ${pktNama || ''}</option>`;
+              }
+            });
+            fieldElement += `</select>`;
+          }
+        }
+
+        if (activeUser && activeUser.role === "DINAS") {
+          if (currentSheet === 'laporan_progres' && (hLower === 'paket_id' || hLower === 'id_paket')) {
             fieldElement = `<select id="field-${h}" class="form-control"><option value="">-- Pilih Paket ID --</option>`;
-            globalListMenuIdPekerjaan.forEach(pid => {
-              let selected = (pid === String(val)) ? 'selected' : '';
-              fieldElement += `<option value="${pid}" ${selected}>${pid}</option>`;
+            globalListPaketPekerjaan.forEach(pkt => {
+              let pktId = '', pktNama = '';
+              for (let k in pkt) {
+                let kl = k.toLowerCase();
+                if (kl.includes('paket_id') || kl.includes('paketid')) pktId = pkt[k];
+                if (kl.includes('nama_paket') || kl.includes('namapaket')) pktNama = pkt[k];
+              }
+              if (pktId) {
+                let selected = (String(pktId) === String(val)) ? 'selected' : '';
+                fieldElement += `<option value="${pktId}" ${selected}>${pktId} - ${pktNama || ''}</option>`;
+              }
             });
             fieldElement += `</select>`;
           }
@@ -694,7 +730,14 @@
       let formData = {};
       currentHeader.forEach(h => {
         let el = document.getElementById('field-' + h);
-        if (el) formData[h] = el.value;
+        if (el) {
+          let val = el.value;
+          let hLower = String(h).toLowerCase();
+          if (currentSheet === 'paket_pekerjaan_sd' && hLower === 'pagu') {
+            val = val.replace(/\./g, '');
+          }
+          formData[h] = val;
+        }
       });
 
       try {
