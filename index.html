@@ -120,7 +120,7 @@
             </aside>
 
             <main class="flex-1 p-4 md:p-6 overflow-x-auto">
-                <!-- Identitas Sekolah Card (Khusus Role Sekolah) -->
+                <!-- Identitas Sekolah Card -->
                 <div id="sekolahIdentitasCard" class="hidden mb-6 bg-gradient-to-r from-emerald-900 to-teal-900 text-white rounded-2xl p-5 shadow-md border border-emerald-800">
                     <div class="flex items-center justify-between mb-3 pb-2 border-b border-emerald-800/60">
                         <div class="flex items-center space-x-2">
@@ -436,7 +436,6 @@
                     { name: 'Riwayat Pagu', sheet: 'riwayat_pagu', icon: 'fa-clock-rotate-left' }
                 ];
             } else {
-                // Menambahkan menu "Riwayat Pagu" agar SEKOLAH bisa memantau perubahan pagunya sendiri
                 menus = [
                     { name: 'Update Konsultan', sheet: 'users', icon: 'fa-user-gear text-emerald-600' },
                     { name: 'Paket Pekerjaan SD', sheet: 'paket_pekerjaan_sd', icon: 'fa-folder-open text-emerald-600' },
@@ -473,7 +472,6 @@
                     canPrint = true;
                 }
             } else if (currentUser.role === 'SEKOLAH') {
-                // Memberikan izin cetak untuk laporan dan riwayat pagu bagi sekolah
                 if (['paket_pekerjaan_sd', 'laporan_progres'].includes(sheetName)) {
                     canAdd = true;
                     canPrint = true;
@@ -532,7 +530,6 @@
             });
             
             let showActionColumn = true;
-            // Jika riwayat_pagu, kolom aksi dihilangkan karena sifatnya transparan/laporan baca-saja
             if (['riwayat_pagu'].includes(sheetName)) {
                 showActionColumn = false;
             }
@@ -1025,7 +1022,6 @@
             modal.classList.remove('hidden');
             modal.classList.add('flex');
 
-            // Mengirim parameter role dan npsn agar data riwayat yang diambil disaring otomatis khusus sekolah yang bersangkutan
             fetch(`${WEB_APP_URL}?action=getData&sheet=riwayat_pagu&role=${currentUser.role}&npsn=${currentUser.username}`)
             .then(res => res.json())
             .then(res => {
