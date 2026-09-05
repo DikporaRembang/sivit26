@@ -60,7 +60,7 @@
     .content-body { padding: 25px 30px; flex: 1; overflow-y: auto; }
     .card { background: var(--bg-card); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); padding: 25px; }
 
-    .profile-box { background: #eff6ff; border: 1px solid #bfdbfe; border-left: 4px solid var(--primary); padding: 16px; border-radius: 8px; margin-bottom: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+    .profile-box { background: #eff6ff; border: 1px solid #bfdbfe; border-left: 4px solid var(--primary); padding: 16px; border-radius: 8px; margin-bottom: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
     .profile-box p { font-size: 0.9rem; color: #1e40af; }
 
     .table-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; gap: 15px; flex-wrap: wrap; }
@@ -348,7 +348,8 @@
           let found = result.data.find(row => {
             let rowUser = '';
             for (let key in row) {
-              if (key.toLowerCase().includes('npsn') || key.toLowerCase().includes('username')) {
+              let kl = key.toLowerCase();
+              if (kl.includes('npsn') || kl.includes('username')) {
                 rowUser = String(row[key]).trim();
                 break;
               }
@@ -360,15 +361,26 @@
             for (let key in found) {
               let k = key.toLowerCase();
               let val = found[key];
-              if (k.includes('nama_sekolah') || k.includes('namasekolah')) activeUser.nama_sekolah = val;
-              if (k.includes('kecamatan')) activeUser.kecamatan = val;
-              if (k.includes('alamat')) activeUser.alamat_lengkap = val;
-              if (k.includes('perencana')) activeUser.perencana = val;
-              if (k.includes('pengawas')) activeUser.pengawas = val;
+              
+              // Ambil Nama Sekolah / Nama Instansi dari tabel users dengan prioritas kolom yang benar
+              if (k.includes('nama_sekolah') || k.includes('namasekolah')) {
+                if (val) activeUser.nama_sekolah = val;
+              } else if (!activeUser.nama_sekolah && (k.includes('nama_pengguna') || k.includes('nama_lengkap') || k === 'nama')) {
+                if (val && val !== 'SD') activeUser.nama_sekolah = val;
+              }
+              
+              if (k.includes('kecamatan') && val) activeUser.kecamatan = val;
+              if (k.includes('alamat') && val) activeUser.alamat_lengkap = val;
+              if (k.includes('perencana') && val) activeUser.perencana = val;
+              if (k.includes('pengawas') && val) activeUser.pengawas = val;
             }
           }
         }
-        if (!activeUser.nama_sekolah) activeUser.nama_sekolah = activeUser.nama_pengguna || 'Sekolah Pengguna';
+        
+        // Fallback jika belum terisi
+        if (!activeUser.nama_sekolah || activeUser.nama_sekolah === 'SD') {
+          activeUser.nama_sekolah = activeUser.nama_pengguna || 'Sekolah Pengguna';
+        }
         sessionStorage.setItem('sivit26_user', JSON.stringify(activeUser));
       } catch (err) {
         console.error("Gagal mengambil profil user:", err);
@@ -418,7 +430,7 @@
       document.getElementById('auth-screen').classList.add('hidden');
       document.getElementById('app-screen').classList.remove('hidden');
       
-      let userName = activeUser.nama_pengguna || activeUser.nama || 'User';
+      let userName = activeUser.nama_sekolah || activeUser.nama_pengguna || 'User';
       document.getElementById('user-badge').innerText = `${userName} (${activeUser.role})`;
       
       let profileHtml = '';
@@ -429,6 +441,8 @@
             <p><strong>Nama Sekolah:</strong> ${activeUser.nama_sekolah || '-'}</p>
             <p><strong>Kecamatan:</strong> ${activeUser.kecamatan || '-'}</p>
             <p><strong>Alamat:</strong> ${activeUser.alamat_lengkap || '-'}</p>
+            <p><strong>Perencana:</strong> ${activeUser.perencana || '-'}</p>
+            <p><strong>Pengawas:</strong> ${activeUser.pengawas || '-'}</p>
           </div>
         `;
         document.querySelectorAll('.dinas-only').forEach(el => el.classList.add('hidden'));
