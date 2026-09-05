@@ -35,8 +35,11 @@
 
     .form-group { margin-bottom: 16px; }
     .form-group label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-main); margin-bottom: 6px; }
+    .password-wrapper { position: relative; display: flex; align-items: center; }
     .form-control { width: 100%; padding: 11px 14px; font-size: 0.95rem; border: 1px solid var(--border); border-radius: 8px; outline: none; transition: border-color 0.2s; background: #fff; }
     .form-control:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+    .password-toggle { position: absolute; right: 12px; background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 0.9rem; font-weight: 600; }
+    .password-toggle:hover { color: var(--primary); }
 
     .btn { width: 100%; padding: 12px; font-size: 0.95rem; font-weight: 600; border: none; border-radius: 8px; cursor: pointer; transition: background 0.2s; }
     .btn-primary { background: var(--primary); color: white; }
@@ -109,7 +112,10 @@
         </div>
         <div class="form-group">
           <label>Password</label>
-          <input type="password" id="log-pass" class="form-control" placeholder="Masukkan password">
+          <div class="password-wrapper">
+            <input type="password" id="log-pass" class="form-control" placeholder="Masukkan password">
+            <button type="button" class="password-toggle" onclick="togglePasswordVisibility('log-pass', this)">Lihat</button>
+          </div>
         </div>
         <button class="btn btn-primary" onclick="handleLogin()">Masuk Aplikasi</button>
       </div>
@@ -121,7 +127,10 @@
         </div>
         <div class="form-group">
           <label>Password</label>
-          <input type="password" id="reg-pass" class="form-control" placeholder="Buat password aman">
+          <div class="password-wrapper">
+            <input type="password" id="reg-pass" class="form-control" placeholder="Buat password aman">
+            <button type="button" class="password-toggle" onclick="togglePasswordVisibility('reg-pass', this)">Lihat</button>
+          </div>
         </div>
         <div class="form-group">
           <label>Nama Sekolah / PIC</label>
@@ -186,6 +195,8 @@
     let currentEditRowIndex = null;
     let globalRawData = [];
     let globalListPaketId = [];
+    let globalListMenuPekerjaan = [];
+    let globalListMenuIdPekerjaan = [];
 
     window.onload = async function() {
       let savedUser = sessionStorage.getItem('sivit26_user');
@@ -197,7 +208,48 @@
         }
         tampilkanDashboardUtama();
       }
+      await fetchDropdownReferences();
     };
+
+    function togglePasswordVisibility(fieldId, btnEl) {
+      let inputEl = document.getElementById(fieldId);
+      if (inputEl.type === "password") {
+        inputEl.type = "text";
+        btnEl.innerText = "Sembunyi";
+      } else {
+        inputEl.type = "password";
+        btnEl.innerText = "Lihat";
+      }
+    }
+
+    async function fetchDropdownReferences() {
+      try {
+        // Ambil data menu_pekerjaan untuk pilihan di paket_pekerjaan_sd
+        let resMenu = await fetch(`${API_URL}?action=getData&sheet=menu_pekerjaan&role=DINAS`);
+        let jsonMenu = await resMenu.json();
+        if (jsonMenu.data) {
+          globalListMenuPekerjaan = jsonMenu.data;
+        }
+
+        // Ambil data paket_pekerjaan_sd untuk pilihan menu_id di laporan_progres
+        let roleParam = activeUser ? activeUser.role : 'DINAS';
+        let npsnParam = activeUser ? (activeUser.npsn || activeUser.username) : '';
+        let resPaket = await fetch(`${API_URL}?action=getData&sheet=paket_pekerjaan_sd&role=${roleParam}&npsn=${npsnParam}`);
+        let jsonPaket = await resPaket.json();
+        if (jsonPaket.data) {
+          globalListMenuIdPekerjaan = jsonPaket.data.map(row => {
+            for (let k in row) {
+              if (k.toLowerCase().includes('menu_id') || k.toLowerCase().includes('menuid')) {
+                return String(row[k]);
+              }
+            }
+            return '';
+          }).filter(val => val !== '');
+        }
+      } catch (err) {
+        console.error("Gagal memuat referensi dropdown:", err);
+      }
+    }
 
     async function fetchSchoolProfile() {
       try {
@@ -274,6 +326,7 @@
           }
           sessionStorage.setItem('sivit26_user', JSON.stringify(activeUser));
           tampilkanDashboardUtama();
+          await fetchDropdownReferences();
         } else {
           alert(data.pesan);
         }
@@ -340,6 +393,7 @@
       }
 
       try {
+        await fetchDropdownReferences();
         let res = await fetch(`${API_URL}?action=getData&sheet=${sheetName}&role=${activeUser.role}&npsn=${activeUser.npsn || activeUser.username}`);
         let result = await res.json();
         
@@ -445,7 +499,6 @@
         
         let fieldElement = '';
         
-        // Auto-generate ID or specific fields when adding new data
         if (!isEditMode) {
           if (hLower === 'id' || hLower === 'id_' || hLower === 'id_user' || hLower === 'id_menu') {
             if (!val) {
@@ -464,6 +517,31 @@
           }
         }
 
+        // Dropdown untuk menu_id di paket_pekerjaan_sd
+        if (currentSheet === 'paket_pekerjaan_sd' && (hLower === 'menu_id' || hLower === 'menuid')) {
+          fieldElement = `<select id="field-${h}" class="form-control">`;
+          fieldElement += `<option value="">-- Pilih Menu Pekerjaan --</option>`;
+          globalListMenuPekerjaan.forEach(item => {
+            let itemKey = '';
+            let itemVal = '';
+            for (let k in item) {
+              let kl = k.toLowerCase();
+              if (kl.includes('id') || kl.includes('menu')) {
+                if (!itemKey) itemKey = item[k];
+              }
+              if (kl.includes('nama') || kl.includes('menu')) {
+                itemVal = item[k];
+              }
+            }
+            if (!itemKey) itemKey = Object.values(item)[0];
+            if (!itemVal) itemVal = itemKey;
+            
+            let selected = (String(itemKey) === String(val)) ? 'selected' : '';
+            fieldElement += `<option value="${itemKey}" ${selected}>${itemKey} - ${itemVal}</option>`;
+          });
+          fieldElement += `</select>`;
+        }
+
         if (activeUser && activeUser.role === "SEKOLAH") {
           if (hLower.includes('npsn')) {
             val = activeUser.npsn || activeUser.username || '';
@@ -477,12 +555,12 @@
           } else if (hLower.includes('alamat')) {
             val = activeUser.alamat_lengkap || '';
             fieldElement = `<input type="text" id="field-${h}" class="form-control" value="${val}" readonly style="background-color: #f1f5f9; cursor: not-allowed;">`;
-          } else if (currentSheet === 'laporan_progres' && (hLower === 'paket_id' || hLower === 'id_paket' || hLower === 'id_' || hLower === 'id')) {
-            if (hLower === 'paket_id' || hLower === 'id_paket') {
-              if (globalListPaketId && globalListPaketId.length > 0) {
+          } else if (currentSheet === 'laporan_progres') {
+            if (hLower === 'paket_id' || hLower === 'id_paket' || hLower === 'menu_id' || hLower === 'menuid') {
+              if (globalListMenuIdPekerjaan && globalListMenuIdPekerjaan.length > 0) {
                 fieldElement = `<select id="field-${h}" class="form-control">`;
-                fieldElement += `<option value="">-- Pilih Paket Pekerjaan --</option>`;
-                globalListPaketId.forEach(pid => {
+                fieldElement += `<option value="">-- Pilih Menu ID dari Paket Pekerjaan --</option>`;
+                globalListMenuIdPekerjaan.forEach(pid => {
                   let selected = (pid === String(val)) ? 'selected' : '';
                   fieldElement += `<option value="${pid}" ${selected}>${pid}</option>`;
                 });
