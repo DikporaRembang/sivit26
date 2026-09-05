@@ -114,8 +114,7 @@
       let savedUser = sessionStorage.getItem('sivit26_user');
       if (savedUser) {
         activeUser = JSON.parse(savedUser);
-        // Jika data profil sekolah belum lengkap di storage, ambil otomatis dari sheet sekolah
-        if (activeUser.role === "SEKOLAH" && (!activeUser.kecamatan || !activeUser.alamat_lengkap)) {
+        if (activeUser.role === "SEKOLAH") {
           await fetchSchoolProfile();
         }
         tampilkanDashboardUtama();
@@ -124,19 +123,49 @@
 
     async function fetchSchoolProfile() {
       try {
-        let res = await fetch(`${API_URL}?action=getData&sheet=sekolah&role=DINAS&npsn=${activeUser.npsn}`);
-        let result = await res.json();
+        let res = `${API_URL}?action=getData&sheet=sekolah&role=DINAS&npsn=${activeUser.npsn}`;
+        let response = await fetch(res);
+        let result = await response.json();
+        
         if (result.data && result.data.length > 0) {
-          let found = result.data.find(row => String(row['npsn'] || row['NPSN']) === String(activeUser.npsn));
+          // Cari baris data sekolah berdasarkan NPSN (mencari kunci kolom npsn secara fleksibel)
+          let found = result.data.find(row => {
+            let rowNpsn = '';
+            for (let key in row) {
+              if (key.toLowerCase().includes('npsn')) {
+                rowNpsn = String(row[key]).trim();
+                break;
+              }
+            }
+            return rowNpsn === String(activeUser.npsn).trim();
+          });
+
           if (found) {
-            activeUser.nama_sekolah = found['nama_sekolah'] || found['Nama Sekolah'] || found['nama sekolah'] || activeUser.nama;
-            activeUser.kecamatan = found['kecamatan'] || found['Kecamatan'] || '-';
-            activeUser.alamat_lengkap = found['alamat_lengkap'] || found['Alamat Lengkap'] || found['alamat'] || '-';
-            sessionStorage.setItem('sivit26_user', JSON.stringify(activeUser));
+            // Mapping fleksibel mencari kolom nama sekolah, kecamatan, dan alamat di sheet
+            for (let key in found) {
+              let k = key.toLowerCase();
+              let val = found[key];
+              if (k.includes('nama_sekolah') || k.includes('namasekolah') || k.includes('nama sekolah') || k.includes('satuan_pendidikan')) {
+                activeUser.nama_sekolah = val;
+              }
+              if (k.includes('kecamatan')) {
+                activeUser.kecamatan = val;
+              }
+              if (k.includes('alamat')) {
+                activeUser.alamat_lengkap = val;
+              }
+            }
           }
         }
+        
+        // Pastikan fallback jika tidak ketemu
+        if (!activeUser.nama_sekolah) activeUser.nama_sekolah = activeUser.nama || '-';
+        if (!activeUser.kecamatan) activeUser.kecamatan = '-';
+        if (!activeUser.alamat_lengkap) activeUser.alamat_lengkap = '-';
+
+        sessionStorage.setItem('sivit26_user', JSON.stringify(activeUser));
       } catch (err) {
-        console.error("Gagal memperbarui profil sekolah:", err);
+        console.error("Gagal mengambil profil sekolah:", err);
       }
     }
 
@@ -164,11 +193,9 @@
         let data = await res.json();
         if (data.status === "success") {
           activeUser = data;
+          sessionStorage.setItem('sivit26_user', JSON.stringify(activeUser));
           if (activeUser.role === "SEKOLAH") {
-            // Ambil data detail profil dari sheet sekolah secara otomatis
             await fetchSchoolProfile();
-          } else {
-            sessionStorage.setItem('sivit26_user', JSON.stringify(activeUser));
           }
           tampilkanDashboardUtama();
         } else {
@@ -306,17 +333,17 @@
         let fieldElement = '';
         
         if (activeUser.role === "SEKOLAH") {
-          // Otomatis isi data profil sekolah dan kunci (readonly)
-          if (hLower === 'npsn') {
+          // Deteksi kolom secara fleksibel dan otomatis kunci (readonly)
+          if (hLower.includes('npsn')) {
             val = activeUser.npsn || '';
             fieldElement = `<input type="text" id="field-${h}" value="${val}" readonly style="background-color: #e9ecef; cursor: not-allowed;">`;
-          } else if (hLower === 'nama_sekolah' || hLower === 'nama sekolah' || hLower === 'namasekolah') {
+          } else if (hLower.includes('nama_sekolah') || hLower.includes('namasekolah') || hLower.includes('nama sekolah') || hLower.includes('satuan_pendidikan')) {
             val = activeUser.nama_sekolah || activeUser.nama || '';
             fieldElement = `<input type="text" id="field-${h}" value="${val}" readonly style="background-color: #e9ecef; cursor: not-allowed;">`;
-          } else if (hLower === 'kecamatan') {
+          } else if (hLower.includes('kecamatan')) {
             val = activeUser.kecamatan || '';
             fieldElement = `<input type="text" id="field-${h}" value="${val}" readonly style="background-color: #e9ecef; cursor: not-allowed;">`;
-          } else if (hLower === 'alamat_lengkap' || hLower === 'alamat lengkap' || hLower === 'alamat') {
+          } else if (hLower.includes('alamat')) {
             val = activeUser.alamat_lengkap || '';
             fieldElement = `<input type="text" id="field-${h}" value="${val}" readonly style="background-color: #e9ecef; cursor: not-allowed;">`;
           } else if (currentSheet === 'laporan_progres' && (hLower === 'paket_id' || hLower === 'id_paket' || hLower === 'id_' || hLower === 'id')) {
