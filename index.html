@@ -154,6 +154,7 @@
         let currentUser = null;
         let currentActiveSheet = "";
         let currentTableHeaders = [];
+        let menuPekerjaanList = [];
 
         function switchTab(tab) {
             if(tab === 'login') {
@@ -275,6 +276,13 @@
             document.getElementById('userNameDisplay').innerText = currentUser.nama_pengguna;
             document.getElementById('userNpsnDisplay').innerText = "NPSN/ID: " + currentUser.username;
             document.getElementById('userRoleSubtitle').innerText = "Hak Akses: " + currentUser.role;
+
+            // Ambil daftar menu pekerjaan untuk referensi dropdown laporan progres
+            fetch(`${WEB_APP_URL}?action=getData&sheet=menu_pekerjaan&role=DINAS&npsn=`)
+            .then(res => res.json())
+            .then(res => {
+                menuPekerjaanList = res.data;
+            });
 
             buildSidebar();
             
@@ -488,11 +496,85 @@
                 label.innerText = h;
                 div.appendChild(label);
 
-                let input = document.createElement('input');
-                input.type = "text";
-                input.name = h;
-                input.className = "w-full px-3 py-2 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none";
-                input.value = rowData ? (rowData[h] !== undefined ? rowData[h] : "") : "";
+                let input;
+
+                // Handle logika khusus form laporan_progres
+                if (currentActiveSheet === 'laporan_progres') {
+                    if (h === 'nama_paket') {
+                        input = document.createElement('select');
+                        input.name = h;
+                        input.className = "w-full px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none";
+                        
+                        let defaultOpt = document.createElement('option');
+                        defaultOpt.value = "";
+                        defaultOpt.innerText = "-- Pilih Nama Paket Pekerjaan --";
+                        input.appendChild(defaultOpt);
+
+                        menuPekerjaanList.forEach(m => {
+                            let opt = document.createElement('option');
+                            let namaMenu = m['nama_pekerjaan'] || m['nama_menu'] || Object.values(m)[1];
+                            opt.value = namaMenu;
+                            opt.innerText = namaMenu;
+                            if (rowData && rowData[h] === namaMenu) opt.selected = true;
+                            input.appendChild(opt);
+                        });
+
+                        // Event saat nama_paket dipilih untuk mengisi paket_id & menu_id otomatis
+                        input.onchange = function() {
+                            let selectedVal = this.value;
+                            let match = menuPekerjaanList.find(m => (m['nama_pekerjaan'] || m['nama_menu'] || Object.values(m)[1]) === selectedVal);
+                            if (match) {
+                                let pId = match['paket_id'] || match['id_paket'] || match['menu_id'] || Object.values(m)[0];
+                                let mId = match['menu_id'] || match['id_menu'] || '';
+                                
+                                let pInput = document.querySelector('input[name="paket_id"]');
+                                let mInput = document.querySelector('input[name="menu_id"]');
+                                if (pInput) pInput.value = pId;
+                                if (mInput) mInput.value = mId;
+                            }
+                        };
+                    } else if (['paket_id', 'menu_id', 'tgl_selesai'].includes(h)) {
+                        input = document.createElement('input');
+                        input.type = "text";
+                        input.name = h;
+                        input.readOnly = true;
+                        input.className = "w-full px-3 py-2 bg-slate-100 border border-slate-300 rounded-lg text-xs text-slate-500 cursor-not-allowed";
+                        input.value = rowData ? (rowData[h] !== undefined ? rowData[h] : "") : "";
+                    } else if (['tanggal_mulai'].includes(h)) {
+                        input = document.createElement('input');
+                        input.type = "text";
+                        input.name = h;
+                        input.placeholder = "dd/mm/yyyy";
+                        input.className = "w-full px-3 py-2 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none";
+                        input.value = rowData ? (rowData[h] !== undefined ? rowData[h] : "") : "";
+
+                        // Hitung tgl_selesai otomatis saat tanggal_mulai atau lama_hari diubah
+                        input.oninput = calculateTglSelesai;
+                    } else if (['lama_hari'].includes(h)) {
+                        input = document.createElement('input');
+                        input.type = "number";
+                        input.name = h;
+                        input.className = "w-full px-3 py-2 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none";
+                        input.value = rowData ? (rowData[h] !== undefined ? rowData[h] : "") : "";
+                        input.oninput = calculateTglSelesai;
+                    } else if (['perencana', 'pengawas'].includes(h)) {
+                        input = document.createElement('input');
+                        input.type = "text";
+                        input.name = h;
+                        input.readOnly = true;
+                        input.className = "w-full px-3 py-2 bg-slate-100 border border-slate-300 rounded-lg text-xs text-slate-500 cursor-not-allowed";
+                        input.value = rowData ? (rowData[h] !== undefined ? rowData[h] : "") : currentUser[h] || "";
+                    }
+                }
+
+                // Default input jika belum terbuat di atas
+                if (!input) {
+                    input = document.createElement('input');
+                    input.type = "text";
+                    input.name = h;
+                    input.className = "w-full px-3 py-2 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none";
+                    input.value = rowData ? (rowData[h] !== undefined ? rowData[h] : "") : "";
+                }
 
                 if(currentUser.role === 'SEKOLAH' && (h.toLowerCase().includes('npsn') || h.toLowerCase().includes('user_id'))) {
                     input.value = currentUser.username;
@@ -508,6 +590,31 @@
             document.getElementById('dataModal').classList.add('flex');
         }
 
+        function calculateTglSelesai() {
+            let tglMulaiEl = document.querySelector('input[name="tanggal_mulai"]');
+            let lamaHariEl = document.querySelector('input[name="lama_hari"]');
+            let tglSelesaiEl = document.querySelector('input[name="tgl_selesai"]');
+
+            if (!tglMulaiEl || !lamaHariEl || !tglSelesaiEl) return;
+
+            let tglVal = tglMulaiEl.value.trim();
+            let lamaVal = parseInt(lamaHariEl.value) || 0;
+
+            if (/^\d{2}\/\d{2}\/\d{4}$/.test(tglVal) && lamaVal > 0) {
+                let parts = tglVal.split('/');
+                let dateObj = new Date(parts[2], parts[1] - 1, parts[0]);
+                dateObj.setDate(dateObj.getDate() + lamaVal);
+
+                let d = String(dateObj.getDate()).padStart(2, '0');
+                let m = String(dateObj.getMonth() + 1).padStart(2, '0');
+                let y = dateObj.getFullYear();
+
+                tglSelesaiEl.value = `${d}/${m}/${y}`;
+            } else {
+                tglSelesaiEl.value = "";
+            }
+        }
+
         function closeModal() {
             document.getElementById('dataModal').classList.add('hidden');
             document.getElementById('dataModal').classList.remove('flex');
@@ -519,7 +626,7 @@
             let rowIndex = rawRowIndex ? Number(rawRowIndex) : null;
             let formData = {};
 
-            document.querySelectorAll('#formFieldsContainer input').forEach(input => {
+            document.querySelectorAll('#formFieldsContainer input, #formFieldsContainer select').forEach(input => {
                 formData[input.name] = input.value;
             });
 
