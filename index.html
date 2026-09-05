@@ -216,6 +216,7 @@
     let globalListMenuPekerjaan = [];
     let globalListPaketPekerjaan = [];
     let globalListUsers = [];
+    let globalListSekolah = [];
     let selectedPaketRowForPagu = null;
 
     window.onload = async function() {
@@ -224,7 +225,7 @@
         activeUser = JSON.parse(savedUser);
         if (activeUser && activeUser.role === "SEKOLAH") {
           if (!activeUser.npsn) activeUser.npsn = activeUser.username;
-          await fetchSchoolProfile();
+          await fetchSchoolAndUserProfile();
         }
         tampilkanDashboardUtama();
       }
@@ -326,6 +327,10 @@
         let jsonUsers = await resUsers.json();
         if (jsonUsers.data) globalListUsers = jsonUsers.data;
 
+        let resSekolah = await fetch(`${API_URL}?action=getData&sheet=sekolah&role=DINAS`);
+        let jsonSekolah = await resSekolah.json();
+        if (jsonSekolah.data) globalListSekolah = jsonSekolah.data;
+
         let roleParam = activeUser ? activeUser.role : 'DINAS';
         let npsnParam = activeUser ? (activeUser.npsn || activeUser.username) : '';
         let resPaket = await fetch(`${API_URL}?action=getData&sheet=paket_pekerjaan_sd&role=${roleParam}&npsn=${npsnParam}`);
@@ -338,14 +343,45 @@
       }
     }
 
-    async function fetchSchoolProfile() {
+    async function fetchSchoolAndUserProfile() {
       try {
-        let res = `${API_URL}?action=getData&sheet=users&role=DINAS`;
-        let response = await fetch(res);
-        let result = await response.json();
-        
-        if (result.data && result.data.length > 0) {
-          let found = result.data.find(row => {
+        let targetNpsn = String(activeUser.npsn || activeUser.username).trim();
+
+        // 1. Ambil Data dari tabel "sekolah" (Nama Sekolah, Kecamatan, Alamat) berdasarkan NPSN
+        let resSekolah = await fetch(`${API_URL}?action=getData&sheet=sekolah&role=DINAS`);
+        let jsonSekolah = await resSekolah.json();
+        if (jsonSekolah.data && jsonSekolah.data.length > 0) {
+          let foundSekolah = jsonSekolah.data.find(row => {
+            let rowNpsn = '';
+            for (let key in row) {
+              if (key.toLowerCase().includes('npsn')) {
+                rowNpsn = String(row[key]).trim();
+                break;
+              }
+            }
+            return rowNpsn === targetNpsn;
+          });
+
+          if (foundSekolah) {
+            for (let key in foundSekolah) {
+              let k = key.toLowerCase();
+              let val = foundSekolah[key];
+              if ((k.includes('nama_sekolah') || k.includes('namasekolah')) && val) {
+                activeUser.nama_sekolah = val;
+              } else if (!activeUser.nama_sekolah && (k === 'nama' || k.includes('nama_instansi'))) {
+                if (val && val !== 'SD') activeUser.nama_sekolah = val;
+              }
+              if (k.includes('kecamatan') && val) activeUser.kecamatan = val;
+              if ((k.includes('alamat') || k.includes('jalan')) && val) activeUser.alamat_lengkap = val;
+            }
+          }
+        }
+
+        // 2. Ambil Data dari tabel "users" (Perencana, Pengawas) berdasarkan login NPSN
+        let resUsers = await fetch(`${API_URL}?action=getData&sheet=users&role=DINAS`);
+        let jsonUsers = await resUsers.json();
+        if (jsonUsers.data && jsonUsers.data.length > 0) {
+          let foundUser = jsonUsers.data.find(row => {
             let rowUser = '';
             for (let key in row) {
               let kl = key.toLowerCase();
@@ -354,36 +390,26 @@
                 break;
               }
             }
-            return rowUser === String(activeUser.npsn || activeUser.username).trim();
+            return rowUser === targetNpsn;
           });
 
-          if (found) {
-            for (let key in found) {
+          if (foundUser) {
+            for (let key in foundUser) {
               let k = key.toLowerCase();
-              let val = found[key];
-              
-              // Ambil Nama Sekolah / Nama Instansi dari tabel users dengan prioritas kolom yang benar
-              if (k.includes('nama_sekolah') || k.includes('namasekolah')) {
-                if (val) activeUser.nama_sekolah = val;
-              } else if (!activeUser.nama_sekolah && (k.includes('nama_pengguna') || k.includes('nama_lengkap') || k === 'nama')) {
-                if (val && val !== 'SD') activeUser.nama_sekolah = val;
-              }
-              
-              if (k.includes('kecamatan') && val) activeUser.kecamatan = val;
-              if (k.includes('alamat') && val) activeUser.alamat_lengkap = val;
+              let val = foundUser[key];
               if (k.includes('perencana') && val) activeUser.perencana = val;
               if (k.includes('pengawas') && val) activeUser.pengawas = val;
             }
           }
         }
-        
-        // Fallback jika belum terisi
+
+        // Fallback jika Nama Sekolah kosong
         if (!activeUser.nama_sekolah || activeUser.nama_sekolah === 'SD') {
           activeUser.nama_sekolah = activeUser.nama_pengguna || 'Sekolah Pengguna';
         }
         sessionStorage.setItem('sivit26_user', JSON.stringify(activeUser));
       } catch (err) {
-        console.error("Gagal mengambil profil user:", err);
+        console.error("Gagal mengambil profil sekolah & user:", err);
       }
     }
 
@@ -413,7 +439,7 @@
           activeUser = data;
           if (activeUser.role === "SEKOLAH") {
             if (!activeUser.npsn) activeUser.npsn = activeUser.username || u;
-            await fetchSchoolProfile();
+            await fetchSchoolAndUserProfile();
           }
           sessionStorage.setItem('sivit26_user', JSON.stringify(activeUser));
           tampilkanDashboardUtama();
@@ -426,10 +452,14 @@
       }
     }
 
-    function tampilkanDashboardUtama() {
+    async function tampilkanDashboardUtama() {
       document.getElementById('auth-screen').classList.add('hidden');
       document.getElementById('app-screen').classList.remove('hidden');
       
+      if (activeUser && activeUser.role === "SEKOLAH") {
+        await fetchSchoolAndUserProfile();
+      }
+
       let userName = activeUser.nama_sekolah || activeUser.nama_pengguna || 'User';
       document.getElementById('user-badge').innerText = `${userName} (${activeUser.role})`;
       
@@ -735,14 +765,14 @@
           if (!isEditMode && activeUser) {
             val = activeUser.perencana || '';
           }
-          fieldElement = `<input type="text" id="field-${h}" class="form-control" value="${val}" readonly style="background-color: #f1f5f9; cursor: not-allowed;" title="Diambil otomatis dari profil user/sekolah">`;
+          fieldElement = `<input type="text" id="field-${h}" class="form-control" value="${val}" readonly style="background-color: #f1f5f9; cursor: not-allowed;" title="Diambil otomatis dari tabel users">`;
         }
 
         if (currentSheet === 'paket_pekerjaan_sd' && hLower.includes('pengawas')) {
           if (!isEditMode && activeUser) {
             val = activeUser.pengawas || '';
           }
-          fieldElement = `<input type="text" id="field-${h}" class="form-control" value="${val}" readonly style="background-color: #f1f5f9; cursor: not-allowed;" title="Diambil otomatis dari profil user/sekolah">`;
+          fieldElement = `<input type="text" id="field-${h}" class="form-control" value="${val}" readonly style="background-color: #f1f5f9; cursor: not-allowed;" title="Diambil otomatis dari tabel users">`;
         }
 
         if (currentSheet === 'paket_pekerjaan_sd' && (hLower === 'menu_id' || hLower === 'menuid')) {
