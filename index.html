@@ -230,6 +230,56 @@
       await fetchDropdownReferences();
     };
 
+    // --- GLOBAL EVENT LISTENER UNTUK TOMBOL ENTER DAN ESC ---
+    document.addEventListener('keydown', function(event) {
+      let formModal = document.getElementById('formModal');
+      let paguModal = document.getElementById('paguModal');
+      let authScreen = document.getElementById('auth-screen');
+      let searchInput = document.getElementById('search-input');
+
+      // Tombol ESC (Escape)
+      if (event.key === 'Escape') {
+        if (formModal.style.display === 'flex') {
+          closeModal();
+        } else if (paguModal.style.display === 'flex') {
+          closePaguModal();
+        } else if (document.activeElement === searchInput) {
+          searchInput.value = '';
+          filterTable();
+          searchInput.blur();
+        }
+      }
+
+      // Tombol ENTER
+      if (event.key === 'Enter') {
+        // Jika berada di dalam modal form
+        if (formModal.style.display === 'flex') {
+          event.preventDefault();
+          submitForm();
+        }
+        // Jika berada di dalam modal rubah pagu
+        else if (paguModal.style.display === 'flex') {
+          event.preventDefault();
+          submitRubahPagu();
+        }
+        // Jika berada di layar login/register
+        else if (!authScreen.classList.contains('hidden')) {
+          event.preventDefault();
+          let isLoginActive = !document.getElementById('form-login').classList.contains('hidden');
+          if (isLoginActive) {
+            handleLogin();
+          } else {
+            handleRegister();
+          }
+        }
+        // Jika sedang mengetik di kolom pencarian tabel
+        else if (document.activeElement === searchInput) {
+          event.preventDefault();
+          filterTable();
+        }
+      }
+    });
+
     function togglePasswordVisibility(fieldId, btnEl) {
       let inputEl = document.getElementById(fieldId);
       if (inputEl.type === "password") {
@@ -258,10 +308,8 @@
     function formatTanggalIndonesia(tanggalStr) {
       if (!tanggalStr) return '';
       let str = String(tanggalStr).trim();
-      // Jika format sudah dd/mm/yyyy
       if (/^\d{2}\/\d{2}\/\d{4}$/.test(str)) return str;
       
-      // Jika format yyyy-mm-dd atau ISO string
       let parts = str.split('T')[0].split('-');
       if (parts.length === 3 && parts[0].length === 4) {
         return `${parts[2]}/${parts[1]}/${parts[0]}`;
