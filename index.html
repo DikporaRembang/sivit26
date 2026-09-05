@@ -119,6 +119,35 @@
             </aside>
 
             <main class="flex-1 p-4 md:p-6 overflow-x-auto">
+                <!-- Identitas Sekolah Card (Khusus Role Sekolah) -->
+                <div id="sekolahIdentitasCard" class="hidden mb-6 bg-gradient-to-r from-blue-900 to-indigo-900 text-white rounded-xl p-5 shadow-md border border-blue-800">
+                    <div class="flex items-center justify-between mb-3 pb-2 border-b border-blue-800/60">
+                        <div class="flex items-center space-x-2">
+                            <i class="fa-solid fa-school text-emerald-400"></i>
+                            <h4 class="font-bold text-sm tracking-wide">Identitas Satuan Pendidikan</h4>
+                        </div>
+                        <span class="text-[10px] bg-emerald-500/20 text-emerald-300 font-semibold px-2.5 py-0.5 rounded-full border border-emerald-500/30">Terverifikasi</span>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+                        <div>
+                            <p class="text-blue-300 font-medium uppercase text-[10px]">NPSN</p>
+                            <p class="font-bold text-white mt-0.5 text-sm" id="cardNpsn">-</p>
+                        </div>
+                        <div>
+                            <p class="text-blue-300 font-medium uppercase text-[10px]">Nama Sekolah</p>
+                            <p class="font-bold text-white mt-0.5 text-sm" id="cardNamaSekolah">-</p>
+                        </div>
+                        <div>
+                            <p class="text-blue-300 font-medium uppercase text-[10px]">Kecamatan</p>
+                            <p class="font-bold text-white mt-0.5 text-sm" id="cardKecamatan">-</p>
+                        </div>
+                        <div>
+                            <p class="text-blue-300 font-medium uppercase text-[10px]">Alamat Lengkap</p>
+                            <p class="font-bold text-white mt-0.5 text-sm truncate" id="cardAlamat">-</p>
+                        </div>
+                    </div>
+                </div>
+
                 <div id="printableArea" class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-100">
                         <div>
@@ -159,7 +188,7 @@
 
     <!-- ================= SCRIPT LOGIC ================= -->
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxilpPLGIxDWcGlw0iZAfZht_RXwx6OXV39OLZF0mvlndUc1mgB_TAmNsanl5JiJCmv9A/exec";
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwHSYRbz3IG0K0hGv8x8uTaf5ynsUdGII884UCBKIAwBRhlcFOlcTTx3Mn-GwJE0XGqOQ/exec";
 
         let currentUser = null;
         let currentActiveSheet = "";
@@ -299,7 +328,17 @@
             document.getElementById('userNpsnDisplay').innerText = "NPSN/ID: " + currentUser.username;
             document.getElementById('userRoleSubtitle').innerText = "Hak Akses: " + currentUser.role;
 
-            // Ambil daftar menu pekerjaan untuk list nama_paket di form paket_pekerjaan_sd
+            let identitasCard = document.getElementById('sekolahIdentitasCard');
+            if (currentUser.role === 'SEKOLAH' && currentUser.sekolah) {
+                identitasCard.classList.remove('hidden');
+                document.getElementById('cardNpsn').innerText = currentUser.sekolah.npsn || '-';
+                document.getElementById('cardNamaSekolah').innerText = currentUser.sekolah.nama_sekolah || '-';
+                document.getElementById('cardKecamatan').innerText = currentUser.sekolah.kecamatan || '-';
+                document.getElementById('cardAlamat').innerText = currentUser.sekolah.alamat_lengkap || '-';
+            } else {
+                identitasCard.classList.add('hidden');
+            }
+
             fetch(`${WEB_APP_URL}?action=getData&sheet=menu_pekerjaan&role=DINAS&npsn=`)
             .then(res => res.json())
             .then(res => {
@@ -311,7 +350,6 @@
             if(currentUser.role === 'DINAS') {
                 loadTableData('sekolah_pending', 'Verifikasi Sekolah');
             } else {
-                // Pengecekan otomatis: Jika perencana & pengawas kosong, arahkan ke Update Konsultan. Jika sudah terisi, ke Paket Pekerjaan SD.
                 let isKonsultanEmpty = (!currentUser.perencana || currentUser.perencana === "") && (!currentUser.pengawas || currentUser.pengawas === "");
                 if (isKonsultanEmpty) {
                     loadTableData('users', 'Update Konsultan');
@@ -337,7 +375,6 @@
                     { name: 'Riwayat Pagu', sheet: 'riwayat_pagu', icon: 'fa-clock-rotate-left' }
                 ];
             } else {
-                // Role SEKOLAH memiliki 3 sub-menu
                 menus = [
                     { name: 'Update Konsultan', sheet: 'users', icon: 'fa-user-gear text-blue-500' },
                     { name: 'Paket Pekerjaan SD', sheet: 'paket_pekerjaan_sd', icon: 'fa-folder-open text-emerald-500' },
@@ -455,7 +492,6 @@
                     td.className = "p-3 text-slate-700 text-xs truncate max-w-xs";
                     let val = row[h] !== undefined ? row[h] : "";
                     
-                    // Format tampilan tabel untuk pagu menjadi Rupiah
                     if (h.toLowerCase() === 'pagu' && !isNaN(val) && val !== "") {
                         val = "Rp " + Number(val).toLocaleString('id-ID');
                     }
@@ -541,7 +577,6 @@
 
                 let input;
 
-                // Form users (Update Konsultan) untuk SEKOLAH
                 if (currentActiveSheet === 'users' && currentUser.role === 'SEKOLAH') {
                     input = document.createElement('input');
                     input.type = "text";
@@ -556,7 +591,6 @@
                     }
                 }
 
-                // Form paket_pekerjaan_sd
                 if (currentActiveSheet === 'paket_pekerjaan_sd') {
                     if (h === 'nama_paket') {
                         input = document.createElement('select');
@@ -601,8 +635,14 @@
                         } else {
                             input.value = rowData ? (rowData[h] !== undefined ? rowData[h] : "") : "";
                         }
+                    } else if (h === 'perencana' || h === 'pengawas') {
+                        input = document.createElement('input');
+                        input.type = "text";
+                        input.name = h;
+                        input.readOnly = true;
+                        input.className = "w-full px-3 py-2 bg-slate-100 border border-slate-300 rounded-lg text-xs text-slate-500 cursor-not-allowed";
+                        input.value = rowData && rowData[h] ? rowData[h] : (currentUser[h] || "-");
                     } else if (h === 'pagu') {
-                        // Pagu dengan format mata uang Rupiah tanpa angka di belakang koma
                         input = document.createElement('input');
                         input.type = "text";
                         input.name = h;
@@ -655,7 +695,6 @@
                     }
                 }
 
-                // Default input jika belum dibuat di atas
                 if (!input) {
                     input = document.createElement('input');
                     input.type = "text";
@@ -685,7 +724,7 @@
 
             if (!tglMulaiEl || !lamaHariEl || !tglSelesaiEl) return;
 
-            let dateVal = tglMulaiEl.value; // Format yyyy-mm-dd dari input date
+            let dateVal = tglMulaiEl.value;
             let lamaVal = parseInt(lamaHariEl.value) || 0;
 
             if (dateVal && lamaVal > 0) {
@@ -716,7 +755,6 @@
 
             document.querySelectorAll('#formFieldsContainer input, #formFieldsContainer select').forEach(input => {
                 let val = input.value;
-                // Ubah format tanggal input type="date" (yyyy-mm-dd) menjadi dd/mm/yyyy sebelum dikirim
                 if (input.type === 'date' && val) {
                     let parts = val.split('-');
                     if (parts.length === 3) {
