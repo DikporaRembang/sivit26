@@ -3,1285 +3,1250 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SIVIT26 - Sistem Informasi Pemantauan Revitalisasi SD Kabupaten Rembang 2026</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Dashboard - Bidang SD SIVIT26</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        @media print {
-            body * { visibility: hidden; }
-            #printableArea, #printableArea * { visibility: visible; }
-            #printableArea { position: absolute; left: 0; top: 0; width: 100%; }
-            .no-print { display: none !important; }
+        :root {
+            --bg-main: #FFFFFF;
+            --bg-sidebar: #F0F7FF;
+            --accent-blue: #3B82F6;
+            --accent-lightblue: #E0F2FE;
+            --text-color: #000000;
+            --text-muted: #4B5563;
+            --gold-highlight: #D97706;
+            --gold-light: #FEF3C7;
+            --border-color: #BAE6FD;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-color);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar Styling */
+        sidebar {
+            width: 280px;
+            background-color: var(--bg-sidebar);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 24px;
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .sidebar-header img {
+            width: 45px;
+            height: 45px;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+
+        .sidebar-header h1 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-color);
+        }
+
+        .sidebar-header h1 span {
+            color: var(--gold-highlight);
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            margin-top: 24px;
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+
+        .sidebar-menu li {
+            margin-bottom: 8px;
+        }
+
+        .sidebar-menu a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            color: var(--text-color);
+            text-decoration: none;
+            font-weight: 500;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .sidebar-menu a:hover, .sidebar-menu li.active a {
+            background-color: var(--accent-lightblue);
+            color: var(--accent-blue);
+        }
+
+        .sidebar-menu li.active a {
+            border-left: 4px solid var(--gold-highlight);
+        }
+
+        .sidebar-menu a i {
+            font-size: 1.2rem;
+            color: var(--accent-blue);
+        }
+
+        /* Main Content Styling */
+        main {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--bg-main);
+            overflow-y: auto;
+        }
+
+        header.topbar {
+            padding: 20px 32px;
+            background-color: var(--bg-main);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .topbar-title h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .topbar-title p {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-profile img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--accent-lightblue);
+            object-fit: cover;
+        }
+
+        .user-info .name {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .user-info .role {
+            font-size: 0.75rem;
+            color: var(--gold-highlight);
+            font-weight: 600;
+        }
+
+        /* Dashboard Content */
+        .dashboard-content {
+            padding: 32px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background-color: var(--bg-sidebar);
+            border: 1px solid var(--border-color);
+            padding: 24px;
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background-color: var(--gold-highlight);
+        }
+
+        .stat-card h3 {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .stat-card .number {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--text-color);
+        }
+
+        .stat-card .highlight-text {
+            color: var(--gold-highlight);
+            font-weight: 600;
+            font-size: 0.85rem;
+            margin-top: 8px;
+            display: inline-block;
+        }
+
+        /* Section Table/Content */
+        .content-card {
+            background-color: var(--bg-sidebar);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .content-card h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .content-card h3 span {
+            color: var(--gold-highlight);
+            font-size: 0.9rem;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th, td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.9rem;
+        }
+
+        th {
+            font-weight: 600;
+            color: var(--text-muted);
+            background-color: var(--accent-lightblue);
+        }
+
+        tr:hover {
+            background-color: rgba(224, 242, 254, 0.4);
+        }
+
+        .badge {
+            background-color: var(--gold-light);
+            color: var(--gold-highlight);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-success {
+            background-color: #DEF7EC;
+            color: #03543F;
+        }
+
+        .badge-danger {
+            background-color: #FDE8E8;
+            color: #9B1C1C;
+        }
+
+        /* View Section Manager */
+        .view-section {
+            display: none;
+        }
+
+        .view-section.active {
+            display: block;
+        }
+
+        .btn {
+            background-color: var(--accent-blue);
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: opacity 0.2s;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        .btn-gold {
+            background-color: var(--gold-highlight);
+            color: white;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            font-size: 0.875rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            outline: none;
+            background-color: white;
+        }
+
+        .form-control:focus {
+            border-color: var(--accent-blue);
+        }
+
+        /* Modal Overlay */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            display: none;
+        }
+
+        .modal-card {
+            background: white;
+            width: 100%;
+            max-width: 600px;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 12px;
+        }
+
+        .modal-header h3 {
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: var(--text-muted);
         }
     </style>
 </head>
-<body class="bg-gradient-to-br from-blue-950 via-blue-900 to-slate-900 min-h-screen text-white font-sans antialiased flex flex-col justify-between">
+<body>
 
-    <!-- ================= AUTH CONTAINER (HALAMAN LOGIN & REGISTER) ================= -->
-    <div id="authContainer" class="flex-1 flex flex-col items-center justify-center p-4">
-        <div class="max-w-md w-full bg-blue-900/40 backdrop-blur-md rounded-2xl shadow-2xl p-8 border border-amber-400/30">
-            <div class="text-center mb-6">
-                <div class="inline-flex items-center justify-center w-12 h-12 bg-amber-500 text-blue-950 rounded-xl font-black text-lg shadow-md mb-2">S26</div>
-                <h1 class="text-2xl font-black text-amber-400 tracking-wide">SIVIT26</h1>
-                <p class="text-[11px] font-semibold text-blue-200 mt-1 leading-snug">Sistem Informasi Pemantauan Revitalisasi SD Kabupaten Rembang Tahun 2026</p>
-                
-                <div class="mt-3 p-3 bg-blue-950/60 rounded-xl border border-amber-400/20 text-[11px] text-blue-100 leading-relaxed text-left">
-                    <p class="font-bold text-amber-400 mb-0.5 text-center">Dinas Pendidikan, Pemuda dan Olahraga Kabupaten Rembang</p>
-                    <p class="text-center text-blue-300">Seksi Kelembagaan, Sarana dan Prasarana Bidang SD</p>
-                </div>
+    <!-- Sidebar -->
+    <sidebar>
+        <div>
+            <div class="sidebar-header">
+                <img src="https://raw.githubusercontent.com/USERNAME/REPOSITORY/main/bidangsd.png" alt="Logo Bidang SD" onerror="this.src='https://via.placeholder.com/45'">
+                <h1>BIDANG <span>SD</span></h1>
             </div>
-
-            <div class="flex border-b border-blue-800 mb-6">
-                <button id="tabLogin" onclick="switchTab('login')" class="flex-1 pb-3 font-semibold text-amber-400 border-b-2 border-amber-400 transition-all text-sm">Masuk</button>
-                <button id="tabRegister" onclick="switchTab('register')" class="flex-1 pb-3 font-semibold text-blue-300/60 border-b-2 border-transparent transition-all text-sm">Daftar Sekolah</button>
-            </div>
-
-            <!-- Form Login -->
-            <form id="formLogin" onsubmit="handleLogin(event)" class="space-y-4">
-                <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-blue-200 mb-1">Username / NPSN</label>
-                    <input type="text" id="loginUser" required class="w-full px-3.5 py-2.5 border border-blue-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400 text-sm bg-blue-950/50 text-white">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-blue-200 mb-1">Password</label>
-                    <div class="relative">
-                        <input type="password" id="loginPass" required class="w-full px-3.5 py-2.5 pr-10 border border-blue-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400 text-sm bg-blue-950/50 text-white">
-                        <button type="button" onclick="togglePasswordVisibility('loginPass', 'eyeIconLogin')" class="absolute inset-y-0 right-0 px-3.5 flex items-center text-blue-300 hover:text-white focus:outline-none">
-                            <i id="eyeIconLogin" class="fa-solid fa-eye text-xs"></i>
-                        </button>
-                    </div>
-                </div>
-                <button type="submit" class="w-full bg-amber-500 hover:bg-amber-400 text-blue-950 font-bold py-2.5 rounded-xl transition-all text-sm shadow-md shadow-amber-500/20">Masuk Sistem</button>
-            </form>
-
-            <!-- Form Register -->
-            <form id="formRegister" onsubmit="handleRegister(event)" class="space-y-4 hidden">
-                <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-blue-200 mb-1">NPSN Sekolah</label>
-                    <input type="text" id="regNpsn" required placeholder="Masukkan NPSN resmi..." class="w-full px-3.5 py-2.5 border border-blue-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400 text-sm bg-blue-950/50 text-white">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-blue-200 mb-1">Nama Sekolah (Autofill)</label>
-                    <input type="text" id="regNamaSekolah" readonly placeholder="Otomatis dari database dinas..." class="w-full px-3.5 py-2.5 bg-blue-950/30 border border-blue-800 rounded-xl text-blue-300 text-sm cursor-not-allowed">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-blue-200 mb-1">Password Akun</label>
-                    <div class="relative">
-                        <input type="password" id="regPass" required class="w-full px-3.5 py-2.5 pr-10 border border-blue-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400 text-sm bg-blue-950/50 text-white">
-                        <button type="button" onclick="togglePasswordVisibility('regPass', 'eyeIconReg')" class="absolute inset-y-0 right-0 px-3.5 flex items-center text-blue-300 hover:text-white focus:outline-none">
-                            <i id="eyeIconReg" class="fa-solid fa-eye text-xs"></i>
-                        </button>
-                    </div>
-                </div>
-                <button type="submit" class="w-full bg-amber-500 hover:bg-amber-400 text-blue-950 font-bold py-2.5 rounded-xl transition-all text-sm shadow-md shadow-amber-500/20">Daftarkan Sekolah</button>
-            </form>
-            
-            <div id="authLoading" class="hidden text-center mt-4">
-                <p class="text-xs text-amber-400 animate-pulse font-medium"><i class="fa-solid fa-spinner fa-spin mr-1"></i> Sedang memproses...</p>
-            </div>
+            <ul class="sidebar-menu">
+                <li class="active" id="menu-dashboard">
+                    <a onclick="switchView('dashboard')"><i class="fa-solid fa-house"></i> Dashboard</a>
+                </li>
+                <li id="menu-sekolah">
+                    <a onclick="switchView('sekolah')"><i class="fa-solid fa-school"></i> Data Sekolah</a>
+                </li>
+                <li id="menu-pending">
+                    <a onclick="switchView('pending')"><i class="fa-solid fa-user-clock"></i> Verifikasi Pending</a>
+                </li>
+                <li id="menu-paket">
+                    <a onclick="switchView('paket')"><i class="fa-solid fa-folder-open"></i> Paket Pekerjaan</a>
+                </li>
+                <li id="menu-laporan">
+                    <a onclick="switchView('laporan')"><i class="fa-solid fa-file-lines"></i> Laporan Progres</a>
+                </li>
+                <li id="menu-riwayat">
+                    <a onclick="switchView('riwayat')"><i class="fa-solid fa-clock-rotate-left"></i> Riwayat Pagu</a>
+                </li>
+                <li id="menu-users">
+                    <a onclick="switchView('users')"><i class="fa-solid fa-users-gear"></i> Manajemen User</a>
+                </li>
+                <li id="menu-pengaturan">
+                    <a onclick="switchView('pengaturan')"><i class="fa-solid fa-gear"></i> Pengaturan Akun</a>
+                </li>
+            </ul>
         </div>
-    </div>
+        <div>
+            <ul class="sidebar-menu">
+                <li>
+                    <a onclick="logout()" style="color: #DC2626;"><i class="fa-solid fa-right-from-bracket" style="color: #DC2626;"></i> Keluar</a>
+                </li>
+            </ul>
+        </div>
+    </sidebar>
 
-    <!-- ================= MAIN APP CONTAINER (DASHBOARD) ================= -->
-    <div id="appContainer" class="hidden min-h-screen flex flex-col bg-blue-950 text-white w-full">
-        <header class="bg-blue-900/80 backdrop-blur-md border-b border-blue-800 sticky top-0 z-30 shadow-xs">
-            <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-                <div class="flex items-center space-x-3">
-                    <div class="bg-amber-500 text-blue-950 p-2 rounded-xl font-black text-sm shadow-sm shadow-amber-500/30">S26</div>
-                    <div>
-                        <h2 class="font-bold text-white text-base">SIVIT26 <span class="text-amber-400">Dashboard</span></h2>
-                        <p class="text-xs text-amber-300 font-medium" id="userRoleSubtitle">Role: -</p>
-                    </div>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <div class="text-right hidden sm:block">
-                        <p class="text-xs font-bold text-white" id="userNameDisplay">-</p>
-                        <p class="text-[11px] text-blue-300" id="userNpsnDisplay">-</p>
-                    </div>
-                    <button onclick="logout()" class="bg-red-950/60 hover:bg-red-900 text-red-200 px-3 py-1.5 rounded-xl text-xs font-medium transition-colors border border-red-800">
-                        <i class="fa-solid fa-power-off mr-1"></i> Keluar
-                    </button>
+    <!-- Main Section -->
+    <main>
+        <header class="topbar">
+            <div class="topbar-title">
+                <h2 id="view-heading">Dashboard Utama</h2>
+                <p id="view-subheading">Sistem Informasi Pengawasan & Perencanaan Bidang SD (SIVIT26).</p>
+            </div>
+            <div class="user-profile">
+                <img id="user-avatar" src="https://via.placeholder.com/40" alt="Avatar User">
+                <div class="user-info">
+                    <div class="name" id="user-name">Administrator</div>
+                    <div class="role" id="user-role">Staff Bidang SD</div>
                 </div>
             </div>
         </header>
 
-        <div class="flex-1 flex max-w-7xl w-full mx-auto">
-            <aside class="w-64 bg-blue-900/40 backdrop-blur border-r border-blue-800 p-4 hidden md:flex flex-col justify-between">
-                <div class="space-y-1">
-                    <p class="text-[10px] font-bold uppercase tracking-wider text-blue-300 px-3 mb-2">Menu Navigasi</p>
-                    <div id="sidebarMenuContainer" class="space-y-1"></div>
-                </div>
-                <div class="pt-4 border-t border-blue-800 px-2 text-[10px] text-blue-300 leading-tight">
-                    <p class="font-semibold text-amber-400">SIVIT26 Kab. Rembang</p>
-                    <p class="mt-0.5">Seksi Kelembagaan, Sarana & Prasarana Bidang SD</p>
-                    <p class="mt-0.5 text-amber-300">Revitalisasi SD Tahun 2026</p>
-                </div>
-            </aside>
-
-            <main class="flex-1 p-4 md:p-6 overflow-x-auto bg-blue-950">
-                <!-- Identitas Sekolah Card -->
-                <div id="sekolahIdentitasCard" class="hidden mb-6 bg-gradient-to-r from-blue-900 to-indigo-900 text-white rounded-2xl p-5 shadow-md border border-amber-400/40">
-                    <div class="flex items-center justify-between mb-3 pb-2 border-b border-blue-800">
-                        <div class="flex items-center space-x-2">
-                            <i class="fa-solid fa-school text-amber-400"></i>
-                            <h4 class="font-bold text-sm tracking-wide text-amber-400">Identitas Satuan Pendidikan</h4>
-                        </div>
-                        <span class="text-[10px] bg-amber-500/20 text-amber-300 font-semibold px-2.5 py-0.5 rounded-full border border-amber-500/30">Terverifikasi</span>
+        <div class="dashboard-content">
+            
+            <!-- 1. VIEW: DASHBOARD -->
+            <div id="section-dashboard" class="view-section active">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Total Sekolah Dasar</h3>
+                        <div class="number" id="stat-sekolah">0</div>
+                        <span class="highlight-text"><i class="fa-solid fa-arrow-up"></i> Terverifikasi</span>
                     </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-xs">
-                        <div>
-                            <p class="text-blue-300 font-medium uppercase text-[10px]">NPSN</p>
-                            <p class="font-bold text-white mt-0.5 text-sm" id="cardNpsn">-</p>
-                        </div>
-                        <div>
-                            <p class="text-blue-300 font-medium uppercase text-[10px]">Nama Sekolah</p>
-                            <p class="font-bold text-white mt-0.5 text-sm" id="cardNamaSekolah">-</p>
-                        </div>
-                        <div>
-                            <p class="text-blue-300 font-medium uppercase text-[10px]">Kecamatan</p>
-                            <p class="font-bold text-white mt-0.5 text-sm" id="cardKecamatan">-</p>
-                        </div>
-                        <div>
-                            <p class="text-blue-300 font-medium uppercase text-[10px]">Alamat Lengkap</p>
-                            <p class="font-bold text-white mt-0.5 text-sm truncate" id="cardAlamat">-</p>
-                        </div>
+                    <div class="stat-card">
+                        <h3>Paket Pekerjaan</h3>
+                        <div class="number" id="stat-paket">0</div>
+                        <span class="highlight-text"><i class="fa-solid fa-check"></i> Program Aktif</span>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Laporan Masuk</h3>
+                        <div class="number" id="stat-laporan">0</div>
+                        <span class="highlight-text"><i class="fa-solid fa-star"></i> Progres Lapangan</span>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Akun Pending</h3>
+                        <div class="number" id="stat-pending">0</div>
+                        <span class="highlight-text" style="color: #DC2626;"><i class="fa-solid fa-triangle-exclamation"></i> Perlu Verifikasi</span>
                     </div>
                 </div>
 
-                <div id="printableArea" class="bg-blue-900/30 backdrop-blur rounded-2xl border border-blue-800 shadow-xs p-6 text-white">
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-blue-800">
-                        <div>
-                            <h3 class="text-lg font-bold text-white" id="contentTitle">Pilih Menu</h3>
-                            <p class="text-xs text-blue-300" id="contentSubtitle">Kelola dan pantau data pekerjaan.</p>
-                        </div>
-                        <div id="actionButtonContainer" class="flex items-center space-x-2"></div>
-                    </div>
-
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse text-sm">
-                            <thead id="tableHead" class="bg-blue-950/80 text-amber-400 text-xs uppercase tracking-wider border-b border-blue-800"></thead>
-                            <tbody id="tableBody" class="divide-y divide-blue-900/50 text-blue-100"></tbody>
+                <div class="content-card">
+                    <h3>
+                        <span>Aktivitas & Pembaruan Sekolah Real-time</span>
+                        <button class="btn" style="padding: 5px 10px; font-size: 0.8rem;" onclick="loadDashboardData()"><i class="fa-solid fa-rotate"></i> Muat Ulang</button>
+                    </h3>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>NPSN</th>
+                                    <th>Nama Sekolah</th>
+                                    <th>Kecamatan</th>
+                                    <th>Status Akun</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dashboard-table-body">
+                                <tr><td colspan="5" style="text-align: center;">Memuat ringkasan data...</td></tr>
+                            </tbody>
                         </table>
                     </div>
                 </div>
-            </main>
+            </div>
+
+            <!-- 2. VIEW: DATA SEKOLAH -->
+            <div id="section-sekolah" class="view-section">
+                <div class="content-card">
+                    <h3>
+                        <span>Database Referensi Sekolah Dasar</span>
+                        <button class="btn" style="padding: 6px 12px; font-size: 0.8rem;" onclick="loadDataSekolah()"><i class="fa-solid fa-rotate"></i> Segarkan</button>
+                    </h3>
+                    <div class="table-responsive" style="margin-top: 15px;">
+                        <table>
+                            <thead>
+                                <tr id="sekolah-th">
+                                    <th>No</th>
+                                    <th>NPSN</th>
+                                    <th>Nama Sekolah</th>
+                                    <th>Kecamatan</th>
+                                    <th>Alamat Lengkap</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sekolah-tb">
+                                <tr><td colspan="6" style="text-align: center;">Memuat data sekolah...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. VIEW: SEKOLAH PENDING (VERIFIKASI REGISTRASI) -->
+            <div id="section-pending" class="view-section">
+                <div class="content-card">
+                    <h3>
+                        <span>Pendaftaran Akun Sekolah Menunggu Verifikasi</span>
+                        <button class="btn" style="padding: 6px 12px; font-size: 0.8rem;" onclick="loadDataPending()"><i class="fa-solid fa-rotate"></i> Segarkan</button>
+                    </h3>
+                    <div class="table-responsive" style="margin-top: 15px;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>NPSN</th>
+                                    <th>Nama Lengkap Sekolah</th>
+                                    <th>Status Pendaftaran</th>
+                                    <th>Aksi Verifikasi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pending-tb">
+                                <tr><td colspan="5" style="text-align: center;">Memuat daftar pending...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. VIEW: PAKET PEKERJAAN SD -->
+            <div id="section-paket" class="view-section">
+                <div class="content-card">
+                    <h3>
+                        <span>Manajemen Paket Pekerjaan & Pagu Anggaran</span>
+                        <div>
+                            <button class="btn btn-gold" style="padding: 6px 12px; font-size: 0.8rem;" onclick="openModalPaket()"><i class="fa-solid fa-plus"></i> Tambah Paket</button>
+                            <button class="btn" style="padding: 6px 12px; font-size: 0.8rem;" onclick="loadDataPaket()"><i class="fa-solid fa-rotate"></i></button>
+                        </div>
+                    </h3>
+                    <div class="table-responsive" style="margin-top: 15px;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>ID Paket</th>
+                                    <th>NPSN / User</th>
+                                    <th>Nama Menu Pekerjaan</th>
+                                    <th>Pagu Anggaran</th>
+                                    <th>Perencana / Pengawas</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="paket-tb">
+                                <tr><td colspan="7" style="text-align: center;">Memuat paket pekerjaan...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. VIEW: LAPORAN PROGRES -->
+            <div id="section-laporan" class="view-section">
+                <div class="content-card">
+                    <h3>
+                        <span>Laporan Progres Fisik & Validasi Dinas</span>
+                        <div>
+                            <button class="btn" style="padding: 6px 12px; font-size: 0.8rem;" onclick="openModalLaporan()"><i class="fa-solid fa-plus"></i> Kirim Laporan</button>
+                            <button class="btn" style="padding: 6px 12px; font-size: 0.8rem;" onclick="loadDataLaporan()"><i class="fa-solid fa-rotate"></i></button>
+                        </div>
+                    </h3>
+                    <div class="table-responsive" style="margin-top: 15px;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>ID Laporan</th>
+                                    <th>NPSN</th>
+                                    <th>Uraian Progres</th>
+                                    <th>Dokumentasi</th>
+                                    <th>Status Verifikasi</th>
+                                    <th>Catatan Dinas</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="laporan-tb">
+                                <tr><td colspan="8" style="text-align: center;">Memuat laporan progres...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 6. VIEW: RIWAYAT PAGU -->
+            <div id="section-riwayat" class="view-section">
+                <div class="content-card">
+                    <h3>
+                        <span>Riwayat Perubahan Pagu Anggaran</span>
+                        <button class="btn" style="padding: 6px 12px; font-size: 0.8rem;" onclick="loadDataRiwayat()"><i class="fa-solid fa-rotate"></i> Segarkan</button>
+                    </h3>
+                    <div class="table-responsive" style="margin-top: 15px;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>ID Riwayat</th>
+                                    <th>ID Paket</th>
+                                    <th>NPSN</th>
+                                    <th>Pagu Lama</th>
+                                    <th>Pagu Baru</th>
+                                    <th>Waktu Perubahan</th>
+                                    <th>Keterangan / Alasan</th>
+                                </tr>
+                            </thead>
+                            <tbody id="riwayat-tb">
+                                <tr><td colspan="8" style="text-align: center;">Memuat riwayat perubahan pagu...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 7. VIEW: MANAJEMEN USER -->
+            <div id="section-users" class="view-section">
+                <div class="content-card">
+                    <h3>
+                        <span>Daftar Pengguna Sistem (Users)</span>
+                        <div>
+                            <button class="btn btn-gold" style="padding: 6px 12px; font-size: 0.8rem;" onclick="openModalUser()"><i class="fa-solid fa-user-plus"></i> Tambah User</button>
+                            <button class="btn" style="padding: 6px 12px; font-size: 0.8rem;" onclick="loadDataUsers()"><i class="fa-solid fa-rotate"></i></button>
+                        </div>
+                    </h3>
+                    <div class="table-responsive" style="margin-top: 15px;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>ID User</th>
+                                    <th>Username / NPSN</th>
+                                    <th>Nama Pengguna</th>
+                                    <th>Role / Hak Akses</th>
+                                    <th>Perencana</th>
+                                    <th>Pengawas</th>
+                                    <th>Status</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-tb">
+                                <tr><td colspan="9" style="text-align: center;">Memuat data pengguna...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 8. VIEW: PENGATURAN AKUN -->
+            <div id="section-pengaturan" class="view-section">
+                <div class="content-card" style="max-width: 600px;">
+                    <h3><span>Informasi Profil Sesi Aktif</span></h3>
+                    <div style="margin-top: 16px;">
+                        <div class="form-group">
+                            <label>Username / NPSN</label>
+                            <input type="text" id="set-username" class="form-control" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label>Nama Pengguna / Satuan Pendidikan</label>
+                            <input type="text" id="set-nama" class="form-control" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label>Hak Akses (Role)</label>
+                            <input type="text" id="set-role" class="form-control" readonly>
+                        </div>
+                        <div class="form-group" id="group-perencana">
+                            <label>Tim Perencana</label>
+                            <input type="text" id="set-perencana" class="form-control" readonly>
+                        </div>
+                        <div class="form-group" id="group-pengawas">
+                            <label>Tim Pengawas</label>
+                            <input type="text" id="set-pengawas" class="form-control" readonly>
+                        </div>
+                        <button class="btn" style="background-color: #DC2626; width: 100%; justify-content: center; margin-top: 10px;" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Keluar Sistem</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- MODAL POPUP DINAMIS -->
+    <div class="modal-overlay" id="dynamicModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="modalTitle">Form Aksi</h3>
+                <button class="close-btn" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div id="modalBody"></div>
         </div>
     </div>
 
-    <!-- ================= LOGO KABUPATEN REMBANG & LOGO PENDIDIKAN DI BAGIAN BAWAH ================= -->
-    <footer class="w-full py-6 mt-auto bg-blue-950/90 border-t border-blue-900 flex flex-col items-center justify-center space-y-2">
-        <div class="flex items-center justify-center space-x-6">
-            <!-- Logo Kabupaten Rembang -->
-            <div class="flex flex-col items-center">
-                <img src="logorembang.png" alt="Logo Kabupaten Rembang" class="h-12 w-auto object-contain drop-shadow-md">
-                <span class="text-[10px] text-blue-300 mt-1 font-medium">Kabupaten Rembang</span>
-            </div>
-            <div class="h-8 w-[1px] bg-blue-800"></div>
-            <!-- Logo Pendidikan -->
-            <div class="flex flex-col items-center">
-                <img src="logopendidikan.png" alt="Logo Pendidikan" class="h-12 w-auto object-contain drop-shadow-md">
-                <span class="text-[10px] text-blue-300 mt-1 font-medium">Kemendikdasmen RI</span>
-            </div>
-        </div>
-        <p class="text-[10px] text-blue-400 mt-2">© 2026 SIVIT26 - Dinas Pendidikan, Pemuda dan Olahraga Kabupaten Rembang</p>
-    </footer>
-
-    <!-- ================= MODAL FORM ================= -->
-    <div id="dataModal" class="fixed inset-0 bg-blue-950/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
-        <div class="bg-blue-900 border border-amber-400/40 rounded-2xl max-w-lg w-full p-6 shadow-2xl text-white">
-            <div class="flex justify-between items-center mb-4 pb-2 border-b border-blue-800">
-                <h3 id="modalTitle" class="font-bold text-amber-400 text-base">Form Data</h3>
-                <button onclick="closeModal()" class="text-blue-300 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
-            </div>
-            <form id="dynamicForm" onsubmit="handleFormSubmit(event)" class="space-y-4">
-                <input type="hidden" id="formRowIndex">
-                <div id="formFieldsContainer" class="space-y-3 max-h-[60vh] overflow-y-auto pr-1"></div>
-                <div class="flex justify-end space-x-2 pt-3 border-t border-blue-800">
-                    <button type="button" onclick="closeModal()" class="px-4 py-2 bg-blue-800 hover:bg-blue-700 text-blue-200 rounded-xl text-xs font-medium">Batal</button>
-                    <button type="submit" id="btnSaveModal" class="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-blue-950 font-bold rounded-xl text-xs shadow-sm">Simpan Data</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- ================= MODAL POPUP RIWAYAT PAGU ================= -->
-    <div class="modal fade fixed inset-0 bg-blue-950/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50" id="modalRiwayatPagu" tabindex="-1" aria-hidden="true">
-      <div class="bg-blue-900 border border-amber-400/40 rounded-2xl max-w-4xl w-full p-6 shadow-2xl text-white">
-        <div class="flex justify-between items-center mb-4 pb-2 border-b border-blue-800 text-white p-4 rounded-t-2xl -mt-6 -mx-6 bg-blue-950">
-          <h5 class="font-bold text-sm flex items-center text-amber-400">
-            <i class="fa-solid fa-clock-rotate-left mr-2"></i> Jejak Riwayat Pagu Anggaran
-          </h5>
-          <button type="button" class="text-blue-300 hover:text-white" onclick="closeRiwayatModal()"><i class="fa-solid fa-xmark text-lg"></i></button>
-        </div>
-        
-        <div class="space-y-4 pt-2">
-          <div class="bg-blue-950/60 rounded-xl p-3 border border-blue-800">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <span class="text-blue-300 block text-[10px] uppercase font-bold">Nama Sekolah / NPSN</span>
-                <h6 id="infoNamaSekolah" class="text-amber-400 font-bold text-xs mt-0.5">Memuat...</h6>
-              </div>
-              <div>
-                <span class="text-blue-300 block text-[10px] uppercase font-bold">Menu Pekerjaan</span>
-                <h6 id="infoNamaMenu" class="text-white font-bold text-xs mt-0.5">Memuat...</h6>
-              </div>
-            </div>
-          </div>
-
-          <div class="overflow-x-auto max-h-[50vh]">
-            <table class="w-full text-left border-collapse text-xs">
-              <thead class="bg-blue-950 text-amber-400 uppercase tracking-wider border-b border-blue-800 text-center">
-                <tr>
-                  <th class="p-2.5">No</th>
-                  <th class="p-2.5">Waktu Perubahan</th>
-                  <th class="p-2.5 text-right">Pagu Lama</th>
-                  <th class="p-2.5 text-right">Pagu Baru</th>
-                  <th class="p-2.5">Selisih</th>
-                  <th class="p-2.5">Keterangan / Alasan</th>
-                </tr>
-              </thead>
-              <tbody id="tabelRiwayatBody" class="divide-y divide-blue-900 text-blue-100"></tbody>
-            </table>
-          </div>
-        </div>
-        
-        <div class="flex justify-end pt-4 mt-4 border-t border-blue-800">
-          <button type="button" class="px-4 py-2 bg-blue-800 hover:bg-blue-700 text-blue-200 rounded-xl text-xs font-medium" onclick="closeRiwayatModal()">Tutup</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- ================= MODAL VERIFIKASI DINAS ================= -->
-    <div id="verifikasi-modal" class="fixed inset-0 bg-blue-950/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
-        <div class="bg-blue-900 border border-amber-400/40 rounded-2xl max-w-md w-full p-6 shadow-2xl text-white">
-            <div class="flex justify-between items-center mb-4 pb-2 border-b border-blue-800">
-                <h3 class="font-bold text-amber-400 text-base">Verifikasi Laporan Progres</h3>
-                <button onclick="closeVerifikasiModal()" class="text-blue-300 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
-            </div>
-            <div class="space-y-4">
-                <input type="hidden" id="verif-id-laporan">
-                <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-blue-200 mb-1">Status Verifikasi</label>
-                    <select id="verif-status" class="w-full px-3.5 py-2.5 border border-blue-700 rounded-xl text-xs bg-blue-950 text-white focus:ring-2 focus:ring-amber-400 focus:outline-none">
-                        <option value="DISETUJUI">DISETUJUI</option>
-                        <option value="REVISI">REVISI</option>
-                        <option value="DITOLAK">DITOLAK</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-blue-200 mb-1">Catatan / Keterangan Dinas</label>
-                    <textarea id="verif-catatan" rows="3" placeholder="Tuliskan catatan atau instruksi perbaikan..." class="w-full px-3.5 py-2.5 border border-blue-700 rounded-xl text-xs bg-blue-950 text-white focus:ring-2 focus:ring-amber-400 focus:outline-none"></textarea>
-                </div>
-                <div class="flex justify-end space-x-2 pt-3 border-t border-blue-800">
-                    <button type="button" onclick="closeVerifikasiModal()" class="px-4 py-2 bg-blue-800 hover:bg-blue-700 text-blue-200 rounded-xl text-xs font-medium">Batal</button>
-                    <button type="button" onclick="submitVerifikasi()" class="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-blue-950 font-bold rounded-xl text-xs shadow-sm">Kirim Verifikasi</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ================= SCRIPT LOGIC ================= -->
+    <!-- SCRIPT UTAMA FRONTEND & INTEGRASI CODE.GS -->
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw-5XLFtnyU73CECCp8g7Xq5lmEfavBW9AbOjw3PcDIfPRMmIJHdxveJ5_L3Fsfregj6Q/exec";
+        // Masukkan URL Deployment Google Apps Script (code.gs) Anda di sini
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw-5XLFtnyU73CECCp8g7Xq5lmEfavBW9AbOjw3PcDIfPRMmIJHdxveJ5_L3Fsfregj6Q/exec";
 
-        let currentUser = null;
-        let currentActiveSheet = "";
-        let currentTableHeaders = [];
-        let menuPekerjaanList = [];
-        let paketPekerjaanList = [];
+        let currentUser = JSON.parse(localStorage.getItem('sivit26_user'));
 
-        function switchTab(tab) {
-            if(tab === 'login') {
-                document.getElementById('formLogin').classList.remove('hidden');
-                document.getElementById('formRegister').classList.add('hidden');
-                document.getElementById('tabLogin').className = "flex-1 pb-3 font-semibold text-amber-400 border-b-2 border-amber-400 transition-all text-sm";
-                document.getElementById('tabRegister').className = "flex-1 pb-3 font-semibold text-blue-300/60 border-b-2 border-transparent transition-all text-sm";
-            } else {
-                document.getElementById('formLogin').classList.add('hidden');
-                document.getElementById('formRegister').classList.remove('hidden');
-                document.getElementById('tabRegister').className = "flex-1 pb-3 font-semibold text-amber-400 border-b-2 border-amber-400 transition-all text-sm";
-                document.getElementById('tabLogin').className = "flex-1 pb-3 font-semibold text-blue-300/60 border-b-2 border-transparent transition-all text-sm";
+        window.addEventListener('DOMContentLoaded', () => {
+            if (!currentUser) {
+                alert("Sesi Anda telah habis atau belum login. Silakan login terlebih dahulu.");
+                window.location.href = "login.html";
+                return;
             }
-        }
 
-        function togglePasswordVisibility(inputId, iconId) {
-            let input = document.getElementById(inputId);
-            let icon = document.getElementById(iconId);
-            if (input.type === "password") {
-                input.type = "text";
-                icon.className = "fa-solid fa-eye-slash text-xs";
-            } else {
-                input.type = "password";
-                icon.className = "fa-solid fa-eye text-xs";
+            // Bind data user ke topbar & pengaturan
+            document.getElementById('user-name').textContent = currentUser.nama_pengguna || currentUser.username;
+            document.getElementById('user-role').textContent = currentUser.role;
+            
+            document.getElementById('set-username').value = currentUser.username || '';
+            document.getElementById('set-nama').value = currentUser.nama_pengguna || '';
+            document.getElementById('set-role').value = currentUser.role || '';
+            document.getElementById('set-perencana').value = currentUser.perencana || '-';
+            document.getElementById('set-pengawas').value = currentUser.pengawas || '-';
+
+            // Sembunyikan menu khusus Dinas jika user adalah Sekolah
+            if (currentUser.role === 'SEKOLAH') {
+                const pendingMenu = document.getElementById('menu-pending');
+                const usersMenu = document.getElementById('menu-users');
+                if(pendingMenu) pendingMenu.style.display = 'none';
+                if(usersMenu) usersMenu.style.display = 'none';
             }
-        }
 
-        document.getElementById('regNpsn').addEventListener('blur', function() {
-            let npsnVal = this.value.trim();
-            let inputNama = document.getElementById('regNamaSekolah');
-            if(!npsnVal) return;
-
-            inputNama.value = "Memeriksa database Dinas...";
-
-            fetch(`${WEB_APP_URL}?action=checkNpsn&npsn=${npsnVal}`)
-            .then(res => res.json())
-            .then(res => {
-                if(res.status === 'success') {
-                    inputNama.value = res.nama_lengkap;
-                } else {
-                    alert(res.pesan);
-                    inputNama.value = "";
-                }
-            })
-            .catch(err => {
-                inputNama.value = "";
-                alert("Gagal terhubung ke server.");
-            });
+            // Muat Dashboard Awal
+            switchView('dashboard');
         });
 
-        function handleLogin(e) {
-            e.preventDefault();
-            let u = document.getElementById('loginUser').value;
-            let p = document.getElementById('loginPass').value;
-            setAuthLoading(true);
+        function switchView(viewName) {
+            document.querySelectorAll('.sidebar-menu li').forEach(li => li.classList.remove('active'));
+            const activeLi = document.getElementById(`menu-${viewName}`);
+            if (activeLi) activeLi.classList.add('active');
 
-            fetch(`${WEB_APP_URL}?action=login&username=${encodeURIComponent(u)}&password=${encodeURIComponent(p)}`)
-            .then(res => res.json())
-            .then(res => {
-                setAuthLoading(false);
-                if(res.status === 'success') {
-                    currentUser = res;
-                    localStorage.setItem('sivit_user', JSON.stringify(res));
-                    initApp();
-                } else {
-                    alert(res.pesan);
-                }
-            })
-            .catch(err => {
-                setAuthLoading(false);
-                alert("Kesalahan koneksi saat login.");
-            });
-        }
+            document.querySelectorAll('.view-section').forEach(sec => sec.classList.remove('active'));
+            const activeSec = document.getElementById(`section-${viewName}`);
+            if (activeSec) activeSec.classList.add('active');
 
-        function handleRegister(e) {
-            e.preventDefault();
-            let npsn = document.getElementById('regNpsn').value;
-            let nama = document.getElementById('regNamaSekolah').value;
-            let pass = document.getElementById('regPass').value;
+            const titles = {
+                'dashboard': ['Dashboard Utama', 'Sistem Informasi Pengawasan & Perencanaan Bidang SD (SIVIT26).'],
+                'sekolah': ['Data Sekolah Dasar', 'Direktori lengkap satuan pendidikan Sekolah Dasar di bawah Dinas.'],
+                'pending': ['Verifikasi Pendaftaran', 'Persetujuan akun baru untuk satuan pendidikan yang mendaftar.'],
+                'paket': ['Paket Pekerjaan', 'Pengelolaan alokasi anggaran, pagu, dan menu pekerjaan fisik sekolah.'],
+                'laporan': ['Laporan Progres', 'Pemantauan perkembangan fisik dan verifikasi berkas lapangan.'],
+                'riwayat': ['Riwayat Perubahan Pagu', 'Jejak audit perubahan nilai pagu anggaran paket pekerjaan.'],
+                'users': ['Manajemen Pengguna', 'Pengaturan akun user, hak akses role, perencana, dan pengawas.'],
+                'pengaturan': ['Pengaturan Sesi Akun', 'Informasi profil dan kredensial pengguna yang sedang aktif.']
+            };
 
-            if(!nama) {
-                alert("NPSN belum divalidasi atau tidak terdaftar!");
-                return;
+            if (titles[viewName]) {
+                document.getElementById('view-heading').textContent = titles[viewName][0];
+                document.getElementById('view-subheading').textContent = titles[viewName][1];
             }
 
-            setAuthLoading(true);
-            fetch(WEB_APP_URL, {
-                method: "POST",
-                body: JSON.stringify({ action: 'register', npsn: npsn, password: pass, nama_lengkap: nama })
-            })
-            .then(res => res.json())
-            .then(res => {
-                setAuthLoading(false);
-                alert(res.pesan);
-                if(res.status === 'success') {
-                    switchTab('login');
-                    document.getElementById('formRegister').reset();
-                    document.getElementById('regNamaSekolah').value = "";
-                }
-            })
-            .catch(err => {
-                setAuthLoading(false);
-                alert("Kesalahan jaringan.");
-            });
+            // Panggil fungsi pemuatan data sesuai view
+            if (viewName === 'dashboard') loadDashboardData();
+            if (viewName === 'sekolah') loadDataSekolah();
+            if (viewName === 'pending') loadDataPending();
+            if (viewName === 'paket') loadDataPaket();
+            if (viewName === 'laporan') loadDataLaporan();
+            if (viewName === 'riwayat') loadDataRiwayat();
+            if (viewName === 'users') loadDataUsers();
         }
 
-        function setAuthLoading(show) {
-            let el = document.getElementById('authLoading');
-            if(show) el.classList.remove('hidden');
-            else el.classList.add('hidden');
-        }
+        // ================= DATAFETCH FUNCTIONS ================= //
 
-        window.onload = function() {
-            let saved = localStorage.getItem('sivit_user');
-            if(saved) {
-                currentUser = JSON.parse(saved);
-                initApp();
-            }
-        };
+        function loadDashboardData() {
+            const role = currentUser.role;
+            const npsn = currentUser.username;
 
-        function logout() {
-            localStorage.removeItem('sivit_user');
-            currentUser = null;
-            document.getElementById('appContainer').classList.add('hidden');
-            document.getElementById('authContainer').classList.remove('hidden');
-        }
-
-        function initApp() {
-            document.getElementById('authContainer').classList.add('hidden');
-            document.getElementById('appContainer').classList.remove('hidden');
-            document.getElementById('userNameDisplay').innerText = currentUser.nama_pengguna;
-            document.getElementById('userNpsnDisplay').innerText = "NPSN/ID: " + currentUser.username;
-            document.getElementById('userRoleSubtitle').innerText = "Hak Akses: " + currentUser.role;
-
-            let identitasCard = document.getElementById('sekolahIdentitasCard');
-            if (currentUser.role === 'SEKOLAH' && currentUser.sekolah) {
-                identitasCard.classList.remove('hidden');
-                document.getElementById('cardNpsn').innerText = currentUser.sekolah.npsn || '-';
-                document.getElementById('cardNamaSekolah').innerText = currentUser.sekolah.nama_sekolah || '-';
-                document.getElementById('cardKecamatan').innerText = currentUser.sekolah.kecamatan || '-';
-                document.getElementById('cardAlamat').innerText = currentUser.sekolah.alamat_lengkap || '-';
-            } else {
-                identitasCard.classList.add('hidden');
-            }
-
-            fetch(`${WEB_APP_URL}?action=getData&sheet=menu_pekerjaan&role=DINAS&npsn=`)
-            .then(res => res.json())
-            .then(res => {
-                if(res && res.data) {
-                    menuPekerjaanList = res.data;
-                }
-            });
-
-            if(currentUser.role === 'SEKOLAH') {
-                fetch(`${WEB_APP_URL}?action=getData&sheet=paket_pekerjaan_sd&role=SEKOLAH&npsn=${currentUser.username}`)
+            // Fetch Sekolah
+            fetch(`${SCRIPT_URL}?action=getData&sheet=sekolah&role=${role}&npsn=${npsn}`)
                 .then(res => res.json())
                 .then(res => {
-                    if(res && res.data) {
-                        paketPekerjaanList = res.data;
-                    }
-                });
-            }
-
-            buildSidebar();
-            
-            if(currentUser.role === 'DINAS') {
-                loadTableData('sekolah_pending', 'Verifikasi Sekolah');
-            } else {
-                let isKonsultanEmpty = (!currentUser.perencana || currentUser.perencana === "") && (!currentUser.pengawas || currentUser.pengawas === "");
-                if (isKonsultanEmpty) {
-                    loadTableData('users', 'Update Konsultan');
-                } else {
-                    loadTableData('paket_pekerjaan_sd', 'Paket Pekerjaan SD');
-                }
-            }
-        }
-
-        function buildSidebar() {
-            let container = document.getElementById('sidebarMenuContainer');
-            container.innerHTML = "";
-            let menus = [];
-
-            if(currentUser.role === 'DINAS') {
-                menus = [
-                    { name: 'Verifikasi Sekolah', sheet: 'sekolah_pending', icon: 'fa-user-check text-amber-400' },
-                    { name: 'Data Sekolah', sheet: 'sekolah', icon: 'fa-school text-blue-300' },
-                    { name: 'Manajemen Pengguna', sheet: 'users', icon: 'fa-users text-amber-400' },
-                    { name: 'Menu Pekerjaan', sheet: 'menu_pekerjaan', icon: 'fa-list-check text-blue-300' },
-                    { name: 'Paket Pekerjaan SD', sheet: 'paket_pekerjaan_sd', icon: 'fa-folder-open text-blue-300' },
-                    { name: 'Laporan Progres', sheet: 'laporan_progres', icon: 'fa-chart-line text-blue-300' },
-                    { name: 'Riwayat Pagu', sheet: 'riwayat_pagu', icon: 'fa-clock-rotate-left text-amber-400' }
-                ];
-            } else {
-                menus = [
-                    { name: 'Update Konsultan', sheet: 'users', icon: 'fa-user-gear text-amber-400' },
-                    { name: 'Paket Pekerjaan SD', sheet: 'paket_pekerjaan_sd', icon: 'fa-folder-open text-amber-400' },
-                    { name: 'Laporkan Progres', sheet: 'laporan_progres', icon: 'fa-chart-line text-blue-300' },
-                    { name: 'Riwayat Pagu', sheet: 'riwayat_pagu', icon: 'fa-clock-rotate-left text-amber-400' }
-                ];
-            }
-
-            menus.forEach(m => {
-                let btn = document.createElement('button');
-                btn.className = `w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs font-medium transition-colors text-blue-100 hover:bg-blue-800 hover:text-amber-400`;
-                btn.innerHTML = `<i class="fa-solid ${m.icon} w-4 text-blue-300"></i><span>${m.name}</span>`;
-                btn.onclick = () => loadTableData(m.sheet, m.name);
-                container.appendChild(btn);
-            });
-        }
-
-        function loadTableData(sheetName, customTitle = "") {
-            currentActiveSheet = sheetName;
-            document.getElementById('contentTitle').innerText = customTitle || sheetName.replace(/_/g, ' ').toUpperCase();
-            document.getElementById('tableHead').innerHTML = `<tr><th class="p-3 text-center text-blue-300">Memuat data...</th></tr>`;
-            document.getElementById('tableBody').innerHTML = "";
-            let actionContainer = document.getElementById('actionButtonContainer');
-            actionContainer.innerHTML = "";
-
-            let canAdd = false;
-            let canPrint = false;
-
-            if (currentUser.role === 'DINAS') {
-                if (['sekolah', 'menu_pekerjaan', 'users', 'paket_pekerjaan_sd'].includes(sheetName)) {
-                    canAdd = true;
-                }
-                if (['paket_pekerjaan_sd', 'laporan_progres', 'riwayat_pagu'].includes(sheetName)) {
-                    canPrint = true;
-                }
-            } else if (currentUser.role === 'SEKOLAH') {
-                if (['paket_pekerjaan_sd', 'laporan_progres'].includes(sheetName)) {
-                    canAdd = true;
-                    canPrint = true;
-                }
-                if (['riwayat_pagu'].includes(sheetName)) {
-                    canPrint = true;
-                }
-            }
-
-            if (canAdd) {
-                let addBtn = document.createElement('button');
-                addBtn.className = "no-print bg-amber-500 hover:bg-amber-400 text-blue-950 font-bold px-3.5 py-2 rounded-xl text-xs transition-colors shadow-sm";
-                addBtn.innerHTML = `<i class="fa-solid fa-plus mr-1"></i> Tambah Data`;
-                addBtn.onclick = () => openModalForm(null);
-                actionContainer.appendChild(addBtn);
-            }
-
-            if (canPrint) {
-                let printBtn = document.createElement('button');
-                printBtn.className = "no-print bg-blue-800 hover:bg-blue-700 text-white px-3.5 py-2 rounded-xl text-xs font-medium transition-colors shadow-sm border border-blue-700";
-                printBtn.innerHTML = `<i class="fa-solid fa-print mr-1"></i> Cetak / PDF`;
-                printBtn.onclick = () => window.print();
-                actionContainer.appendChild(printBtn);
-            }
-
-            fetch(`${WEB_APP_URL}?action=getData&sheet=${sheetName}&role=${currentUser.role}&npsn=${currentUser.username}`)
-            .then(res => res.json())
-            .then(res => {
-                currentTableHeaders = res.header || [];
-                if(sheetName === 'paket_pekerjaan_sd' && currentUser.role === 'SEKOLAH') {
-                    paketPekerjaanList = res.data || [];
-                }
-                renderTable(res.header || [], res.data || [], sheetName);
-            })
-            .catch(err => {
-                document.getElementById('tableBody').innerHTML = `<tr><td class="p-3 text-red-400 text-center">Gagal memuat data.</td></tr>`;
-            });
-        }
-
-        function renderTable(headers, data, sheetName) {
-            let headEl = document.getElementById('tableHead');
-            let bodyEl = document.getElementById('tableBody');
-
-            if(!headers || headers.length === 0) {
-                headEl.innerHTML = `<tr><th class="p-3 text-center text-blue-300">Tidak ada kolom</th></tr>`;
-                bodyEl.innerHTML = `<tr><td class="p-3 text-center text-blue-300">Data kosong.</td></tr>`;
-                return;
-            }
-
-            let trHead = document.createElement('tr');
-            headers.forEach(h => {
-                let th = document.createElement('th');
-                th.className = "p-3 font-semibold text-amber-400";
-                th.innerText = h;
-                trHead.appendChild(th);
-            });
-            
-            let showActionColumn = true;
-            if (['riwayat_pagu'].includes(sheetName)) {
-                showActionColumn = false;
-            }
-
-            if (showActionColumn) {
-                let thAction = document.createElement('th');
-                thAction.className = "no-print p-3 font-semibold text-amber-400 text-right";
-                thAction.innerText = "Aksi";
-                trHead.appendChild(thAction);
-            }
-            headEl.innerHTML = "";
-            headEl.appendChild(trHead);
-
-            bodyEl.innerHTML = "";
-            if(!data || data.length === 0) {
-                let tr = document.createElement('tr');
-                tr.innerHTML = `<td colspan="${headers.length + (showActionColumn ? 1 : 0)}" class="p-4 text-center text-blue-300 text-xs">Belum ada record data</td>`;
-                bodyEl.appendChild(tr);
-                return;
-            }
-
-            data.forEach(row => {
-                let tr = document.createElement('tr');
-                tr.className = "hover:bg-blue-900/40 transition-colors border-b border-blue-900/50";
-                
-                headers.forEach(h => {
-                    let td = document.createElement('td');
-                    td.className = "p-3 text-blue-100 text-xs truncate max-w-xs";
-                    let val = row[h] !== undefined ? row[h] : "";
-                    
-                    if ((h.toLowerCase() === 'pagu' || h.toLowerCase() === 'pagu_lama' || h.toLowerCase() === 'pagu_baru' || h.toLowerCase() === 'penggunaan_anggaran') && !isNaN(val) && val !== "") {
-                        val = "Rp " + Number(val).toLocaleString('id-ID');
-                    }
-                    
-                    td.innerText = val;
-                    tr.appendChild(td);
-                });
-
-                if (showActionColumn) {
-                    let tdAct = document.createElement('td');
-                    tdAct.className = "no-print p-3 text-right space-x-1";
-                    
-                    if (sheetName === 'sekolah_pending') {
-                        let btnApprove = document.createElement('button');
-                        btnApprove.className = "px-2.5 py-1 bg-emerald-950/60 hover:bg-emerald-900 text-emerald-300 rounded-lg text-[11px] font-medium border border-emerald-800";
-                        btnApprove.innerHTML = `<i class="fa-solid fa-check mr-1"></i> Approve`;
-                        btnApprove.onclick = () => verifyReg(row.username || row.npsn, 'APPROVED');
-                        tdAct.appendChild(btnApprove);
-
-                        let btnReject = document.createElement('button');
-                        btnReject.className = "px-2.5 py-1 bg-red-950/60 hover:bg-red-900 text-red-300 rounded-lg text-[11px] font-medium border border-red-800";
-                        btnReject.innerHTML = `<i class="fa-solid fa-xmark mr-1"></i> Reject`;
-                        btnReject.onclick = () => verifyReg(row.username || row.npsn, 'REJECTED');
-                        tdAct.appendChild(btnReject);
-                    } else if (currentUser.role === 'SEKOLAH' && sheetName === 'users') {
-                        let btnEdit = document.createElement('button');
-                        btnEdit.className = "px-2.5 py-1 bg-blue-900/60 hover:bg-blue-800 text-amber-400 rounded-lg text-[11px] font-medium border border-blue-700";
-                        btnEdit.innerHTML = `<i class="fa-solid fa-pen-to-square mr-1"></i> Edit Perencana & Pengawas`;
-                        btnEdit.onclick = () => openModalForm(row);
-                        tdAct.appendChild(btnEdit);
-                    } else {
-                        if (sheetName === 'paket_pekerjaan_sd') {
-                            let btnRiwayat = document.createElement('button');
-                            btnRiwayat.className = "px-2.5 py-1 bg-blue-900/60 hover:bg-blue-800 text-cyan-300 rounded-lg text-[11px] font-medium border border-blue-700 mr-1";
-                            btnRiwayat.innerHTML = `<i class="fa-solid fa-clock-rotate-left mr-1"></i> Riwayat Pagu`;
-                            btnRiwayat.onclick = () => bukaRiwayatPagu(row.npsn || currentUser.username, row.paket_id);
-                            tdAct.appendChild(btnRiwayat);
-                        }
-
-                        if (currentUser.role === 'DINAS' && sheetName === 'laporan_progres') {
-                            let btnVerif = document.createElement('button');
-                            btnVerif.className = "px-2.5 py-1 bg-blue-900/60 hover:bg-blue-800 text-amber-400 rounded-lg text-[11px] font-medium border border-blue-700 mr-1";
-                            btnVerif.innerHTML = `<i class="fa-solid fa-clipboard-check mr-1"></i> Verifikasi`;
-                            let idLap = row.id || row.id_progres || row.laporan_id || Object.values(row)[0];
-                            btnVerif.onclick = () => openVerifikasiModal(idLap);
-                            tdAct.appendChild(btnVerif);
-                        }
-
-                        let btnEdit = document.createElement('button');
-                        btnEdit.className = "px-2.5 py-1 bg-blue-900/60 hover:bg-blue-800 text-amber-300 rounded-lg text-[11px] font-medium border border-blue-700";
-                        btnEdit.innerHTML = `<i class="fa-solid fa-pen-to-square"></i>`;
-                        btnEdit.onclick = () => openModalForm(row);
-                        tdAct.appendChild(btnEdit);
-
-                        if (currentUser.role === 'DINAS' || ['laporan_progres'].includes(sheetName)) {
-                            let btnDel = document.createElement('button');
-                            btnDel.className = "px-2.5 py-1 bg-red-950/60 hover:bg-red-900 text-red-300 rounded-lg text-[11px] font-medium border border-red-800 ml-1";
-                            btnDel.innerHTML = `<i class="fa-solid fa-trash"></i>`;
-                            btnDel.onclick = () => deleteRowData(row._rowIndex);
-                            tdAct.appendChild(btnDel);
-                        }
-                    }
-                    tr.appendChild(tdAct);
-                }
-                bodyEl.appendChild(tr);
-            });
-        }
-
-        async function verifyReg(npsn, status) {
-            if(!confirm(`Ubah status pendaftaran menjadi ${status}?`)) return;
-            try {
-                const res = await fetch(WEB_APP_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ action: 'verifyRegister', npsn: npsn, status: status })
-                });
-                const data = await res.json();
-                alert(data.pesan);
-                loadTableData('sekolah_pending', 'Verifikasi Sekolah');
-            } catch (err) {
-                alert('Gagal memproses verifikasi.');
-            }
-        }
-
-        function openVerifikasiModal(idLaporan) {
-            document.getElementById('verif-id-laporan').value = idLaporan;
-            document.getElementById('verif-catatan').value = "";
-            let modal = document.getElementById('verifikasi-modal');
-            if(modal) {
-                modal.classList.remove('hidden');
-                modal.classList.add('flex');
-            }
-        }
-
-        function closeVerifikasiModal() {
-            let modal = document.getElementById('verifikasi-modal');
-            if(modal) {
-                modal.classList.add('hidden');
-                modal.classList.remove('flex');
-            }
-        }
-
-        function submitVerifikasi() {
-            const idLaporan = document.getElementById('verif-id-laporan').value;
-            const status = document.getElementById('verif-status').value;
-            const catatan = document.getElementById('verif-catatan').value;
-
-            fetch(WEB_APP_URL, {
-                method: "POST",
-                body: JSON.stringify({
-                    action: "verifikasiLaporan",
-                    idLaporan: idLaporan,
-                    status: status,
-                    catatanDinas: catatan
-                })
-            })
-            .then(res => res.json())
-            .then(res => {
-                alert(res.pesan || res.message);
-                if(res.status === 'success' || res.success) {
-                    closeVerifikasiModal();
-                    loadTableData(currentActiveSheet);
-                }
-            })
-            .catch(err => {
-                alert("Kesalahan jaringan saat memproses verifikasi.");
-            });
-        }
-
-        async function openModalForm(rowData = null) {
-            let container = document.getElementById('formFieldsContainer');
-            container.innerHTML = "";
-            document.getElementById('formRowIndex').value = rowData ? rowData._rowIndex : "";
-            document.getElementById('modalTitle').innerText = rowData ? "Edit Data" : "Tambah Data Baru";
-
-            if (!menuPekerjaanList || menuPekerjaanList.length === 0) {
-                menuPekerjaanList = [
-                    { menu_id: "M01", nama_menu: "Rehab Ruang Kelas Berat" },
-                    { menu_id: "M02", nama_menu: "Rehab Ruang Guru / Kepala Sekolah" },
-                    { menu_id: "M03", nama_menu: "Pembangunan Toilet / Sanitasi" },
-                    { menu_id: "M04", nama_menu: "Pembangunan Perpustakaan" },
-                    { menu_id: "M05", nama_menu: "Rehab Perpustakaan" }
-                ];
-            }
-            
-            currentTableHeaders.forEach(h => {
-                if(h.toLowerCase().includes('id_riwayat')) return;
-
-                if (currentUser.role === 'SEKOLAH' && currentActiveSheet === 'laporan_progres') {
-                    if (h.toLowerCase() === 'status_verifikasi' || h.toLowerCase() === 'status' || h.toLowerCase() === 'catatan_dinas' || h.toLowerCase() === 'catatan') {
-                        return;
-                    }
-                }
-
-                let div = document.createElement('div');
-                div.className = "space-y-1";
-                
-                let label = document.createElement('label');
-                label.className = "block text-xs font-semibold text-amber-400 uppercase";
-                label.innerText = h;
-                div.appendChild(label);
-
-                let input;
-
-                if (currentActiveSheet === 'users' && currentUser.role === 'SEKOLAH') {
-                    input = document.createElement('input');
-                    input.type = "text";
-                    input.name = h;
-                    input.value = rowData ? (rowData[h] !== undefined ? rowData[h] : "") : "";
-                    
-                    if (h !== 'perencana' && h !== 'pengawas') {
-                        input.readOnly = true;
-                        input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-blue-400 cursor-not-allowed";
-                    } else {
-                        input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-                    }
-                }
-
-                if (currentActiveSheet === 'paket_pekerjaan_sd') {
-                    if (h === 'nama_menu') {
-                        if (currentUser.role === 'SEKOLAH' && rowData) {
-                            input = document.createElement('input');
-                            input.type = "text";
-                            input.name = h;
-                            input.readOnly = true;
-                            input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-blue-400 cursor-not-allowed";
-                            input.value = rowData[h] || "";
+                    if (res.status === 'success') {
+                        document.getElementById('stat-sekolah').textContent = res.data.length;
+                        const tb = document.getElementById('dashboard-table-body');
+                        tb.innerHTML = '';
+                        if(res.data.length === 0) {
+                            tb.innerHTML = `<tr><td colspan="5" style="text-align: center;">Tidak ada data sekolah.</td></tr>`;
                         } else {
-                            input = document.createElement('select');
-                            input.name = h;
-                            input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-                            
-                            let defaultOpt = document.createElement('option');
-                            defaultOpt.value = "";
-                            defaultOpt.innerText = "-- Pilih Nama Menu Pekerjaan --";
-                            input.appendChild(defaultOpt);
-
-                            menuPekerjaanList.forEach(m => {
-                                let namaMenuVal = m['nama_menu'] || m['Nama_Menu'] || m['nama_pekerjaan'] || '';
-                                if (namaMenuVal) {
-                                    if (currentUser.role === 'SEKOLAH' && !rowData) {
-                                        let alreadyExists = paketPekerjaanList.some(p => String(p['nama_menu']).trim().toLowerCase() === String(namaMenuVal).trim().toLowerCase());
-                                        if (alreadyExists) return;
-                                    }
-
-                                    let opt = document.createElement('option');
-                                    opt.value = namaMenuVal;
-                                    opt.innerText = namaMenuVal;
-                                    if (rowData && String(rowData[h]) === String(namaMenuVal)) {
-                                        opt.selected = true;
-                                    }
-                                    input.appendChild(opt);
-                                }
+                            res.data.slice(0, 5).forEach((item, idx) => {
+                                tb.innerHTML += `<tr>
+                                    <td>${idx + 1}</td>
+                                    <td>${item.npsn || '-'}</td>
+                                    <td>${item.nama_sekolah || '-'}</td>
+                                    <td>${item.kecamatan || '-'}</td>
+                                    <td><span class="badge badge-success">${item.status_akun || 'Aktif'}</span></td>
+                                </tr>`;
                             });
-
-                            input.onchange = function() {
-                                let selectedVal = this.value;
-                                let match = menuPekerjaanList.find(m => {
-                                    let nVal = m['nama_menu'] || m['Nama_Menu'] || m['nama_pekerjaan'] || '';
-                                    return nVal === selectedVal;
-                                });
-
-                                let mId = match ? (match['menu_id'] || match['id_menu'] || 'M01') : 'M01';
-                                let generatedPaketId = "PKT-" + currentUser.username + "-" + Math.floor(Date.now() / 1000);
-                                
-                                let pInput = document.querySelector('input[name="paket_id"]');
-                                let mInput = document.querySelector('input[name="menu_id"]');
-                                if (pInput && !pInput.value) pInput.value = generatedPaketId;
-                                if (mInput) mInput.value = mId;
-                            };
                         }
-                    } else if (['paket_id', 'menu_id'].includes(h)) {
-                        input = document.createElement('input');
-                        input.type = "text";
-                        input.name = h;
-                        input.readOnly = true;
-                        input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-blue-400 cursor-not-allowed";
-                        if (!rowData && h === 'paket_id') {
-                            input.value = "PKT-" + currentUser.username + "-" + Math.floor(Date.now() / 1000);
-                        } else {
-                            input.value = rowData ? (rowData[h] !== undefined ? rowData[h] : "") : "";
-                        }
-                    } else if (h === 'perencana' || h === 'pengawas') {
-                        input = document.createElement('input');
-                        input.type = "text";
-                        input.name = h;
-                        input.readOnly = true;
-                        input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-blue-400 cursor-not-allowed";
-                        input.value = rowData && rowData[h] ? rowData[h] : (currentUser[h] || "-");
-                    } else if (h === 'pagu') {
-                        input = document.createElement('input');
-                        input.type = "text";
-                        input.name = h;
-                        input.placeholder = "Contoh: 50.000.000";
-                        input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-                        
-                        let rawVal = rowData && rowData[h] !== undefined ? rowData[h] : "";
-                        if (rawVal !== "" && !isNaN(rawVal)) {
-                            input.value = Number(rawVal).toLocaleString('id-ID');
-                        } else {
-                            input.value = rawVal;
-                        }
-
-                        input.oninput = function() {
-                            let cleanNum = this.value.replace(/[^0-9]/g, '');
-                            if (cleanNum !== "") {
-                                this.value = Number(cleanNum).toLocaleString('id-ID');
-                            } else {
-                                this.value = "";
-                            }
-                        };
-                    } else if (h === 'tanggal_mulai') {
-                        input = document.createElement('input');
-                        input.type = "date";
-                        input.name = h;
-                        input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-                        
-                        if (rowData && rowData[h]) {
-                            input.value = rowData[h];
-                        }
-                        input.onchange = calculateTglSelesai;
-                    } else if (h === 'tgl_selesai') {
-                        input = document.createElement('input');
-                        input.type = "date";
-                        input.name = h;
-                        input.readOnly = true;
-                        input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-blue-400 cursor-not-allowed";
-                        input.value = rowData ? (rowData[h] !== undefined ? rowData[h] : "") : "";
-                    } else if (h === 'lama_hari') {
-                        input = document.createElement('input');
-                        input.type = "number";
-                        input.name = h;
-                        input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-                        input.value = rowData ? (rowData[h] !== undefined ? rowData[h] : "") : "";
-                        input.oninput = calculateTglSelesai;
                     }
-                }
+                }).catch(err => console.error(err));
 
-                if (currentActiveSheet === 'laporan_progres') {
-                    if (h.toLowerCase() === 'id' || h.toLowerCase() === 'id_progres' || h.toLowerCase() === 'laporan_id') {
-                        input = document.createElement('input');
-                        input.type = "text";
-                        input.name = h;
-                        input.readOnly = true;
-                        input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-blue-400 cursor-not-allowed";
-                        input.value = rowData && rowData[h] ? rowData[h] : "PRG-" + currentUser.username + "-" + Math.floor(Date.now() / 1000);
-                    } else if (h.toLowerCase() === 'paket_id') {
-                        input = document.createElement('select');
-                        input.name = h;
-                        input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-                        
-                        let defaultOpt = document.createElement('option');
-                        defaultOpt.value = "";
-                        defaultOpt.innerText = "-- Pilih Paket Pekerjaan SD --";
-                        input.appendChild(defaultOpt);
+            // Fetch Paket
+            fetch(`${SCRIPT_URL}?action=getData&sheet=paket_pekerjaan_sd&role=${role}&npsn=${npsn}`)
+                .then(res => res.json())
+                .then(res => {
+                    if (res.status === 'success') document.getElementById('stat-paket').textContent = res.data.length;
+                });
 
-                        paketPekerjaanList.forEach(p => {
-                            let pId = p['paket_id'] || Object.values(p)[1];
-                            let pName = p['nama_menu'] || p['nama_paket'] || '';
-                            let opt = document.createElement('option');
-                            opt.value = pId;
-                            opt.innerText = `${pId} - ${pName}`;
-                            if (rowData && rowData[h] === pId) opt.selected = true;
-                            input.appendChild(opt);
+            // Fetch Laporan
+            fetch(`${SCRIPT_URL}?action=getData&sheet=laporan_progres&role=${role}&npsn=${npsn}`)
+                .then(res => res.json())
+                .then(res => {
+                    if (res.status === 'success') document.getElementById('stat-laporan').textContent = res.data.length;
+                });
+
+            // Fetch Pending Registrasi (jika Dinas)
+            if (role === 'DINAS') {
+                fetch(`${SCRIPT_URL}?action=getData&sheet=sekolah_pending&role=${role}&npsn=${npsn}`)
+                    .then(res => res.json())
+                    .then(res => {
+                        if (res.status === 'success') document.getElementById('stat-pending').textContent = res.data.length;
+                    });
+            }
+        }
+
+        function loadDataSekolah() {
+            const tb = document.getElementById('sekolah-tb');
+            tb.innerHTML = `<tr><td colspan="6" style="text-align: center;">Memuat data...</td></tr>`;
+            fetch(`${SCRIPT_URL}?action=getData&sheet=sekolah&role=${currentUser.role}&npsn=${currentUser.username}`)
+                .then(res => res.json())
+                .then(res => {
+                    if (res.status === 'success') {
+                        tb.innerHTML = '';
+                        if (res.data.length === 0) {
+                            tb.innerHTML = `<tr><td colspan="6" style="text-align: center;">Data sekolah kosong.</td></tr>`;
+                            return;
+                        }
+                        res.data.forEach((item, idx) => {
+                            tb.innerHTML += `<tr>
+                                <td>${idx + 1}</td>
+                                <td>${item.npsn || '-'}</td>
+                                <td>${item.nama_sekolah || '-'}</td>
+                                <td>${item.kecamatan || '-'}</td>
+                                <td>${item.alamat_lengkap || '-'}</td>
+                                <td><span class="badge">${item.status_akun || 'Aktif'}</span></td>
+                            </tr>`;
                         });
-
-                        input.onchange = function() {
-                            updateMingguKeOptions(this.value);
-                        };
-                    } else if (h.toLowerCase() === 'minggu_ke') {
-                        input = document.createElement('select');
-                        input.name = h;
-                        input.id = 'selectMingguKe';
-                        input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-                        
-                        let defaultOpt = document.createElement('option');
-                        defaultOpt.value = "";
-                        defaultOpt.innerText = "-- Pilih Paket Pekerjaan Terlebih Dahulu --";
-                        input.appendChild(defaultOpt);
-
-                        if (rowData && rowData[h]) {
-                            let opt = document.createElement('option');
-                            opt.value = rowData[h];
-                            opt.innerText = rowData[h];
-                            opt.selected = true;
-                            input.appendChild(opt);
-                        }
-                    } else if (h.toLowerCase() === 'tanggal_lapor') {
-                        input = document.createElement('input');
-                        input.type = "date";
-                        input.name = h;
-                        input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-                        
-                        if (rowData && rowData[h]) {
-                            input.value = rowData[h];
-                        } else {
-                            let today = new Date().toISOString().split('T')[0];
-                            input.value = today;
-                        }
-                    } else if (h.toLowerCase() === 'target_kurva_s' || h.toLowerCase() === 'realisasi_fisik') {
-                        input = document.createElement('input');
-                        input.type = "number";
-                        input.step = "0.01";
-                        input.max = "100";
-                        input.min = "0";
-                        input.name = h;
-                        input.placeholder = "0.00 hingga 100 (%)";
-                        input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-                        input.value = rowData ? (rowData[h] !== undefined ? rowData[h] : "") : "";
-                    } else if (h.toLowerCase() === 'penggunaan_anggaran') {
-                        input = document.createElement('input');
-                        input.type = "text";
-                        input.name = h;
-                        input.placeholder = "Contoh: 15.000.000";
-                        input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-                        
-                        let rawVal = rowData && rowData[h] !== undefined ? rowData[h] : "";
-                        if (rawVal !== "" && !isNaN(rawVal)) {
-                            input.value = Number(rawVal).toLocaleString('id-ID');
-                        } else {
-                            input.value = rawVal;
-                        }
-
-                        input.oninput = function() {
-                            let cleanNum = this.value.replace(/[^0-9]/g, '');
-                            if (cleanNum !== "") {
-                                this.value = Number(cleanNum).toLocaleString('id-ID');
-                            } else {
-                                this.value = "";
-                            }
-                        };
-                    } else if (h.toLowerCase() === 'foto_dokumentasi') {
-                        let wrap = document.createElement('div');
-                        wrap.className = "space-y-2";
-                        
-                        let fileInput = document.createElement('input');
-                        fileInput.type = "file";
-                        fileInput.accept = "image/*";
-                        fileInput.className = "w-full text-xs text-blue-200 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-amber-500 file:text-blue-950 hover:file:bg-amber-400 cursor-pointer";
-                        
-                        let hiddenInput = document.createElement('input');
-                        hiddenInput.type = "hidden";
-                        hiddenInput.name = h;
-                        hiddenInput.value = rowData && rowData[h] ? rowData[h] : "";
-
-                        fileInput.onchange = function(e) {
-                            let file = e.target.files[0];
-                            if(!file) return;
-                            let reader = new FileReader();
-                            reader.onload = function(uploadEvent) {
-                                hiddenInput.value = uploadEvent.target.result;
-                            };
-                            reader.readAsDataURL(file);
-                        };
-
-                        wrap.appendChild(fileInput);
-                        wrap.appendChild(hiddenInput);
-                        input = wrap;
-                    } else if (h.toLowerCase() === 'catatan_pekerjaan') {
-                        input = document.createElement('textarea');
-                        input.name = h;
-                        input.rows = 3;
-                        input.placeholder = "Tulis catatan atau kendala pekerjaan...";
-                        input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-                        input.innerText = rowData ? (rowData[h] !== undefined ? rowData[h] : "") : "";
                     }
-                }
-
-                if (!input) {
-                    input = document.createElement('input');
-                    input.type = "text";
-                    input.name = h;
-                    input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-                    input.value = rowData ? (rowData[h] !== undefined ? rowData[h] : "") : "";
-                }
-
-                if(currentUser.role === 'SEKOLAH' && (h.toLowerCase().includes('npsn') || h.toLowerCase().includes('user_id') || h.toLowerCase().includes('username'))) {
-                    input.value = currentUser.username;
-                    if(input.tagName === 'INPUT') {
-                        input.readOnly = true;
-                        input.className += " bg-blue-950/60 text-blue-400 cursor-not-allowed";
-                    }
-                }
-
-                div.appendChild(input);
-                container.appendChild(div);
-            });
-
-            if (currentActiveSheet === 'paket_pekerjaan_sd' && rowData) {
-                let divAlasan = document.createElement('div');
-                divAlasan.className = "space-y-1 pt-2 border-t border-blue-800";
-                divAlasan.innerHTML = `
-                    <label class="block text-xs font-semibold text-amber-400 uppercase">Alasan Perubahan Pagu (Opsional)</label>
-                    <input type="text" name="alasan_pagu" placeholder="Keterangan / alasan jika pagu berubah..." class="w-full px-3.5 py-2.5 border border-amber-400/50 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none">
-                `;
-                container.appendChild(divAlasan);
-            }
-
-            if (currentActiveSheet === 'laporan_progres' && rowData && rowData['paket_id']) {
-                updateMingguKeOptions(rowData['paket_id'], rowData['minggu_ke']);
-            }
-
-            document.getElementById('dataModal').classList.remove('hidden');
-            document.getElementById('dataModal').classList.add('flex');
+                });
         }
 
-        function updateMingguKeOptions(selectedPaketId, selectedValue = "") {
-            let selectMinggu = document.getElementById('selectMingguKe');
-            if (!selectMinggu) return;
-
-            selectMinggu.innerHTML = "";
-            
-            let paketObj = paketPekerjaanList.find(p => String(p['paket_id']) === String(selectedPaketId));
-            if (!paketObj || !paketObj['tanggal_mulai']) {
-                let opt = document.createElement('option');
-                opt.value = "";
-                opt.innerText = "-- Tanggal mulai paket tidak ditemukan --";
-                selectMinggu.appendChild(opt);
-                return;
-            }
-
-            let tglMulaiStr = paketObj['tanggal_mulai'];
-            let startDate = new Date(tglMulaiStr);
-
-            let defaultOpt = document.createElement('option');
-            defaultOpt.value = "";
-            defaultOpt.innerText = "-- Pilih Rentang Minggu Pekerjaan --";
-            selectMinggu.appendChild(defaultOpt);
-
-            for (let i = 1; i <= 16; i++) {
-                let startWeekDate = new Date(startDate);
-                startWeekDate.setDate(startDate.getDate() + ((i - 1) * 7));
-                
-                let endWeekDate = new Date(startDate);
-                endWeekDate.setDate(startDate.getDate() + (i * 7) - 1);
-
-                let fmtStart = startWeekDate.toISOString().split('T')[0];
-                let fmtEnd = endWeekDate.toISOString().split('T')[0];
-
-                let labelMinggu = `Minggu ke-${i} (${fmtStart} s.d. ${fmtEnd})`;
-                
-                let opt = document.createElement('option');
-                opt.value = `Minggu ke-${i} (${fmtStart} - ${fmtEnd})`;
-                opt.innerText = labelMinggu;
-
-                if (selectedValue && opt.value === selectedValue) {
-                    opt.selected = true;
-                }
-                selectMinggu.appendChild(opt);
-            }
+        function loadDataPending() {
+            const tb = document.getElementById('pending-tb');
+            tb.innerHTML = `<tr><td colspan="5" style="text-align: center;">Memuat data pending...</td></tr>`;
+            fetch(`${SCRIPT_URL}?action=getData&sheet=sekolah_pending&role=${currentUser.role}&npsn=${currentUser.username}`)
+                .then(res => res.json())
+                .then(res => {
+                    if (res.status === 'success') {
+                        tb.innerHTML = '';
+                        if (res.data.length === 0) {
+                            tb.innerHTML = `<tr><td colspan="5" style="text-align: center;">Tidak ada pendaftaran pending.</td></tr>`;
+                            return;
+                        }
+                        res.data.forEach((item, idx) => {
+                            tb.innerHTML += `<tr>
+                                <td>${idx + 1}</td>
+                                <td>${item.npsn || '-'}</td>
+                                <td>${item.nama_lengkap || '-'}</td>
+                                <td><span class="badge">${item.status || 'PENDING'}</span></td>
+                                <td>
+                                    <button class="btn" style="padding: 4px 8px; font-size: 0.75rem;" onclick="verifySchool('${item.npsn}', 'APPROVED')">Setuju</button>
+                                    <button class="btn" style="padding: 4px 8px; font-size: 0.75rem; background-color: #DC2626;" onclick="verifySchool('${item.npsn}', 'REJECTED')">Tolak</button>
+                                </td>
+                            </tr>`;
+                        });
+                    }
+                });
         }
 
-        function calculateTglSelesai() {
-            let tglMulaiEl = document.querySelector('input[name="tanggal_mulai"]');
-            let lamaHariEl = document.querySelector('input[name="lama_hari"]');
-            let tglSelesaiEl = document.querySelector('input[name="tgl_selesai"]');
+        function loadDataPaket() {
+            const tb = document.getElementById('paket-tb');
+            tb.innerHTML = `<tr><td colspan="7" style="text-align: center;">Memuat paket pekerjaan...</td></tr>`;
+            fetch(`${SCRIPT_URL}?action=getData&sheet=paket_pekerjaan_sd&role=${currentUser.role}&npsn=${currentUser.username}`)
+                .then(res => res.json())
+                .then(res => {
+                    if (res.status === 'success') {
+                        tb.innerHTML = '';
+                        if (res.data.length === 0) {
+                            tb.innerHTML = `<tr><td colspan="7" style="text-align: center;">Belum ada data paket pekerjaan.</td></tr>`;
+                            return;
+                        }
+                        res.data.forEach((item, idx) => {
+                            tb.innerHTML += `<tr>
+                                <td>${idx + 1}</td>
+                                <td>${item.paket_id || item.id || '-'}</td>
+                                <td>${item.npsn || item.user_id || '-'}</td>
+                                <td>${item.nama_menu || '-'}</td>
+                                <td>Rp ${Number(item.pagu || 0).toLocaleString('id-ID')}</td>
+                                <td>${item.perencana || '-'} / ${item.pengawas || '-'}</td>
+                                <td>
+                                    <button class="btn" style="padding: 4px 8px; font-size: 0.75rem;" onclick="openModalEditPaket(${item._rowIndex}, '${item.nama_menu || ''}', '${item.pagu || 0}')">Edit</button>
+                                    <button class="btn" style="padding: 4px 8px; font-size: 0.75rem; background-color: #DC2626;" onclick="deleteRecord('paket_pekerjaan_sd', ${item._rowIndex})">Hapus</button>
+                                </td>
+                            </tr>`;
+                        });
+                    }
+                });
+        }
 
-            if (!tglMulaiEl || !lamaHariEl || !tglSelesaiEl) return;
+        function loadDataLaporan() {
+            const tb = document.getElementById('laporan-tb');
+            tb.innerHTML = `<tr><td colspan="8" style="text-align: center;">Memuat laporan progres...</td></tr>`;
+            fetch(`${SCRIPT_URL}?action=getData&sheet=laporan_progres&role=${currentUser.role}&npsn=${currentUser.username}`)
+                .then(res => res.json())
+                .then(res => {
+                    if (res.status === 'success') {
+                        tb.innerHTML = '';
+                        if (res.data.length === 0) {
+                            tb.innerHTML = `<tr><td colspan="8" style="text-align: center;">Belum ada laporan progres.</td></tr>`;
+                            return;
+                        }
+                        res.data.forEach((item, idx) => {
+                            let sBadge = item.status_verifikasi === 'APPROVED' ? 'badge-success' : (item.status_verifikasi === 'REJECTED' ? 'badge-danger' : '');
+                            let actionBtn = currentUser.role === 'DINAS' ? `<button class="btn btn-gold" style="padding: 4px 8px; font-size: 0.75rem;" onclick="openModalVerifLaporan('${item.id || item.laporan_id}')">Verifikasi</button>` : '-';
+                            tb.innerHTML += `<tr>
+                                <td>${idx + 1}</td>
+                                <td>${item.id || item.laporan_id || '-'}</td>
+                                <td>${item.npsn || item.user_id || '-'}</td>
+                                <td>${item.uraian_progres || item.keterangan || '-'}</td>
+                                <td><a href="${String(item.foto_dokumentasi || '').split('|')[0].trim()}" target="_blank" style="color: var(--accent-blue);">Lihat Foto</a></td>
+                                <td><span class="badge ${sBadge}">${item.status_verifikasi || item.status || 'PENDING'}</span></td>
+                                <td>${item.catatan_dinas || '-'}</td>
+                                <td>${actionBtn}</td>
+                            </tr>`;
+                        });
+                    }
+                });
+        }
 
-            let dateVal = tglMulaiEl.value;
-            let lamaVal = parseInt(lamaHariEl.value) || 0;
+        function loadDataRiwayat() {
+            const tb = document.getElementById('riwayat-tb');
+            tb.innerHTML = `<tr><td colspan="8" style="text-align: center;">Memuat riwayat pagu...</td></tr>`;
+            fetch(`${SCRIPT_URL}?action=getData&sheet=riwayat_pagu&role=${currentUser.role}&npsn=${currentUser.username}`)
+                .then(res => res.json())
+                .then(res => {
+                    if (res.status === 'success') {
+                        tb.innerHTML = '';
+                        if (res.data.length === 0) {
+                            tb.innerHTML = `<tr><td colspan="8" style="text-align: center;">Tidak ada riwayat perubahan pagu.</td></tr>`;
+                            return;
+                        }
+                        res.data.forEach((item, idx) => {
+                            tb.innerHTML += `<tr>
+                                <td>${idx + 1}</td>
+                                <td>${item.id_riwayat || '-'}</td>
+                                <td>${item.paket_id || '-'}</td>
+                                <td>${item.npsn || '-'}</td>
+                                <td>Rp ${Number(item.pagu_lama || 0).toLocaleString('id-ID')}</td>
+                                <td>Rp ${Number(item.pagu_baru || 0).toLocaleString('id-ID')}</td>
+                                <td>${item.tanggal || '-'}</td>
+                                <td>${item.keterangan || '-'}</td>
+                            </tr>`;
+                        });
+                    }
+                });
+        }
 
-            if (dateVal && lamaVal > 0) {
-                let dateObj = new Date(dateVal);
-                dateObj.setDate(dateObj.getDate() + lamaVal);
+        function loadDataUsers() {
+            const tb = document.getElementById('users-tb');
+            tb.innerHTML = `<tr><td colspan="9" style="text-align: center;">Memuat data users...</td></tr>`;
+            fetch(`${SCRIPT_URL}?action=getData&sheet=users&role=${currentUser.role}&npsn=${currentUser.username}`)
+                .then(res => res.json())
+                .then(res => {
+                    if (res.status === 'success') {
+                        tb.innerHTML = '';
+                        if (res.data.length === 0) {
+                            tb.innerHTML = `<tr><td colspan="9" style="text-align: center;">Data user kosong.</td></tr>`;
+                            return;
+                        }
+                        res.data.forEach((item, idx) => {
+                            tb.innerHTML += `<tr>
+                                <td>${idx + 1}</td>
+                                <td>${item.id || '-'}</td>
+                                <td>${item.username || '-'}</td>
+                                <td>${item.nama_pengguna || '-'}</td>
+                                <td><span class="badge">${item.role || '-'}</span></td>
+                                <td>${item.perencana || '-'}</td>
+                                <td>${item.pengawas || '-'}</td>
+                                <td>${item.status || 'ACTIVE'}</td>
+                                <td>
+                                    <button class="btn" style="padding: 4px 8px; font-size: 0.75rem; background-color: #DC2626;" onclick="deleteRecord('users', ${item._rowIndex})">Hapus</button>
+                                </td>
+                            </tr>`;
+                        });
+                    }
+                });
+        }
 
-                let yyyy = dateObj.getFullYear();
-                let mm = String(dateObj.getMonth() + 1).padStart(2, '0');
-                let dd = String(dateObj.getDate()).padStart(2, '0');
+        // ================= MODAL & SUBMIT ACTIONS ================= //
 
-                tglSelesaiEl.value = `${yyyy}-${mm}-${dd}`;
-            } else {
-                tglSelesaiEl.value = "";
-            }
+        function openModalPaket() {
+            document.getElementById('modalTitle').textContent = 'Tambah Paket Pekerjaan Baru';
+            document.getElementById('modalBody').innerHTML = `
+                <form onsubmit="submitPaket(event)">
+                    <div class="form-group">
+                        <label>Nama Menu Pekerjaan</label>
+                        <input type="text" name="nama_menu" class="form-control" required placeholder="Contoh: Rehabilitasi Ruang Kelas">
+                    </div>
+                    <div class="form-group">
+                        <label>Pagu Anggaran (Rp)</label>
+                        <input type="number" name="pagu" class="form-control" required placeholder="Contoh: 75000000">
+                    </div>
+                    <input type="hidden" name="npsn" value="${currentUser.username}">
+                    <button type="submit" class="btn btn-gold" style="width: 100%; justify-content: center; margin-top: 10px;">Simpan Paket</button>
+                </form>
+            `;
+            document.getElementById('dynamicModal').style.display = 'flex';
+        }
+
+        function openModalEditPaket(rowIndex, currentMenu, currentPagu) {
+            document.getElementById('modalTitle').textContent = 'Edit Paket & Pembaruan Pagu';
+            document.getElementById('modalBody').innerHTML = `
+                <form onsubmit="submitEditPaket(event, ${rowIndex})">
+                    <div class="form-group">
+                        <label>Nama Menu Pekerjaan</label>
+                        <input type="text" name="nama_menu" class="form-control" value="${currentMenu}" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Pagu Anggaran Baru (Rp)</label>
+                        <input type="number" name="pagu" class="form-control" value="${currentPagu}" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Alasan / Keterangan Perubahan Pagu</label>
+                        <input type="text" name="alasan_pagu" class="form-control" required placeholder="Contoh: Adendum Kontrak / Koreksi RAB">
+                    </div>
+                    <button type="submit" class="btn btn-gold" style="width: 100%; justify-content: center; margin-top: 10px;">Perbarui Data</button>
+                </form>
+            `;
+            document.getElementById('dynamicModal').style.display = 'flex';
+        }
+
+        function openModalLaporan() {
+            document.getElementById('modalTitle').textContent = 'Kirim Laporan Progres Fisik';
+            document.getElementById('modalBody').innerHTML = `
+                <form onsubmit="submitLaporan(event)">
+                    <div class="form-group">
+                        <label>Uraian Progres Pekerjaan</label>
+                        <textarea name="uraian_progres" class="form-control" rows="3" required placeholder="Jelaskan progres fisik saat ini..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>URL Foto Dokumentasi Lapangan</label>
+                        <input type="text" name="foto_dokumentasi" class="form-control" required placeholder="https://... atau Link Drive">
+                    </div>
+                    <input type="hidden" name="npsn" value="${currentUser.username}">
+                    <button type="submit" class="btn" style="width: 100%; justify-content: center; margin-top: 10px;">Kirim Laporan</button>
+                </form>
+            `;
+            document.getElementById('dynamicModal').style.display = 'flex';
+        }
+
+        function openModalVerifLaporan(idLaporan) {
+            document.getElementById('modalTitle').textContent = 'Verifikasi Laporan Progres Dinas';
+            document.getElementById('modalBody').innerHTML = `
+                <form onsubmit="submitVerifLaporan(event, '${idLaporan}')">
+                    <div class="form-group">
+                        <label>Status Verifikasi</label>
+                        <select name="status" class="form-control" required>
+                            <option value="APPROVED">Setujui (APPROVED)</option>
+                            <option value="REJECTED">Tolak / Revisi (REJECTED)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Catatan Dinas</label>
+                        <textarea name="catatanDinas" class="form-control" rows="3" required placeholder="Berikan catatan atau instruksi..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-gold" style="width: 100%; justify-content: center; margin-top: 10px;">Simpan Verifikasi</button>
+                </form>
+            `;
+            document.getElementById('dynamicModal').style.display = 'flex';
+        }
+
+        function openModalUser() {
+            document.getElementById('modalTitle').textContent = 'Tambah User Baru';
+            document.getElementById('modalBody').innerHTML = `
+                <form onsubmit="submitUser(event)">
+                    <div class="form-group">
+                        <label>Username / NPSN</label>
+                        <input type="text" name="username" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" name="password" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Nama Pengguna / Satuan Pendidikan</label>
+                        <input type="text" name="nama_pengguna" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Role / Hak Akses</label>
+                        <select name="role" class="form-control" required>
+                            <option value="SEKOLAH">SEKOLAH</option>
+                            <option value="DINAS">DINAS</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Tim Perencana</label>
+                        <input type="text" name="perencana" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>Tim Pengawas</label>
+                        <input type="text" name="pengawas" class="form-control">
+                    </div>
+                    <button type="submit" class="btn btn-gold" style="width: 100%; justify-content: center; margin-top: 10px;">Simpan User</button>
+                </form>
+            `;
+            document.getElementById('dynamicModal').style.display = 'flex';
         }
 
         function closeModal() {
-            document.getElementById('dataModal').classList.add('hidden');
-            document.getElementById('dataModal').classList.remove('flex');
+            document.getElementById('dynamicModal').style.display = 'none';
         }
 
-        function bukaRiwayatPagu(npsn, paketId) {
-            let tbody = document.getElementById('tabelRiwayatBody');
-            tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-blue-300">Memuat data riwayat...</td></tr>';
-            
-            document.getElementById('infoNamaSekolah').innerText = "Memuat...";
-            document.getElementById('infoNamaMenu').innerText = "Memuat...";
-            
-            let modal = document.getElementById('modalRiwayatPagu');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-
-            fetch(`${WEB_APP_URL}?action=getData&sheet=riwayat_pagu&role=${currentUser.role}&npsn=${currentUser.username}`)
-            .then(res => res.json())
-            .then(res => {
-                let filtered = (res.data || []).filter(item => String(item.npsn) === String(npsn) && String(item.paket_id) === String(paketId));
-                tbody.innerHTML = "";
-                
-                if (filtered.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-blue-300 py-4">Belum ada riwayat perubahan pagu untuk paket ini.</td></tr>';
-                    document.getElementById('infoNamaSekolah').innerText = "NPSN: " + npsn;
-                    document.getElementById('infoNamaMenu').innerText = "Paket ID: " + paketId;
-                    return;
-                }
-                
-                document.getElementById('infoNamaSekolah').innerText = "NPSN: " + npsn;
-                document.getElementById('infoNamaMenu').innerText = "Paket ID: " + paketId;
-                
-                filtered.forEach(function(item, index) {
-                    let paguLama = Number(item.pagu_lama) || 0;
-                    let paguBaru = Number(item.pagu_baru) || 0;
-                    let selisih = paguBaru - paguLama;
-                    let badgeSelisih = "";
-                    
-                    if (selisih > 0) {
-                        badgeSelisih = `<span class="text-emerald-400 font-bold">+ Rp ${formatRupiah(selisih)} (Naik)</span>`;
-                    } else if (selisih < 0) {
-                        badgeSelisih = `<span class="text-red-400 font-bold">- Rp ${formatRupiah(Math.abs(selisih))} (Turun)</span>`;
-                    } else {
-                        badgeSelisih = `<span class="text-blue-300">Tetap</span>`;
-                    }
-                    
-                    let row = `<tr class="hover:bg-blue-900/40">
-                        <td class="text-center p-2.5">${index + 1}</td>
-                        <td class="p-2.5"><small>${item.tanggal || '-'}</small></td>
-                        <td class="text-right p-2.5">Rp ${formatRupiah(paguLama)}</td>
-                        <td class="text-right p-2.5">Rp ${formatRupiah(paguBaru)}</td>
-                        <td class="text-center p-2.5">${badgeSelisih}</td>
-                        <td class="p-2.5">${item.keterangan || '-'}</td>
-                    </tr>`;
-                    tbody.innerHTML += row;
-                });
-            })
-            .catch(err => {
-                tbody.innerHTML = `<tr><td colspan="6" class="text-center text-red-400 py-3">Gagal memuat data riwayat.</td></tr>`;
-            });
-        }
-
-        function closeRiwayatModal() {
-            let modal = document.getElementById('modalRiwayatPagu');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-        }
-
-        function formatRupiah(angka) {
-            return Number(angka).toLocaleString('id-ID');
-        }
-
-        function handleFormSubmit(e) {
+        function submitPaket(e) {
             e.preventDefault();
-            let rawRowIndex = document.getElementById('formRowIndex').value;
-            let rowIndex = rawRowIndex ? Number(rawRowIndex) : null;
-            let formData = {};
-
-            document.querySelectorAll('#formFieldsContainer input, #formFieldsContainer select, #formFieldsContainer textarea').forEach(input => {
-                if(input.name) {
-                    formData[input.name] = input.value;
-                }
+            const dataObj = Object.fromEntries(new FormData(e.target).entries());
+            postToServer('saveData', { sheet: 'paket_pekerjaan_sd', role: currentUser.role, formData: dataObj }, () => {
+                closeModal();
+                loadDataPaket();
             });
+        }
 
-            if (formData['pagu']) {
-                formData['pagu'] = formData['pagu'].toString().replace(/[^0-9]/g, '');
-            }
-            if (formData['penggunaan_anggaran']) {
-                formData['penggunaan_anggaran'] = formData['penggunaan_anggaran'].toString().replace(/[^0-9]/g, '');
-            }
+        function submitEditPaket(e, rowIndex) {
+            e.preventDefault();
+            const dataObj = Object.fromEntries(new FormData(e.target).entries());
+            postToServer('saveData', { sheet: 'paket_pekerjaan_sd', role: currentUser.role, rowIndex: rowIndex, formData: dataObj }, () => {
+                closeModal();
+                loadDataPaket();
+            });
+        }
 
-            if (currentUser.role === 'SEKOLAH') {
-                if (formData['npsn'] !== undefined) formData['npsn'] = currentUser.username;
-                if (formData['user_id'] !== undefined) formData['user_id'] = currentUser.username;
-            }
+        function submitLaporan(e) {
+            e.preventDefault();
+            const dataObj = Object.fromEntries(new FormData(e.target).entries());
+            postToServer('saveData', { sheet: 'laporan_progres', role: currentUser.role, formData: dataObj }, () => {
+                closeModal();
+                loadDataLaporan();
+            });
+        }
 
-            let payload = {
-                action: "saveData",
-                sheet: currentActiveSheet,
-                formData: formData,
-                rowIndex: rowIndex,
-                role: currentUser.role
-            };
-
-            document.getElementById('btnSaveModal').innerText = "Menyimpan...";
-
-            fetch(WEB_APP_URL, {
-                method: "POST",
-                body: JSON.stringify(payload)
+        function submitVerifLaporan(e, idLaporan) {
+            e.preventDefault();
+            const form = Object.fromEntries(new FormData(e.target).entries());
+            fetch(SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify({ action: 'verifikasiLaporan', idLaporan: idLaporan, status: form.status, catatanDinas: form.catatanDinas })
             })
             .then(res => res.json())
             .then(res => {
-                document.getElementById('btnSaveModal').innerText = "Simpan Data";
                 alert(res.pesan);
                 if(res.status === 'success') {
                     closeModal();
-                    loadTableData(currentActiveSheet);
+                    loadDataLaporan();
                 }
-            })
-            .catch(err => {
-                document.getElementById('btnSaveModal').innerText = "Simpan Data";
-                alert("Kesalahan jaringan saat menyimpan data.");
             });
         }
 
-        function deleteRowData(rowIndex) {
-            if(!confirm("Yakin ingin menghapus baris data ini?")) return;
+        function submitUser(e) {
+            e.preventDefault();
+            const dataObj = Object.fromEntries(new FormData(e.target).entries());
+            postToServer('saveData', { sheet: 'users', role: currentUser.role, formData: dataObj }, () => {
+                closeModal();
+                loadDataUsers();
+            });
+        }
 
-            fetch(WEB_APP_URL, {
-                method: "POST",
-                body: JSON.stringify({ action: "deleteData", sheet: currentActiveSheet, rowIndex: Number(rowIndex) })
+        function verifySchool(npsn, status) {
+            if(!confirm(`Apakah Anda yakin ingin mengubah status pendaftaran NPSN ${npsn} menjadi ${status}?`)) return;
+            fetch(SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify({ action: 'verifyRegister', npsn: npsn, status: status })
+            })
+            .then(res => res.json())
+            .then(res => {
+                alert(res.pesan);
+                if(res.status === 'success') loadDataPending();
+            });
+        }
+
+        function deleteRecord(sheetName, rowIndex) {
+            if(!confirm("Apakah Anda yakin ingin menghapus data ini dari database?")) return;
+            fetch(SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify({ action: 'deleteData', sheet: sheetName, rowIndex: rowIndex })
             })
             .then(res => res.json())
             .then(res => {
                 alert(res.pesan);
                 if(res.status === 'success') {
-                    loadTableData(currentActiveSheet);
+                    if(sheetName === 'paket_pekerjaan_sd') loadDataPaket();
+                    if(sheetName === 'users') loadDataUsers();
+                }
+            });
+        }
+
+        function postToServer(actionName, payloadObj, callback) {
+            payloadObj.action = actionName;
+            fetch(SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify(payloadObj)
+            })
+            .then(res => res.json())
+            .then(res => {
+                alert(res.pesan || 'Proses berhasil.');
+                if(res.status === 'success' && typeof callback === 'function') {
+                    callback();
                 }
             })
-            .catch(err => alert("Gagal menghapus data."));
+            .catch(err => alert("Terjadi kesalahan jaringan ke Google Apps Script."));
+        }
+
+        function logout() {
+            if(confirm("Apakah Anda ingin keluar dari sesi sistem?")) {
+                localStorage.removeItem('sivit26_user');
+                window.location.href = "login.html";
+            }
         }
     </script>
 </body>
