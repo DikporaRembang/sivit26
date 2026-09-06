@@ -18,7 +18,7 @@
 </head>
 <body class="bg-gradient-to-br from-blue-950 via-blue-900 to-slate-900 min-h-screen text-white font-sans antialiased flex flex-col justify-between">
 
-    <!-- ================= AUTH CONTAINER (HALAMAN LOGIN & REGISTER) ================= -->
+    <!-- ================= AUTH CONTAINER ================= -->
     <div id="authContainer" class="flex-1 flex flex-col items-center justify-center p-4">
         <div class="max-w-md w-full bg-blue-900/40 backdrop-blur-md rounded-2xl shadow-2xl p-8 border border-amber-400/30">
             <div class="text-center mb-6">
@@ -83,7 +83,7 @@
         </div>
     </div>
 
-    <!-- ================= MAIN APP CONTAINER (DASHBOARD) ================= -->
+    <!-- ================= MAIN APP CONTAINER ================= -->
     <div id="appContainer" class="hidden min-h-screen flex flex-col bg-blue-950 text-white w-full">
         <header class="bg-blue-900/80 backdrop-blur-md border-b border-blue-800 sticky top-0 z-30 shadow-xs">
             <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
@@ -169,21 +169,8 @@
         </div>
     </div>
 
-    <!-- ================= LOGO KABUPATEN REMBANG & LOGO PENDIDIKAN DI BAGIAN BAWAH ================= -->
+    <!-- ================= FOOTER ================= -->
     <footer class="w-full py-6 mt-auto bg-blue-950/90 border-t border-blue-900 flex flex-col items-center justify-center space-y-2">
-        <div class="flex items-center justify-center space-x-6">
-            <!-- Logo Kabupaten Rembang -->
-            <div class="flex flex-col items-center">
-                <img src="logorembang.png" alt="Logo Kabupaten Rembang" class="h-12 w-auto object-contain drop-shadow-md">
-                <span class="text-[10px] text-blue-300 mt-1 font-medium">Kabupaten Rembang</span>
-            </div>
-            <div class="h-8 w-[1px] bg-blue-800"></div>
-            <!-- Logo Pendidikan -->
-            <div class="flex flex-col items-center">
-                <img src="logopendidikan.png" alt="Logo Pendidikan" class="h-12 w-auto object-contain drop-shadow-md">
-                <span class="text-[10px] text-blue-300 mt-1 font-medium">Kemendikdasmen RI</span>
-            </div>
-        </div>
         <p class="text-[10px] text-blue-400 mt-2">© 2026 SIVIT26 - Dinas Pendidikan, Pemuda dan Olahraga Kabupaten Rembang</p>
     </footer>
 
@@ -205,7 +192,7 @@
         </div>
     </div>
 
-    <!-- ================= MODAL POPUP RIWAYAT PAGU ================= -->
+    <!-- ================= MODAL RIWAYAT PAGU ================= -->
     <div class="modal fade fixed inset-0 bg-blue-950/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50" id="modalRiwayatPagu" tabindex="-1" aria-hidden="true">
       <div class="bg-blue-900 border border-amber-400/40 rounded-2xl max-w-4xl w-full p-6 shadow-2xl text-white">
         <div class="flex justify-between items-center mb-4 pb-2 border-b border-blue-800 text-white p-4 rounded-t-2xl -mt-6 -mx-6 bg-blue-950">
@@ -219,11 +206,11 @@
           <div class="bg-blue-950/60 rounded-xl p-3 border border-blue-800">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <span class="text-blue-300 block text-[10px] uppercase font-bold">Nama Sekolah / NPSN</span>
+                <span class="text-blue-300 block text-[10px] uppercase font-bold">NPSN</span>
                 <h6 id="infoNamaSekolah" class="text-amber-400 font-bold text-xs mt-0.5">Memuat...</h6>
               </div>
               <div>
-                <span class="text-blue-300 block text-[10px] uppercase font-bold">Menu Pekerjaan</span>
+                <span class="text-blue-300 block text-[10px] uppercase font-bold">Paket ID</span>
                 <h6 id="infoNamaMenu" class="text-white font-bold text-xs mt-0.5">Memuat...</h6>
               </div>
             </div>
@@ -238,7 +225,7 @@
                   <th class="p-2.5 text-right">Pagu Lama</th>
                   <th class="p-2.5 text-right">Pagu Baru</th>
                   <th class="p-2.5">Selisih</th>
-                  <th class="p-2.5">Keterangan / Alasan</th>
+                  <th class="p-2.5">Alasan Perubahan</th>
                 </tr>
               </thead>
               <tbody id="tabelRiwayatBody" class="divide-y divide-blue-900 text-blue-100"></tbody>
@@ -268,10 +255,6 @@
                         <option value="REVISI">REVISI</option>
                         <option value="DITOLAK">DITOLAK</option>
                     </select>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-blue-200 mb-1">Catatan / Keterangan Dinas</label>
-                    <textarea id="verif-catatan" rows="3" placeholder="Tuliskan catatan atau instruksi perbaikan..." class="w-full px-3.5 py-2.5 border border-blue-700 rounded-xl text-xs bg-blue-950 text-white focus:ring-2 focus:ring-amber-400 focus:outline-none"></textarea>
                 </div>
                 <div class="flex justify-end space-x-2 pt-3 border-t border-blue-800">
                     <button type="button" onclick="closeVerifikasiModal()" class="px-4 py-2 bg-blue-800 hover:bg-blue-700 text-blue-200 rounded-xl text-xs font-medium">Batal</button>
@@ -458,12 +441,7 @@
             if(currentUser.role === 'DINAS') {
                 loadTableData('sekolah_pending', 'Verifikasi Sekolah');
             } else {
-                let isKonsultanEmpty = (!currentUser.perencana || currentUser.perencana === "") && (!currentUser.pengawas || currentUser.pengawas === "");
-                if (isKonsultanEmpty) {
-                    loadTableData('users', 'Update Konsultan');
-                } else {
-                    loadTableData('paket_pekerjaan_sd', 'Paket Pekerjaan SD');
-                }
+                loadTableData('paket_pekerjaan_sd', 'Paket Pekerjaan SD');
             }
         }
 
@@ -692,7 +670,6 @@
 
         function openVerifikasiModal(idLaporan) {
             document.getElementById('verif-id-laporan').value = idLaporan;
-            document.getElementById('verif-catatan').value = "";
             let modal = document.getElementById('verifikasi-modal');
             if(modal) {
                 modal.classList.remove('hidden');
@@ -711,15 +688,13 @@
         function submitVerifikasi() {
             const idLaporan = document.getElementById('verif-id-laporan').value;
             const status = document.getElementById('verif-status').value;
-            const catatan = document.getElementById('verif-catatan').value;
 
             fetch(WEB_APP_URL, {
                 method: "POST",
                 body: JSON.stringify({
                     action: "verifikasiLaporan",
                     idLaporan: idLaporan,
-                    status: status,
-                    catatanDinas: catatan
+                    status: status
                 })
             })
             .then(res => res.json())
@@ -743,11 +718,11 @@
 
             if (!menuPekerjaanList || menuPekerjaanList.length === 0) {
                 menuPekerjaanList = [
-                    { menu_id: "M01", nama_menu: "Rehab Ruang Kelas Berat" },
-                    { menu_id: "M02", nama_menu: "Rehab Ruang Guru / Kepala Sekolah" },
-                    { menu_id: "M03", nama_menu: "Pembangunan Toilet / Sanitasi" },
-                    { menu_id: "M04", nama_menu: "Pembangunan Perpustakaan" },
-                    { menu_id: "M05", nama_menu: "Rehab Perpustakaan" }
+                    { nama_menu: "Rehab Ruang Kelas Berat" },
+                    { nama_menu: "Rehab Ruang Guru / Kepala Sekolah" },
+                    { nama_menu: "Pembangunan Toilet / Sanitasi" },
+                    { nama_menu: "Pembangunan Perpustakaan" },
+                    { nama_menu: "Rehab Perpustakaan" }
                 ];
             }
             
@@ -755,7 +730,7 @@
                 if(h.toLowerCase().includes('id_riwayat')) return;
 
                 if (currentUser.role === 'SEKOLAH' && currentActiveSheet === 'laporan_progres') {
-                    if (h.toLowerCase() === 'status_verifikasi' || h.toLowerCase() === 'status' || h.toLowerCase() === 'catatan_dinas' || h.toLowerCase() === 'catatan') {
+                    if (h.toLowerCase() === 'status_verifikasi' || h.toLowerCase() === 'status') {
                         return;
                     }
                 }
@@ -804,7 +779,7 @@
                             input.appendChild(defaultOpt);
 
                             menuPekerjaanList.forEach(m => {
-                                let namaMenuVal = m['nama_menu'] || m['Nama_Menu'] || m['nama_pekerjaan'] || '';
+                                let namaMenuVal = m['nama_menu'] || '';
                                 if (namaMenuVal) {
                                     if (currentUser.role === 'SEKOLAH' && !rowData) {
                                         let alreadyExists = paketPekerjaanList.some(p => String(p['nama_menu']).trim().toLowerCase() === String(namaMenuVal).trim().toLowerCase());
@@ -822,22 +797,12 @@
                             });
 
                             input.onchange = function() {
-                                let selectedVal = this.value;
-                                let match = menuPekerjaanList.find(m => {
-                                    let nVal = m['nama_menu'] || m['Nama_Menu'] || m['nama_pekerjaan'] || '';
-                                    return nVal === selectedVal;
-                                });
-
-                                let mId = match ? (match['menu_id'] || match['id_menu'] || 'M01') : 'M01';
                                 let generatedPaketId = "PKT-" + currentUser.username + "-" + Math.floor(Date.now() / 1000);
-                                
                                 let pInput = document.querySelector('input[name="paket_id"]');
-                                let mInput = document.querySelector('input[name="menu_id"]');
                                 if (pInput && !pInput.value) pInput.value = generatedPaketId;
-                                if (mInput) mInput.value = mId;
                             };
                         }
-                    } else if (['paket_id', 'menu_id'].includes(h)) {
+                    } else if (h === 'paket_id') {
                         input = document.createElement('input');
                         input.type = "text";
                         input.name = h;
@@ -848,7 +813,7 @@
                         } else {
                             input.value = rowData ? (rowData[h] !== undefined ? rowData[h] : "") : "";
                         }
-                    } else if (h === 'perencana' || h === 'pengawas') {
+                    } else if (h.toLowerCase() === 'perencana' || h.toLowerCase() === 'pengawas') {
                         input = document.createElement('input');
                         input.type = "text";
                         input.name = h;
@@ -905,7 +870,7 @@
                 }
 
                 if (currentActiveSheet === 'laporan_progres') {
-                    if (h.toLowerCase() === 'id' || h.toLowerCase() === 'id_progres' || h.toLowerCase() === 'laporan_id') {
+                    if (h.toLowerCase() === 'id') {
                         input = document.createElement('input');
                         input.type = "text";
                         input.name = h;
@@ -923,8 +888,8 @@
                         input.appendChild(defaultOpt);
 
                         paketPekerjaanList.forEach(p => {
-                            let pId = p['paket_id'] || Object.values(p)[1];
-                            let pName = p['nama_menu'] || p['nama_paket'] || '';
+                            let pId = p['paket_id'];
+                            let pName = p['nama_menu'] || '';
                             let opt = document.createElement('option');
                             opt.value = pId;
                             opt.innerText = `${pId} - ${pName}`;
@@ -1161,11 +1126,11 @@
                     
                     let row = `<tr class="hover:bg-blue-900/40">
                         <td class="text-center p-2.5">${index + 1}</td>
-                        <td class="p-2.5"><small>${item.tanggal || '-'}</small></td>
+                        <td class="p-2.5"><small>${item.time_stamp || '-'}</small></td>
                         <td class="text-right p-2.5">Rp ${formatRupiah(paguLama)}</td>
                         <td class="text-right p-2.5">Rp ${formatRupiah(paguBaru)}</td>
                         <td class="text-center p-2.5">${badgeSelisih}</td>
-                        <td class="p-2.5">${item.keterangan || '-'}</td>
+                        <td class="p-2.5">${item.alasan_perubahan || '-'}</td>
                     </tr>`;
                     tbody.innerHTML += row;
                 });
