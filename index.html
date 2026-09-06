@@ -672,7 +672,6 @@
             }
         }
 
-        // Fungsi Modal Verifikasi Dinas
         function openVerifikasiModal(idLaporan) {
             document.getElementById('verif-id-laporan').value = idLaporan;
             document.getElementById('verif-catatan').value = "";
@@ -736,6 +735,13 @@
             
             currentTableHeaders.forEach(h => {
                 if(h.toLowerCase().includes('id_riwayat')) return;
+
+                // KEAMANAN FRONTEND: Jangan tampilkan input status verifikasi atau catatan dinas di form input/edit milik SEKOLAH
+                if (currentUser.role === 'SEKOLAH' && currentActiveSheet === 'laporan_progres') {
+                    if (h.toLowerCase() === 'status_verifikasi' || h.toLowerCase() === 'status' || h.toLowerCase() === 'catatan_dinas' || h.toLowerCase() === 'catatan') {
+                        return; // Lewati field ini agar sekolah tidak bisa mengisi/mengubahnya
+                    }
+                }
 
                 let div = document.createElement('div');
                 div.className = "space-y-1";
@@ -1190,7 +1196,8 @@
                 action: "saveData",
                 sheet: currentActiveSheet,
                 formData: formData,
-                rowIndex: rowIndex
+                rowIndex: rowIndex,
+                role: currentUser.role // Mengirim role ke backend untuk validasi keamanan verifikasi
             };
 
             document.getElementById('btnSaveModal').innerText = "Menyimpan...";
