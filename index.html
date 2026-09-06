@@ -85,85 +85,91 @@
         </div>
     </div>
 
-    <!-- ================= MAIN APP CONTAINER (DASHBOARD) ================= -->
-    <div id="appContainer" class="hidden min-h-screen flex flex-col bg-blue-950 text-white w-full">
-        <header class="bg-blue-900/80 backdrop-blur-md border-b border-blue-800 sticky top-0 z-30 shadow-xs">
+<!-- ================= MAIN APP CONTAINER (DASHBOARD) ================= -->
+    <div id="appContainer" class="hidden min-h-screen flex flex-col bg-slate-50 text-slate-900 w-full font-sans">
+        <!-- HEADER -->
+        <header class="bg-white/90 backdrop-blur-md border-b border-sky-100 sticky top-0 z-30 shadow-sm">
             <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
                 <div class="flex items-center space-x-3">
-                    <div class="bg-amber-500 text-blue-950 p-2 rounded-xl font-black text-sm shadow-sm shadow-amber-500/30">S26</div>
+                    <!-- Logo Aplikasi Custom (bidangsd.png) -->
+                    <img src="bidangsd.png" alt="Logo Aplikasi" class="w-9 h-9 object-contain">
                     <div>
-                        <h2 class="font-bold text-white text-base">SIVIT26 <span class="text-amber-400">Dashboard</span></h2>
-                        <p class="text-xs text-amber-300 font-medium" id="userRoleSubtitle">Role: -</p>
+                        <h2 class="font-extrabold text-slate-900 text-base tracking-tight">SIVIT26 <span class="text-amber-600">Dashboard</span></h2>
+                        <p class="text-xs text-sky-600 font-semibold" id="userRoleSubtitle">Role: -</p>
                     </div>
                 </div>
                 <div class="flex items-center space-x-4">
                     <div class="text-right hidden sm:block">
-                        <p class="text-xs font-bold text-white" id="userNameDisplay">-</p>
-                        <p class="text-[11px] text-blue-300" id="userNpsnDisplay">-</p>
+                        <p class="text-xs font-bold text-slate-900" id="userNameDisplay">-</p>
+                        <p class="text-[11px] text-slate-500 font-medium" id="userNpsnDisplay">-</p>
                     </div>
-                    <button onclick="logout()" class="bg-red-950/60 hover:bg-red-900 text-red-200 px-3 py-1.5 rounded-xl text-xs font-medium transition-colors border border-red-800">
+                    <button onclick="logout()" class="bg-red-50 hover:bg-red-100 text-red-700 px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors border border-red-200">
                         <i class="fa-solid fa-power-off mr-1"></i> Keluar
                     </button>
                 </div>
             </div>
         </header>
 
+        <!-- MAIN LAYOUT -->
         <div class="flex-1 flex max-w-7xl w-full mx-auto">
-            <aside class="w-64 bg-blue-900/40 backdrop-blur border-r border-blue-800 p-4 hidden md:flex flex-col justify-between">
+            <!-- SIDEBAR -->
+            <aside class="w-64 bg-sky-50/50 backdrop-blur border-r border-sky-100 p-4 hidden md:flex flex-col justify-between">
                 <div class="space-y-1">
-                    <p class="text-[10px] font-bold uppercase tracking-wider text-blue-300 px-3 mb-2">Menu Navigasi</p>
+                    <p class="text-[10px] font-bold uppercase tracking-wider text-sky-700 px-3 mb-2">Menu Navigasi</p>
                     <div id="sidebarMenuContainer" class="space-y-1"></div>
                 </div>
-                <div class="pt-4 border-t border-blue-800 px-2 text-[10px] text-blue-300 leading-tight">
-                    <p class="font-semibold text-amber-400">SIVIT26 Kab. Rembang</p>
-                    <p class="mt-0.5">Seksi Kelembagaan, Sarana & Prasarana Bidang SD</p>
-                    <p class="mt-0.5 text-amber-300">Revitalisasi SD Tahun 2026</p>
+                <div class="pt-4 border-t border-sky-100 px-2 leading-tight">
+                    <p class="font-bold text-amber-600 text-[10px]">SIVIT26 Kab. Rembang</p>
+                    <p class="mt-0.5 font-medium text-[10px] text-slate-700">Seksi Kelembagaan, Sarana & Prasarana Bidang SD</p>
+                    <p class="mt-0.5 text-sky-600 font-semibold text-[10px]">Revitalisasi SD Tahun 2026</p>
                 </div>
             </aside>
 
-            <main class="flex-1 p-4 md:p-6 overflow-x-auto bg-blue-950">
+            <!-- CONTENT AREA -->
+            <main class="flex-1 p-4 md:p-6 overflow-x-auto bg-slate-50">
                 <!-- Identitas Sekolah Card -->
-                <div id="sekolahIdentitasCard" class="hidden mb-6 bg-gradient-to-r from-blue-900 to-indigo-900 text-white rounded-2xl p-5 shadow-md border border-amber-400/40">
-                    <div class="flex items-center justify-between mb-3 pb-2 border-b border-blue-800">
+                <div id="sekolahIdentitasCard" class="hidden mb-6 bg-gradient-to-r from-sky-600 to-blue-700 text-white rounded-2xl p-5 shadow-md border border-amber-400/40">
+                    <div class="flex items-center justify-between mb-3 pb-2 border-b border-sky-500/40">
                         <div class="flex items-center space-x-2">
-                            <i class="fa-solid fa-school text-amber-400"></i>
-                            <h4 class="font-bold text-sm tracking-wide text-amber-400">Identitas Satuan Pendidikan</h4>
+                            <i class="fa-solid fa-school text-amber-300"></i>
+                            <h4 class="font-bold text-sm tracking-wide text-amber-300">Identitas Satuan Pendidikan</h4>
                         </div>
-                        <span class="text-[10px] bg-amber-500/20 text-amber-300 font-semibold px-2.5 py-0.5 rounded-full border border-amber-500/30">Terverifikasi</span>
+                        <span class="text-[10px] bg-amber-400/20 text-amber-200 font-semibold px-2.5 py-0.5 rounded-full border border-amber-400/30">Terverifikasi</span>
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-xs">
                         <div>
-                            <p class="text-blue-300 font-medium uppercase text-[10px]">NPSN</p>
+                            <p class="text-sky-100 font-medium uppercase text-[10px]">NPSN</p>
                             <p class="font-bold text-white mt-0.5 text-sm" id="cardNpsn">-</p>
                         </div>
                         <div>
-                            <p class="text-blue-300 font-medium uppercase text-[10px]">Nama Sekolah</p>
+                            <p class="text-sky-100 font-medium uppercase text-[10px]">Nama Sekolah</p>
                             <p class="font-bold text-white mt-0.5 text-sm" id="cardNamaSekolah">-</p>
                         </div>
                         <div>
-                            <p class="text-blue-300 font-medium uppercase text-[10px]">Kecamatan</p>
+                            <p class="text-sky-100 font-medium uppercase text-[10px]">Kecamatan</p>
                             <p class="font-bold text-white mt-0.5 text-sm" id="cardKecamatan">-</p>
                         </div>
                         <div>
-                            <p class="text-blue-300 font-medium uppercase text-[10px]">Alamat Lengkap</p>
+                            <p class="text-sky-100 font-medium uppercase text-[10px]">Alamat Lengkap</p>
                             <p class="font-bold text-white mt-0.5 text-sm truncate" id="cardAlamat">-</p>
                         </div>
                     </div>
                 </div>
 
-                <div id="printableArea" class="bg-blue-900/30 backdrop-blur rounded-2xl border border-blue-800 shadow-xs p-6 text-white">
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-blue-800">
+                <!-- Printable Table / Content Area -->
+                <div id="printableArea" class="bg-white backdrop-blur rounded-2xl border border-sky-100 shadow-sm p-6 text-slate-900">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-sky-100">
                         <div>
-                            <h3 class="text-lg font-bold text-white" id="contentTitle">Pilih Menu</h3>
-                            <p class="text-xs text-blue-300" id="contentSubtitle">Kelola dan pantau data pekerjaan.</p>
+                            <h3 class="text-lg font-extrabold text-slate-900 tracking-tight" id="contentTitle">Pilih Menu</h3>
+                            <p class="text-xs text-slate-500 font-medium" id="contentSubtitle">Kelola dan pantau data pekerjaan.</p>
                         </div>
                         <div id="actionButtonContainer" class="flex items-center space-x-2"></div>
                     </div>
 
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse text-sm">
-                            <thead id="tableHead" class="bg-blue-950/80 text-amber-400 text-xs uppercase tracking-wider border-b border-blue-800"></thead>
-                            <tbody id="tableBody" class="divide-y divide-blue-900/50 text-blue-100"></tbody>
+                            <thead id="tableHead" class="bg-sky-50 text-sky-900 text-xs uppercase tracking-wider border-b border-sky-100 font-bold"></thead>
+                            <tbody id="tableBody" class="divide-y divide-sky-50 text-slate-800"></tbody>
                         </table>
                     </div>
                 </div>
