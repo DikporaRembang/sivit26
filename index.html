@@ -86,202 +86,107 @@
     </div>
 
 <!-- ================= MAIN APP CONTAINER (DASHBOARD) ================= -->
-    <div id="appContainer" class="hidden min-h-screen flex flex-col bg-gradient-to-br from-sky-50 via-slate-100 to-blue-900 text-slate-900 w-full font-sans">
-        <!-- HEADER -->
-        <header class="bg-white/95 backdrop-blur-md border-b border-sky-200 sticky top-0 z-30 shadow-xs">
-            <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-                <div class="flex items-center space-x-3">
-                    <!-- Logo Aplikasi Custom (bidangsd.png) -->
-                    <img src="bidangsd.png" alt="Logo Aplikasi" class="w-9 h-9 object-contain">
-                    <div>
-                        <h2 class="font-extrabold text-slate-900 text-base tracking-tight">SIVIT26 <span class="text-amber-600">Dashboard</span></h2>
-                        <p class="text-xs text-sky-700 font-semibold" id="userRoleSubtitle">Role: -</p>
-                    </div>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <div class="text-right hidden sm:block">
-                        <p class="text-xs font-bold text-slate-900" id="userNameDisplay">-</p>
-                        <p class="text-[11px] text-slate-600 font-medium" id="userNpsnDisplay">-</p>
-                    </div>
-                    <!-- Tombol Keluar: Merah Tulisan Putih -->
-                    <button onclick="logout()" class="bg-red-600 hover:bg-red-700 text-white px-3.5 py-1.5 rounded-xl text-xs font-bold transition-colors shadow-sm border border-red-700">
-                        <i class="fa-solid fa-power-off mr-1.5"></i> Keluar
-                    </button>
-                </div>
-            </div>
-        </header>
-
-        <!-- MAIN LAYOUT -->
-        <div class="flex-1 flex max-w-7xl w-full mx-auto">
-            <!-- SIDEBAR: Abu-abu Terang & Tulisan Abu Tua Kontras -->
-            <aside class="w-64 bg-slate-100 border-r border-slate-300 p-4 hidden md:flex flex-col justify-between shadow-xs">
-                <div class="space-y-1">
-                    <p class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 px-3 mb-2">Menu Navigasi</p>
-                    <!-- Kontainer menu dinamis -->
-                    <div id="sidebarMenuContainer" class="space-y-1 text-slate-800 font-medium"></div>
-                </div>
-                
-                <!-- Bagian Bawah Sidebar (Logo Kabupaten & Keterangan) -->
-                <div class="pt-4 border-t border-slate-300 px-2 flex flex-col items-center text-center space-y-2">
-                    <img src="logorembang.png" alt="Logo Kabupaten Rembang" class="w-10 h-10 object-contain drop-shadow-xs">
-                    <div class="leading-tight">
-                        <p class="font-bold text-amber-600 text-[10px]">SIVIT26 Kab. Rembang</p>
-                        <p class="mt-0.5 font-semibold text-[10px] text-slate-700">Seksi Kelembagaan, Sarana & Prasarana Bidang SD</p>
-                        <p class="mt-0.5 text-blue-700 font-bold text-[10px]">Revitalisasi SD Tahun 2026</p>
-                    </div>
-                </div>
-            </aside>
-
-            <!-- CONTENT AREA -->
-            <main class="flex-1 p-4 md:p-6 overflow-x-auto bg-transparent">
-                <!-- Identitas Sekolah Card -->
-                <div id="sekolahIdentitasCard" class="hidden mb-6 bg-gradient-to-r from-blue-800 to-sky-700 text-white rounded-2xl p-5 shadow-md border border-amber-400/40">
-                    <div class="flex items-center justify-between mb-3 pb-2 border-b border-blue-600/40">
-                        <div class="flex items-center space-x-2">
-                            <i class="fa-solid fa-school text-amber-300"></i>
-                            <h4 class="font-bold text-sm tracking-wide text-amber-300">Identitas Satuan Pendidikan</h4>
-                        </div>
-                        <span class="text-[10px] bg-amber-400/20 text-amber-200 font-semibold px-2.5 py-0.5 rounded-full border border-amber-400/30">Terverifikasi</span>
-                    </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-xs">
-                        <div>
-                            <p class="text-blue-100 font-medium uppercase text-[10px]">NPSN</p>
-                            <p class="font-bold text-white mt-0.5 text-sm" id="cardNpsn">-</p>
-                        </div>
-                        <div>
-                            <p class="text-blue-100 font-medium uppercase text-[10px]">Nama Sekolah</p>
-                            <p class="font-bold text-white mt-0.5 text-sm" id="cardNamaSekolah">-</p>
-                        </div>
-                        <div>
-                            <p class="text-blue-100 font-medium uppercase text-[10px]">Kecamatan</p>
-                            <p class="font-bold text-white mt-0.5 text-sm" id="cardKecamatan">-</p>
-                        </div>
-                        <div>
-                            <p class="text-blue-100 font-medium uppercase text-[10px]">Alamat Lengkap</p>
-                            <p class="font-bold text-white mt-0.5 text-sm truncate" id="cardAlamat">-</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Printable Table / Content Area -->
-                <div id="printableArea" class="bg-white/95 backdrop-blur rounded-2xl border border-slate-200 shadow-sm p-6 text-slate-900">
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-200">
-                        <div>
-                            <h3 class="text-lg font-extrabold text-slate-900 tracking-tight" id="contentTitle">Pilih Menu</h3>
-                            <p class="text-xs text-slate-500 font-medium" id="contentSubtitle">Kelola dan pantau data pekerjaan.</p>
-                        </div>
-                        <div id="actionButtonContainer" class="flex items-center space-x-2"></div>
-                    </div>
-
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse text-sm">
-                            <thead id="tableHead" class="bg-slate-100 text-slate-800 text-xs uppercase tracking-wider border-b border-slate-200 font-bold"></thead>
-                            <tbody id="tableBody" class="divide-y divide-slate-100 text-slate-800"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </main>
-        </div>
-    </div>
+<div id="appContainer" class="hidden min-h-screen flex flex-col bg-zinc-100 text-slate-900 w-full font-sans">
     
-  <!-- ================= MAIN APP CONTAINER (DASHBOARD) ================= -->
-    <div id="appContainer" class="hidden min-h-screen flex flex-col bg-slate-100 text-slate-800 w-full font-sans">
-        <!-- HEADER (Modern Clean Surface) -->
-        <header class="bg-white/90 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-30 shadow-xs">
-            <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-                <div class="flex items-center space-x-3">
-                    <!-- Logo Aplikasi Custom (bidangsd.png) -->
-                    <img src="bidangsd.png" alt="Logo Aplikasi" class="w-9 h-9 object-contain">
-                    <div>
-                        <h2 class="font-extrabold text-slate-900 text-base tracking-tight">SIVIT26 <span class="text-amber-600">Dashboard</span></h2>
-                        <p class="text-xs text-indigo-600 font-semibold" id="userRoleSubtitle">Role: -</p>
-                    </div>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <div class="text-right hidden sm:block">
-                        <p class="text-xs font-bold text-slate-900" id="userNameDisplay">-</p>
-                        <p class="text-[11px] text-slate-500 font-medium" id="userNpsnDisplay">-</p>
-                    </div>
-                    <!-- Tombol Keluar: Merah Pekat dengan Teks Putih -->
-                    <button onclick="logout()" class="bg-red-600 hover:bg-red-700 text-white px-3.5 py-1.5 rounded-xl text-xs font-bold transition-colors shadow-xs border border-red-700">
-                        <i class="fa-solid fa-power-off mr-1.5"></i> Keluar
-                    </button>
+    <!-- HEADER (Navy & Gold Accent) -->
+    <header class="bg-blue-950 border-b border-blue-900 sticky top-0 z-30 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <!-- Logo Aplikasi Custom (bidangsd.png) -->
+                <img src="bidangsd.png" alt="Logo Aplikasi" class="w-9 h-9 object-contain">
+                <div>
+                    <h2 class="font-extrabold text-white text-base tracking-tight">SIVIT26 <span class="text-amber-400">Dashboard</span></h2>
+                    <p class="text-xs text-blue-200 font-medium" id="userRoleSubtitle">Role: -</p>
                 </div>
             </div>
-        </header>
-
-        <!-- MAIN LAYOUT -->
-        <div class="flex-1 flex max-w-7xl w-full mx-auto">
-            <!-- SIDEBAR (Abu-abu Lembut Nyaman di Mata & Teks Abu Tua Kontras) -->
-            <aside class="w-64 bg-slate-50 border-r border-slate-200 p-4 hidden md:flex flex-col justify-between shadow-xs">
-                <div class="space-y-1">
-                    <p class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 px-3 mb-2">Menu Navigasi</p>
-                    <!-- Kontainer menu dinamis -->
-                    <div id="sidebarMenuContainer" class="space-y-1 text-slate-700 font-medium"></div>
+            <div class="flex items-center space-x-4">
+                <div class="text-right hidden sm:block">
+                    <p class="text-xs font-bold text-white" id="userNameDisplay">-</p>
+                    <p class="text-[11px] text-amber-300/80 font-medium" id="userNpsnDisplay">-</p>
                 </div>
-                
-                <!-- Bagian Bawah Sidebar (Logo Kabupaten & Keterangan) -->
-                <div class="pt-4 border-t border-slate-200 px-2 flex flex-col items-center text-center space-y-2">
-                    <img src="logorembang.png" alt="Logo Kabupaten Rembang" class="w-10 h-10 object-contain drop-shadow-xs">
-                    <div class="leading-tight">
-                        <p class="font-bold text-amber-600 text-[10px]">SIVIT26 Kab. Rembang</p>
-                        <p class="mt-0.5 font-semibold text-[10px] text-slate-600">Seksi Kelembagaan, Sarana & Prasarana Bidang SD</p>
-                        <p class="mt-0.5 text-indigo-600 font-bold text-[10px]">Revitalisasi SD Tahun 2026</p>
-                    </div>
-                </div>
-            </aside>
-
-            <!-- CONTENT AREA -->
-            <main class="flex-1 p-4 md:p-6 overflow-x-auto bg-slate-100/60">
-                <!-- Identitas Sekolah Card -->
-                <div id="sekolahIdentitasCard" class="hidden mb-6 bg-gradient-to-r from-indigo-700 to-blue-700 text-white rounded-2xl p-5 shadow-sm border border-amber-400/30">
-                    <div class="flex items-center justify-between mb-3 pb-2 border-b border-indigo-600/40">
-                        <div class="flex items-center space-x-2">
-                            <i class="fa-solid fa-school text-amber-300"></i>
-                            <h4 class="font-bold text-sm tracking-wide text-amber-300">Identitas Satuan Pendidikan</h4>
-                        </div>
-                        <span class="text-[10px] bg-amber-400/20 text-amber-200 font-semibold px-2.5 py-0.5 rounded-full border border-amber-400/30">Terverifikasi</span>
-                    </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-xs">
-                        <div>
-                            <p class="text-indigo-100 font-medium uppercase text-[10px]">NPSN</p>
-                            <p class="font-bold text-white mt-0.5 text-sm" id="cardNpsn">-</p>
-                        </div>
-                        <div>
-                            <p class="text-indigo-100 font-medium uppercase text-[10px]">Nama Sekolah</p>
-                            <p class="font-bold text-white mt-0.5 text-sm" id="cardNamaSekolah">-</p>
-                        </div>
-                        <div>
-                            <p class="text-indigo-100 font-medium uppercase text-[10px]">Kecamatan</p>
-                            <p class="font-bold text-white mt-0.5 text-sm" id="cardKecamatan">-</p>
-                        </div>
-                        <div>
-                            <p class="text-indigo-100 font-medium uppercase text-[10px]">Alamat Lengkap</p>
-                            <p class="font-bold text-white mt-0.5 text-sm truncate" id="cardAlamat">-</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Printable Table / Content Area -->
-                <div id="printableArea" class="bg-white backdrop-blur rounded-2xl border border-slate-200/80 shadow-xs p-6 text-slate-800">
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-100">
-                        <div>
-                            <h3 class="text-lg font-extrabold text-slate-900 tracking-tight" id="contentTitle">Pilih Menu</h3>
-                            <p class="text-xs text-slate-500 font-medium" id="contentSubtitle">Kelola dan pantau data pekerjaan.</p>
-                        </div>
-                        <div id="actionButtonContainer" class="flex items-center space-x-2"></div>
-                    </div>
-
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse text-sm">
-                            <thead id="tableHead" class="bg-slate-50 text-slate-700 text-xs uppercase tracking-wider border-b border-slate-200 font-bold"></thead>
-                            <tbody id="tableBody" class="divide-y divide-slate-100 text-slate-700"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </main>
+                <!-- Tombol Keluar: Merah Formal dengan Teks Putih -->
+                <button onclick="logout()" class="bg-red-600 hover:bg-red-700 text-white px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors shadow-xs border border-red-700 cursor-pointer">
+                    <i class="fa-solid fa-power-off mr-1.5"></i> Keluar
+                </button>
+            </div>
         </div>
+    </header>
+
+    <!-- MAIN LAYOUT -->
+    <div class="flex-1 flex max-w-7xl w-full mx-auto">
+        
+        <!-- SIDEBAR (Navy Dark Background & Gold Accents) -->
+        <aside class="w-64 bg-slate-900 border-r border-blue-950 p-4 hidden md:flex flex-col justify-between shadow-sm">
+            <div class="space-y-1">
+                <p class="text-[10px] font-bold uppercase tracking-wider text-amber-400 px-3 mb-2">Menu Navigasi</p>
+                <!-- Kontainer menu dinamis -->
+                <div id="sidebarMenuContainer" class="space-y-1 text-slate-300 font-medium text-xs"></div>
+            </div>
+            
+            <!-- Bagian Bawah Sidebar (Logo Kabupaten & Keterangan Resmi) -->
+            <div class="pt-4 border-t border-blue-950 px-2 flex flex-col items-center text-center space-y-2">
+                <img src="logorembang.png" alt="Logo Kabupaten Rembang" class="w-10 h-10 object-contain drop-shadow-sm">
+                <div class="leading-tight">
+                    <p class="font-bold text-amber-400 text-[10px]">SIVIT26 Kab. Rembang</p>
+                    <p class="mt-0.5 text-[10px] text-slate-400">Seksi Kelembagaan & Sarpras Bidang SD</p>
+                    <p class="mt-0.5 text-blue-400 font-bold text-[10px]">Revitalisasi SD 2026</p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- CONTENT AREA -->
+        <main class="flex-1 p-4 md:p-6 overflow-x-auto bg-zinc-100">
+            
+            <!-- Identitas Sekolah Card (Navy & Gold Border) -->
+            <div id="sekolahIdentitasCard" class="hidden mb-6 bg-gradient-to-r from-blue-950 via-slate-900 to-blue-950 text-white rounded-xl p-5 shadow-md border border-amber-500/40">
+                <div class="flex items-center justify-between mb-3 pb-2 border-b border-blue-900">
+                    <div class="flex items-center space-x-2">
+                        <i class="fa-solid fa-school text-amber-400"></i>
+                        <h4 class="font-bold text-sm tracking-wide text-amber-400">Identitas Satuan Pendidikan</h4>
+                    </div>
+                    <span class="text-[10px] bg-amber-400/20 text-amber-300 font-semibold px-2.5 py-0.5 rounded-full border border-amber-400/30">Terverifikasi</span>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+                    <div>
+                        <p class="text-slate-400 font-medium uppercase text-[10px]">NPSN</p>
+                        <p class="font-bold text-white mt-0.5 text-sm" id="cardNpsn">-</p>
+                    </div>
+                    <div>
+                        <p class="text-slate-400 font-medium uppercase text-[10px]">Nama Sekolah</p>
+                        <p class="font-bold text-white mt-0.5 text-sm" id="cardNamaSekolah">-</p>
+                    </div>
+                    <div>
+                        <p class="text-slate-400 font-medium uppercase text-[10px]">Kecamatan</p>
+                        <p class="font-bold text-white mt-0.5 text-sm" id="cardKecamatan">-</p>
+                    </div>
+                    <div>
+                        <p class="text-slate-400 font-medium uppercase text-[10px]">Alamat Lengkap</p>
+                        <p class="font-bold text-white mt-0.5 text-sm truncate" id="cardAlamat">-</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Printable Table / Content Area -->
+            <div id="printableArea" class="bg-white rounded-xl border border-slate-300 shadow-xs p-6 text-slate-900">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-200">
+                    <div>
+                        <h3 class="text-base font-bold text-slate-900 tracking-tight" id="contentTitle">Pilih Menu</h3>
+                        <p class="text-xs text-slate-500 font-medium" id="contentSubtitle">Kelola dan pantau data pekerjaan.</p>
+                    </div>
+                    <div id="actionButtonContainer" class="flex items-center space-x-2"></div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead id="tableHead" class="bg-blue-950 text-amber-400 uppercase tracking-wider border-b border-blue-900 font-bold"></thead>
+                        <tbody id="tableBody" class="divide-y divide-slate-200 text-slate-800"></tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
     </div>
+</div>
     
     <!-- ================= MODAL FORM ================= -->
     <div id="dataModal" class="fixed inset-0 bg-blue-950/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
