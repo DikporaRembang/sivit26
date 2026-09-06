@@ -88,20 +88,20 @@
 <!-- ================= MAIN APP CONTAINER (DASHBOARD) ================= -->
     <div id="appContainer" class="hidden min-h-screen flex flex-col bg-slate-50 text-slate-900 w-full font-sans">
         <!-- HEADER -->
-        <header class="bg-white backdrop-blur-md border-b border-slate-200 sticky top-0 z-30 shadow-xs">
+        <header class="bg-white backdrop-blur-md border-b border-sky-200 sticky top-0 z-30 shadow-xs">
             <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
                 <div class="flex items-center space-x-3">
                     <!-- Logo Aplikasi Custom (bidangsd.png) -->
                     <img src="bidangsd.png" alt="Logo Aplikasi" class="w-9 h-9 object-contain">
                     <div>
                         <h2 class="font-extrabold text-slate-900 text-base tracking-tight">SIVIT26 <span class="text-amber-600">Dashboard</span></h2>
-                        <p class="text-xs text-blue-600 font-semibold" id="userRoleSubtitle">Role: -</p>
+                        <p class="text-xs text-sky-700 font-semibold" id="userRoleSubtitle">Role: -</p>
                     </div>
                 </div>
                 <div class="flex items-center space-x-4">
                     <div class="text-right hidden sm:block">
                         <p class="text-xs font-bold text-slate-900" id="userNameDisplay">-</p>
-                        <p class="text-[11px] text-slate-500 font-medium" id="userNpsnDisplay">-</p>
+                        <p class="text-[11px] text-slate-600 font-medium" id="userNpsnDisplay">-</p>
                     </div>
                     <button onclick="logout()" class="bg-red-50 hover:bg-red-100 text-red-700 px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors border border-red-200">
                         <i class="fa-solid fa-power-off mr-1"></i> Keluar
@@ -112,21 +112,21 @@
 
         <!-- MAIN LAYOUT -->
         <div class="flex-1 flex max-w-7xl w-full mx-auto">
-            <!-- SIDEBAR: Kontras Tinggi (Putih Bersih & Teks Hitam Pekat) -->
-            <aside class="w-64 bg-white border-r border-slate-200 p-4 hidden md:flex flex-col justify-between shadow-xs">
+            <!-- SIDEBAR: Latar Biru Pastel Cerah dengan Teks Gelap Kontras Tinggi -->
+            <aside class="w-64 bg-sky-50 border-r border-sky-200 p-4 hidden md:flex flex-col justify-between shadow-xs">
                 <div class="space-y-1">
-                    <p class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 px-3 mb-2">Menu Navigasi</p>
-                    <!-- Kontainer menu dinamis (teks otomatis kontras dengan latar putih) -->
-                    <div id="sidebarMenuContainer" class="space-y-1"></div>
+                    <p class="text-[10px] font-extrabold uppercase tracking-wider text-sky-900 px-3 mb-2">Menu Navigasi</p>
+                    <!-- Kontainer menu dinamis -->
+                    <div id="sidebarMenuContainer" class="space-y-1 text-slate-900"></div>
                 </div>
                 
                 <!-- Bagian Bawah Sidebar (Logo Kabupaten & Keterangan) -->
-                <div class="pt-4 border-t border-slate-200 px-2 flex flex-col items-center text-center space-y-2">
+                <div class="pt-4 border-t border-sky-200 px-2 flex flex-col items-center text-center space-y-2">
                     <img src="logorembang.png" alt="Logo Kabupaten Rembang" class="w-10 h-10 object-contain drop-shadow-xs">
                     <div class="leading-tight">
-                        <p class="font-bold text-amber-600 text-[10px]">SIVIT26 Kab. Rembang</p>
-                        <p class="mt-0.5 font-semibold text-[10px] text-slate-700">Seksi Kelembagaan, Sarana & Prasarana Bidang SD</p>
-                        <p class="mt-0.5 text-blue-600 font-bold text-[10px]">Revitalisasi SD Tahun 2026</p>
+                        <p class="font-bold text-amber-700 text-[10px]">SIVIT26 Kab. Rembang</p>
+                        <p class="mt-0.5 font-semibold text-[10px] text-slate-800">Seksi Kelembagaan, Sarana & Prasarana Bidang SD</p>
+                        <p class="mt-0.5 text-sky-800 font-bold text-[10px]">Revitalisasi SD Tahun 2026</p>
                     </div>
                 </div>
             </aside>
@@ -163,8 +163,8 @@
                 </div>
 
                 <!-- Printable Table / Content Area -->
-                <div id="printableArea" class="bg-white backdrop-blur rounded-2xl border border-slate-200 shadow-sm p-6 text-slate-900">
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-200">
+                <div id="printableArea" class="bg-white backdrop-blur rounded-2xl border border-sky-100 shadow-sm p-6 text-slate-900">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-sky-100">
                         <div>
                             <h3 class="text-lg font-extrabold text-slate-900 tracking-tight" id="contentTitle">Pilih Menu</h3>
                             <p class="text-xs text-slate-500 font-medium" id="contentSubtitle">Kelola dan pantau data pekerjaan.</p>
@@ -174,8 +174,8 @@
 
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse text-sm">
-                            <thead id="tableHead" class="bg-slate-100 text-slate-800 text-xs uppercase tracking-wider border-b border-slate-200 font-bold"></thead>
-                            <tbody id="tableBody" class="divide-y divide-slate-100 text-slate-800"></tbody>
+                            <thead id="tableHead" class="bg-sky-50 text-sky-900 text-xs uppercase tracking-wider border-b border-sky-100 font-bold"></thead>
+                            <tbody id="tableBody" class="divide-y divide-sky-50 text-slate-800"></tbody>
                         </table>
                     </div>
                 </div>
