@@ -525,6 +525,11 @@
                     currentHeaders = result.header || [];
                     currentData = result.data || [];
 
+                    // Memperbarui referensi users dan paket secara lokal untuk mapping nama_pengguna
+                    if (targetSheet === 'users') {
+                        usersList = currentData;
+                    }
+
                     // STRICT FILTER: Jika role SEKOLAH membuka menu Profil & Tim Teknis (users), saring data secara ketat hanya untuk NPSN/username miliknya sendiri
                     if (currentUser.role === 'SEKOLAH' && sheetName === 'users') {
                         currentData = currentData.filter(d => {
@@ -637,9 +642,20 @@
                     td.className = "p-3 text-slate-900 text-xs truncate max-w-xs font-bold";
                     let val = row[h] !== undefined ? row[h] : "";
 
+                    // Tambahan Logika: Format currency Rp untuk PAGU dan PENGGUNAAN ANGGARAN
                     if ((h.toLowerCase() === 'pagu' || h.toLowerCase() === 'pagu_lama' || h.toLowerCase() === 'pagu_baru' || h.toLowerCase() === 'penggunaan_anggaran') && !isNaN(val) && val !== "") {
                         let angkaNum = Number(val);
                         val = "Rp " + angkaNum.toLocaleString('id-ID');
+                    }
+
+                    // Tambahan Logika: Keterangan (nama_pengguna sesuai NPSN) pada PAKET ID untuk role DINAS maupun SEKOLAH di sub menu terkait
+                    if (h.toLowerCase() === 'paket_id') {
+                        let npsnKey = row.npsn || "";
+                        let matchedUser = usersList.find(u => String(u.username || u.npsn || '').trim() === String(npsnKey).trim());
+                        let namaUser = matchedUser ? (matchedUser.nama_pengguna || matchedUser.nama_sekolah) : "";
+                        if (namaUser) {
+                            val = `${val} (${namaUser})`;
+                        }
                     }
 
                     td.innerText = val;
@@ -796,7 +812,7 @@
                 div.className = "space-y-1";
 
                 let label = document.createElement('label');
-            label.className = "block text-xs font-semibold uppercase tracking-wider text-blue-200";
+                label.className = "block text-xs font-semibold uppercase tracking-wider text-blue-200";
                 label.innerText = h.replace(/_/g, ' ');
                 div.appendChild(label);
 
@@ -1221,118 +1237,145 @@
             modal.classList.remove('flex');
         }
 
-function handleFormSubmit(e) {
-    e.preventDefault();
-    let rawRowIndex = document.getElementById('formRowIndex').value;
-    let rowIndex = rawRowIndex ? Number(rawRowIndex) : null;
-    let formData = {};
+        function handleFormSubmit(e) {
+            e.preventDefault();
+            let rawRowIndex = document.getElementById('formRowIndex').value;
+            let rowIndex = rawRowIndex ? Number(rawRowIndex) : null;
+            let formData = {};
 
-    document.querySelectorAll('#formFieldsContainer input, #formFieldsContainer select, #formFieldsContainer textarea').forEach(input => {
-        if(input.name && input.value !== undefined) {
-            let val = input.value;
-            
-            if (input.type === 'date' && val) {
-                val = convertToDisplayDate(val);
-            }
+            document.querySelectorAll('#formFieldsContainer input, #formFieldsContainer select, #formFieldsContainer textarea').forEach(input => {
+                if(input.name && input.value !== undefined) {
+                    let val = input.value;
+                    
+                    if (input.type === 'date' && val) {
+                        val = convertToDisplayDate(val);
+                    }
 
-            if (input.name === 'target_kurva_s' || input.name === 'realisasi_fisik') {
-                if (val !== "" && !val.toString().includes('%')) {
-                    let num = Number(val);
-                    if (num < 0) num = 0;
-                    if (num > 100) num = 100;
-                    val = num + '%';
+                    if (input.name === 'target_kurva_s' || input.name === 'realisasi_fisik') {
+                        if (val !== "" && !val.toString().includes('%')) {
+                            let num = Number(val);
+                            if (num < 0) num = 0;
+                            if (num > 100) num = 100;
+                            val = num + '%';
+                        }
+                    }
+                    formData[input.name] = val;
                 }
-            }
-            formData[input.name] = val;
-        }
-    });
-
-    // VALIDASI SISI KLIEN: Target Kurva S & Realisasi Fisik tidak boleh < minggu sebelumnya
-    if (currentActiveSheet === 'laporan_progres') {
-        let currMingguStr = formData['minggu_ke'] || "";
-        let matchMinggu = currMingguStr.match(/Minggu\s+ke-(\d+)/i);
-        let currMingguNum = matchMinggu ? parseInt(matchMinggu[1]) : 0;
-        let selectedPaketId = formData['paket_id'];
-
-        let currTarget = parseFloat(String(formData['target_kurva_s']).replace('%','')) || 0;
-        let currRealisasi = parseFloat(String(formData['realisasi_fisik']).replace('%','')) || 0;
-
-        if (currMingguNum > 1 && selectedPaketId) {
-            // Cari data minggu sebelumnya dari variabel currentData yang sudah dimuat di tabel
-            let prevData = currentData.find(d => {
-                let dMingguStr = String(d.minggu_ke || "");
-                let dMatch = dMingguStr.match(/Minggu\s+ke-(\d+)/i);
-                let dNum = dMatch ? parseInt(dMatch[1]) : 0;
-                let isSameRow = rowIndex ? d._rowIndex === rowIndex : false;
-                return String(d.paket_id) === String(selectedPaketId) && dNum === (currMingguNum - 1) && !isSameRow;
             });
 
-            if (prevData) {
-                let prevTarget = parseFloat(String(prevData.target_kurva_s || 0).replace('%','')) || 0;
-                let prevRealisasi = parseFloat(String(prevData.realisasi_fisik || 0).replace('%','')) || 0;
+            // VALIDASI SISI KLIEN (Laporan Progres Fisik): Minggu ke-, Target Kurva S, Realisasi Fisik, Penggunaan Anggaran tidak boleh lebih kecil dari minggu sebelumnya
+            if (currentActiveSheet === 'laporan_progres') {
+                let currMingguStr = formData['minggu_ke'] || "";
+                let matchMinggu = currMingguStr.match(/Minggu\s+ke-(\d+)/i);
+                let currMingguNum = matchMinggu ? parseInt(matchMinggu[1]) : parseInt(currMingguStr) || 0;
+                let selectedPaketId = formData['paket_id'];
 
-                if (currTarget < prevTarget) {
-                    alert(`Validasi Gagal: Target Kurva S (${currTarget}%) tidak boleh lebih kecil dari Minggu ke-${currMingguNum - 1} (${prevTarget}%).`);
-                    return;
-                }
-                if (currRealisasi < prevRealisasi) {
-                    alert(`Validasi Gagal: Realisasi Fisik (${currRealisasi}%) tidak boleh lebih kecil dari Minggu ke-${currMingguNum - 1} (${prevRealisasi}%).`);
-                    return;
+                let currTarget = parseFloat(String(formData['target_kurva_s']).replace('%','')) || 0;
+                let currRealisasi = parseFloat(String(formData['realisasi_fisik']).replace('%','')) || 0;
+                let currAnggaran = parseFloat(String(formData['pengggunaan_anggaran'] || formData['penggunaan_anggaran']).replace(/[^0-9.-]+/g,"")) || 0;
+
+                if (selectedPaketId) {
+                    // Cek duplikasi nomor minggu untuk paket yang sama
+                    let sameMingguExist = currentData.some(d => {
+                        let dMingguStr = String(d.minggu_ke || "");
+                        let dMatch = dMingguStr.match(/Minggu\s+ke-(\d+)/i);
+                        let dNum = dMatch ? parseInt(dMatch[1]) : parseInt(dMingguStr) || 0;
+                        let isSameRow = rowIndex ? d._rowIndex === rowIndex : false;
+                        return String(d.paket_id) === String(selectedPaketId) && dNum === currMingguNum && !isSameRow;
+                    });
+
+                    if (sameMingguExist) {
+                        alert(`Validasi Gagal: Laporan untuk Minggu ke-${currMingguNum} pada paket ini sudah pernah diinput sebelumnya.`);
+                        return;
+                    }
+
+                    if (currMingguNum > 1) {
+                        let prevData = currentData.find(d => {
+                            let dMingguStr = String(d.minggu_ke || "");
+                            let dMatch = dMingguStr.match(/Minggu\s+ke-(\d+)/i);
+                            let dNum = dMatch ? parseInt(dMatch[1]) : parseInt(dMingguStr) || 0;
+                            let isSameRow = rowIndex ? d._rowIndex === rowIndex : false;
+                            return String(d.paket_id) === String(selectedPaketId) && dNum === (currMingguNum - 1) && !isSameRow;
+                        });
+
+                        if (prevData) {
+                            let prevMingguNum = matchMinggu ? parseInt(matchMinggu[1]) : 0;
+                            let prevTarget = parseFloat(String(prevData.target_kurva_s || 0).replace('%','')) || 0;
+                            let prevRealisasi = parseFloat(String(prevData.realisasi_fisik || 0).replace('%','')) || 0;
+                            let prevAnggaran = parseFloat(String(prevData.penggunaan_anggaran || 0).replace(/[^0-9.-]+/g,"")) || 0;
+
+                            if (currMingguNum <= prevMingguNum && !rowIndex) {
+                                alert(`Validasi Gagal: Input Minggu ke-${currMingguNum} tidak boleh lebih kecil atau sama dengan minggu sebelumnya yang sudah tercatat.`);
+                                return;
+                            }
+                            if (currTarget < prevTarget) {
+                                alert(`Validasi Gagal: Target Kurva S (${currTarget}%) tidak boleh lebih kecil dari Minggu ke-${currMingguNum - 1} (${prevTarget}%).`);
+                                return;
+                            }
+                            if (currRealisasi < prevRealisasi) {
+                                alert(`Validasi Gagal: Realisasi Fisik (${currRealisasi}%) tidak boleh lebih kecil dari Minggu ke-${currMingguNum - 1} (${prevRealisasi}%).`);
+                                return;
+                            }
+                            if (currAnggaran < prevAnggaran) {
+                                alert(`Validasi Gagal: Penggunaan Anggaran (Rp ${currAnggaran.toLocaleString('id-ID')}) tidak boleh lebih kecil dari minggu sebelumnya (Rp ${prevAnggaran.toLocaleString('id-ID')}).`);
+                                return;
+                            }
+                        }
+                    }
                 }
             }
-        }
-    }
 
-    if (currentUser.role === 'SEKOLAH') {
-        if (currentUser.perencana) formData['perencana'] = currentUser.perencana;
-        if (currentUser.pengawas) formData['pengawas'] = currentUser.pengawas;
+            if (currentUser.role === 'SEKOLAH') {
+                if (currentUser.perencana) formData['perencana'] = currentUser.perencana;
+                if (currentUser.pengawas) formData['pengawas'] = currentUser.pengawas;
 
-        if (currentActiveSheet === 'users') {
-            formData['username'] = currentUser.username;
-        }
+                if (currentActiveSheet === 'users') {
+                    formData['username'] = currentUser.username;
+                }
 
-        if (currentActiveSheet === 'paket_pekerjaan_sd' && !rowIndex && formData['nama_menu']) {
-            let selectedMenuInput = String(formData['nama_menu']).trim().toLowerCase();
-            let alreadyExists = currentData.some(d => 
-                String(d.npsn) === String(currentUser.username) && 
-                String(d.nama_menu).trim().toLowerCase() === selectedMenuInput
-            );
+                if (currentActiveSheet === 'paket_pekerjaan_sd' && !rowIndex && formData['nama_menu']) {
+                    let selectedMenuInput = String(formData['nama_menu']).trim().toLowerCase();
+                    let alreadyExists = currentData.some(d => 
+                        String(d.npsn) === String(currentUser.username) && 
+                        String(d.nama_menu).trim().toLowerCase() === selectedMenuInput
+                    );
 
-            if (alreadyExists) {
-                alert("Menu pekerjaan sudah ada, coba isi menu pekerjaan yang lain");
-                return;
+                    if (alreadyExists) {
+                        alert("Menu pekerjaan sudah ada, coba isi menu pekerjaan yang lain");
+                        return;
+                    }
+                }
             }
+
+            let payload = {
+                action: "saveData",
+                sheet: currentActiveSheet,
+                formData: formData,
+                rowIndex: rowIndex,
+                role: currentUser.role
+            };
+
+            document.getElementById('btnSaveModal').innerText = "Menyimpan...";
+
+            fetch(WEB_APP_URL, {
+                method: "POST",
+                body: JSON.stringify(payload)
+            })
+            .then(res => res.json())
+            .then(res => {
+                document.getElementById('btnSaveModal').innerText = "Simpan Data";
+                alert(res.pesan);
+                if(res.status === 'success') {
+                    closeModal();
+                    loadTableData(currentActiveSheet);
+                }
+            })
+            .catch(err => {
+                document.getElementById('btnSaveModal').innerText = "Simpan Data";
+                alert("Kesalahan jaringan saat menyimpan data.");
+            });
         }
-    }
 
-    let payload = {
-        action: "saveData",
-        sheet: currentActiveSheet,
-        formData: formData,
-        rowIndex: rowIndex,
-        role: currentUser.role
-    };
-
-    document.getElementById('btnSaveModal').innerText = "Menyimpan...";
-
-    fetch(WEB_APP_URL, {
-        method: "POST",
-        body: JSON.stringify(payload)
-    })
-    .then(res => res.json())
-    .then(res => {
-        document.getElementById('btnSaveModal').innerText = "Simpan Data";
-        alert(res.pesan);
-        if(res.status === 'success') {
-            closeModal();
-            loadTableData(currentActiveSheet);
-        }
-    })
-    .catch(err => {
-        document.getElementById('btnSaveModal').innerText = "Simpan Data";
-        alert("Kesalahan jaringan saat menyimpan data.");
-    });
-}
         function deleteRowData(rowIndex) {
             if(!confirm("Yakin ingin menghapus baris data ini?")) return;
 
