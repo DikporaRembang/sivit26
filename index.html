@@ -525,6 +525,14 @@
                     currentHeaders = result.header || [];
                     currentData = result.data || [];
 
+                    // STRICT FILTER: Jika role SEKOLAH membuka menu Profil & Tim Teknis (users), saring data secara ketat hanya untuk NPSN/username miliknya sendiri
+                    if (currentUser.role === 'SEKOLAH' && sheetName === 'users') {
+                        currentData = currentData.filter(d => {
+                            let npsnVal = String(d.username || d.npsn || '').trim();
+                            return npsnVal === String(currentUser.username).trim();
+                        });
+                    }
+
                     if (targetSheet === 'paket_pekerjaan_sd') {
                         paketPekerjaanList = currentData;
                     }
@@ -672,13 +680,24 @@
                             tdAct.appendChild(btnVerif);
                         }
 
-                        let btnEdit = document.createElement('button');
-                        btnEdit.className = "px-2.5 py-1 bg-blue-100 hover:bg-blue-200 text-blue-900 rounded-lg text-[11px] font-bold border border-blue-300";
-                        btnEdit.innerHTML = `<i class="fa-solid fa-pen-to-square"></i>`;
-                        btnEdit.onclick = () => openModalForm(row);
-                        tdAct.appendChild(btnEdit);
+                        // VALIDASI KETAT PADA TOMBOL EDIT: Pastikan SEKOLAH hanya memunculkan tombol edit jika baris tersebut benar-benar miliknya
+                        let allowEdit = true;
+                        if (currentUser.role === 'SEKOLAH' && sheetName === 'users') {
+                            let rowIdentifier = String(row.username || row.npsn || "").trim();
+                            if (rowIdentifier !== String(currentUser.username).trim()) {
+                                allowEdit = false;
+                            }
+                        }
 
-                        if (currentUser.role === 'DINAS' || ['laporan_progres'].includes(sheetName)) {
+                        if (allowEdit) {
+                            let btnEdit = document.createElement('button');
+                            btnEdit.className = "px-2.5 py-1 bg-blue-100 hover:bg-blue-200 text-blue-900 rounded-lg text-[11px] font-bold border border-blue-300";
+                            btnEdit.innerHTML = `<i class="fa-solid fa-pen-to-square"></i>`;
+                            btnEdit.onclick = () => openModalForm(row);
+                            tdAct.appendChild(btnEdit);
+                        }
+
+                        if (currentUser.role === 'DINAS' && sheetName !== 'users') {
                             let btnDel = document.createElement('button');
                             btnDel.className = "px-2.5 py-1 bg-red-100 hover:bg-red-200 text-red-800 rounded-lg text-[11px] font-bold border border-red-300 ml-1";
                             btnDel.innerHTML = `<i class="fa-solid fa-trash"></i>`;
@@ -753,6 +772,15 @@
         }
 
         function openModalForm(rowData = null) {
+            // STRICT PROTECTION: Blokir akses form jika sekolah mencoba membuka form data milik sekolah lain di menu users
+            if (currentUser.role === 'SEKOLAH' && currentActiveSheet === 'users' && rowData) {
+                let rowIdentifier = String(rowData.username || rowData.npsn || "").trim();
+                if (rowIdentifier !== String(currentUser.username).trim()) {
+                    alert("Akses ditolak! Anda hanya diizinkan mengubah Profil & Tim Teknis milik NPSN Anda sendiri.");
+                    return;
+                }
+            }
+
             let modal = document.getElementById('dataModal');
             let container = document.getElementById('formFieldsContainer');
             let titleEl = document.getElementById('modalTitle');
@@ -768,11 +796,12 @@
                 div.className = "space-y-1";
 
                 let label = document.createElement('label');
-                label.className = "block text-xs font-semibold uppercase tracking-wider text-blue-200";
+            label.className = "block text-xs font-semibold uppercase tracking-wider text-blue-200";
                 label.innerText = h.replace(/_/g, ' ');
                 div.appendChild(label);
 
                 let input;
+                let isUserSchoolEditing = (currentUser.role === 'SEKOLAH' && currentActiveSheet === 'users');
 
                 if (h.toLowerCase().includes('foto_dokumentasi') || h.toLowerCase().includes('foto')) {
                     div.className = "space-y-2 p-3 bg-blue-950/60 rounded-xl border border-amber-400/30";
@@ -881,7 +910,6 @@
                         defOpt.innerText = "-- Pilih Menu Pekerjaan --";
                         input.appendChild(defOpt);
 
-                        // Ambil daftar nama menu yang sudah pernah diinput oleh sekolah ini sebelumnya (jika mode tambah baru)
                         let existingMenus = [];
                         if (!rowData && currentUser.role === 'SEKOLAH') {
                             existingMenus = currentData
@@ -893,7 +921,6 @@
                             let mName = m.nama_menu || Object.values(m)[1];
                             let mNameLower = String(mName).trim().toLowerCase();
 
-                            // Jika role SEKOLAH dan menu sudah pernah diinput, lewati atau disable opsi tersebut
                             if (currentUser.role === 'SEKOLAH' && !rowData && existingMenus.includes(mNameLower)) {
                                 return;
                             }
@@ -1081,7 +1108,23 @@
                         input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
                         input.value = rowData ? (rowData[h] !== undefined ? rowData[h] : "") : "";
                     }
-                } else {
+                } 
+                else if (isUserSchoolEditing) {
+                    // Jika SEKOLAH mengedit Profil & Tim Teknis (users), kunci semua kolom kecuali perencana dan pengawas
+                    input = document.createElement('input');
+                    input.type = "text";
+                    input.name = h;
+                    input.value = rowData ? (rowData[h] !== undefined ? rowData[h] : "") : "";
+
+                    let lowerH = h.toLowerCase();
+                    if (lowerH !== 'perencana' && lowerH !== 'pengawas') {
+                        input.readOnly = true;
+                        input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-blue-300 cursor-not-allowed";
+                    } else {
+                        input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
+                    }
+                }
+                else {
                     input = document.createElement('input');
                     input.type = "text";
                     input.name = h;
@@ -1205,12 +1248,14 @@
             });
 
             if (currentUser.role === 'SEKOLAH') {
-                if (formData['npsn'] !== undefined) formData['npsn'] = currentUser.username;
-                if (formData['user_id'] !== undefined) formData['user_id'] = currentUser.nama_pengguna;
                 if (currentUser.perencana) formData['perencana'] = currentUser.perencana;
                 if (currentUser.pengawas) formData['pengawas'] = currentUser.pengawas;
 
-                // VALIDASI: Sekolah hanya boleh menginput 1 record saja per NAMA MENU (khusus untuk form tambah data baru / rowIndex kosong atau null)
+                // Pengamanan saat simpan data: pastikan username/NPSN tetap terkunci milik sekolah yang sedang login
+                if (currentActiveSheet === 'users') {
+                    formData['username'] = currentUser.username;
+                }
+
                 if (currentActiveSheet === 'paket_pekerjaan_sd' && !rowIndex && formData['nama_menu']) {
                     let selectedMenuInput = String(formData['nama_menu']).trim().toLowerCase();
                     let alreadyExists = currentData.some(d => 
@@ -1220,7 +1265,7 @@
 
                     if (alreadyExists) {
                         alert("Menu pekerjaan sudah ada, coba isi menu pekerjaan yang lain");
-                        return; // Batalkan proses simpan
+                        return;
                     }
                 }
             }
