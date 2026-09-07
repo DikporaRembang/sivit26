@@ -258,7 +258,7 @@
 
 <!-- ================= SCRIPT UTAMA ================= -->
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzdcjhzntcjW2_6DhEwf97vhBb-6fCiKsGKMqqGUM4LG9oYvn7RRCKftgzZk3sXAdmwaA/exec";
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwk3unc4gIILBIg72YHmyvz5aTFn_0ZIc2gKFK6VbN8j6AjkMETTHDLKCXs8bB0eiXkQA/exec";
         
         let currentUser = null;
         let currentActiveSheet = '';
@@ -1221,84 +1221,118 @@
             modal.classList.remove('flex');
         }
 
-        function handleFormSubmit(e) {
-            e.preventDefault();
-            let rawRowIndex = document.getElementById('formRowIndex').value;
-            let rowIndex = rawRowIndex ? Number(rawRowIndex) : null;
-            let formData = {};
+function handleFormSubmit(e) {
+    e.preventDefault();
+    let rawRowIndex = document.getElementById('formRowIndex').value;
+    let rowIndex = rawRowIndex ? Number(rawRowIndex) : null;
+    let formData = {};
 
-            document.querySelectorAll('#formFieldsContainer input, #formFieldsContainer select, #formFieldsContainer textarea').forEach(input => {
-                if(input.name && input.value !== undefined) {
-                    let val = input.value;
-                    
-                    if (input.type === 'date' && val) {
-                        val = convertToDisplayDate(val);
-                    }
-
-                    if (input.name === 'target_kurva_s' || input.name === 'realisasi_fisik') {
-                        if (val !== "" && !val.toString().includes('%')) {
-                            let num = Number(val);
-                            if (num < 0) num = 0;
-                            if (num > 100) num = 100;
-                            val = num + '%';
-                        }
-                    }
-                    formData[input.name] = val;
-                }
-            });
-
-            if (currentUser.role === 'SEKOLAH') {
-                if (currentUser.perencana) formData['perencana'] = currentUser.perencana;
-                if (currentUser.pengawas) formData['pengawas'] = currentUser.pengawas;
-
-                // Pengamanan saat simpan data: pastikan username/NPSN tetap terkunci milik sekolah yang sedang login
-                if (currentActiveSheet === 'users') {
-                    formData['username'] = currentUser.username;
-                }
-
-                if (currentActiveSheet === 'paket_pekerjaan_sd' && !rowIndex && formData['nama_menu']) {
-                    let selectedMenuInput = String(formData['nama_menu']).trim().toLowerCase();
-                    let alreadyExists = currentData.some(d => 
-                        String(d.npsn) === String(currentUser.username) && 
-                        String(d.nama_menu).trim().toLowerCase() === selectedMenuInput
-                    );
-
-                    if (alreadyExists) {
-                        alert("Menu pekerjaan sudah ada, coba isi menu pekerjaan yang lain");
-                        return;
-                    }
-                }
+    document.querySelectorAll('#formFieldsContainer input, #formFieldsContainer select, #formFieldsContainer textarea').forEach(input => {
+        if(input.name && input.value !== undefined) {
+            let val = input.value;
+            
+            if (input.type === 'date' && val) {
+                val = convertToDisplayDate(val);
             }
 
-            let payload = {
-                action: "saveData",
-                sheet: currentActiveSheet,
-                formData: formData,
-                rowIndex: rowIndex,
-                role: currentUser.role
-            };
-
-            document.getElementById('btnSaveModal').innerText = "Menyimpan...";
-
-            fetch(WEB_APP_URL, {
-                method: "POST",
-                body: JSON.stringify(payload)
-            })
-            .then(res => res.json())
-            .then(res => {
-                document.getElementById('btnSaveModal').innerText = "Simpan Data";
-                alert(res.pesan);
-                if(res.status === 'success') {
-                    closeModal();
-                    loadTableData(currentActiveSheet);
+            if (input.name === 'target_kurva_s' || input.name === 'realisasi_fisik') {
+                if (val !== "" && !val.toString().includes('%')) {
+                    let num = Number(val);
+                    if (num < 0) num = 0;
+                    if (num > 100) num = 100;
+                    val = num + '%';
                 }
-            })
-            .catch(err => {
-                document.getElementById('btnSaveModal').innerText = "Simpan Data";
-                alert("Kesalahan jaringan saat menyimpan data.");
+            }
+            formData[input.name] = val;
+        }
+    });
+
+    // VALIDASI SISI KLIEN: Target Kurva S & Realisasi Fisik tidak boleh < minggu sebelumnya
+    if (currentActiveSheet === 'laporan_progres') {
+        let currMingguStr = formData['minggu_ke'] || "";
+        let matchMinggu = currMingguStr.match(/Minggu\s+ke-(\d+)/i);
+        let currMingguNum = matchMinggu ? parseInt(matchMinggu[1]) : 0;
+        let selectedPaketId = formData['paket_id'];
+
+        let currTarget = parseFloat(String(formData['target_kurva_s']).replace('%','')) || 0;
+        let currRealisasi = parseFloat(String(formData['realisasi_fisik']).replace('%','')) || 0;
+
+        if (currMingguNum > 1 && selectedPaketId) {
+            // Cari data minggu sebelumnya dari variabel currentData yang sudah dimuat di tabel
+            let prevData = currentData.find(d => {
+                let dMingguStr = String(d.minggu_ke || "");
+                let dMatch = dMingguStr.match(/Minggu\s+ke-(\d+)/i);
+                let dNum = dMatch ? parseInt(dMatch[1]) : 0;
+                let isSameRow = rowIndex ? d._rowIndex === rowIndex : false;
+                return String(d.paket_id) === String(selectedPaketId) && dNum === (currMingguNum - 1) && !isSameRow;
             });
+
+            if (prevData) {
+                let prevTarget = parseFloat(String(prevData.target_kurva_s || 0).replace('%','')) || 0;
+                let prevRealisasi = parseFloat(String(prevData.realisasi_fisik || 0).replace('%','')) || 0;
+
+                if (currTarget < prevTarget) {
+                    alert(`Validasi Gagal: Target Kurva S (${currTarget}%) tidak boleh lebih kecil dari Minggu ke-${currMingguNum - 1} (${prevTarget}%).`);
+                    return;
+                }
+                if (currRealisasi < prevRealisasi) {
+                    alert(`Validasi Gagal: Realisasi Fisik (${currRealisasi}%) tidak boleh lebih kecil dari Minggu ke-${currMingguNum - 1} (${prevRealisasi}%).`);
+                    return;
+                }
+            }
+        }
+    }
+
+    if (currentUser.role === 'SEKOLAH') {
+        if (currentUser.perencana) formData['perencana'] = currentUser.perencana;
+        if (currentUser.pengawas) formData['pengawas'] = currentUser.pengawas;
+
+        if (currentActiveSheet === 'users') {
+            formData['username'] = currentUser.username;
         }
 
+        if (currentActiveSheet === 'paket_pekerjaan_sd' && !rowIndex && formData['nama_menu']) {
+            let selectedMenuInput = String(formData['nama_menu']).trim().toLowerCase();
+            let alreadyExists = currentData.some(d => 
+                String(d.npsn) === String(currentUser.username) && 
+                String(d.nama_menu).trim().toLowerCase() === selectedMenuInput
+            );
+
+            if (alreadyExists) {
+                alert("Menu pekerjaan sudah ada, coba isi menu pekerjaan yang lain");
+                return;
+            }
+        }
+    }
+
+    let payload = {
+        action: "saveData",
+        sheet: currentActiveSheet,
+        formData: formData,
+        rowIndex: rowIndex,
+        role: currentUser.role
+    };
+
+    document.getElementById('btnSaveModal').innerText = "Menyimpan...";
+
+    fetch(WEB_APP_URL, {
+        method: "POST",
+        body: JSON.stringify(payload)
+    })
+    .then(res => res.json())
+    .then(res => {
+        document.getElementById('btnSaveModal').innerText = "Simpan Data";
+        alert(res.pesan);
+        if(res.status === 'success') {
+            closeModal();
+            loadTableData(currentActiveSheet);
+        }
+    })
+    .catch(err => {
+        document.getElementById('btnSaveModal').innerText = "Simpan Data";
+        alert("Kesalahan jaringan saat menyimpan data.");
+    });
+}
         function deleteRowData(rowIndex) {
             if(!confirm("Yakin ingin menghapus baris data ini?")) return;
 
