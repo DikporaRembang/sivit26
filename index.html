@@ -467,6 +467,7 @@
                 let btn = document.createElement('button');
                 btn.className = "w-full flex items-center space-x-2.5 px-3 py-2 rounded-xl text-left font-semibold text-blue-200 hover:bg-blue-900/60 hover:text-amber-400 transition-all text-xs";
                 btn.innerHTML = `<i class="fa-solid ${m.icon} w-4 text-center"></i><span>${m.name}</span>`;
+                // PERBAIKAN: Mengirimkan parameter nama menu (m.name) agar tidak menjadi undefined
                 btn.onclick = () => loadTableData(m.sheet, m.name);
                 container.appendChild(btn);
             });
@@ -474,7 +475,17 @@
 
         async function loadTableData(sheetName, title) {
             currentActiveSheet = sheetName;
-            document.getElementById('contentTitle').innerText = title;
+            // Jika title tidak sengaja kosong/undefined, berikan nilai fallback otomatis sesuai sheet
+            let displayTitle = title;
+            if (!displayTitle) {
+                if (sheetName === 'paket_pekerjaan_sd') displayTitle = currentUser.role === 'DINAS' ? 'Data Paket Pekerjaan SD' : 'Paket Pekerjaan Saya';
+                else if (sheetName === 'laporan_progres') displayTitle = currentUser.role === 'DINAS' ? 'Laporan Progres' : 'Laporan Progres Fisik';
+                else if (sheetName === 'kurva_s') displayTitle = 'Kurva S & Grafik';
+                else if (sheetName === 'users') displayTitle = currentUser.role === 'DINAS' ? 'Manajemen User' : 'Profil & Tim Teknis';
+                else displayTitle = sheetName;
+            }
+
+            document.getElementById('contentTitle').innerText = displayTitle;
             document.getElementById('contentSubtitle').innerText = "Memuat data dari server...";
             
             let kurvaEl = document.getElementById('kurvaSContainer');
@@ -812,10 +823,8 @@
                                 gpsStr = `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
                             }
 
-                            // TANGGAL UPLOAD: otomatis dari metadata file gambar yang diupload, default tanggal input jika kosong
                             let formattedDate = "";
                             if (dateTime) {
-                                // Format EXIF biasanya "YYYY:MM:DD HH:MM:SS"
                                 let parts = dateTime.split(' ')[0].split(':');
                                 if (parts.length === 3) {
                                     formattedDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
@@ -834,7 +843,6 @@
                                 tglUploadField.value = formattedDate;
                             }
 
-                            // LOKASI KOORDINAT: terisi otomatis dari data lokasi metadata file gambar
                             let lokasiField = document.querySelector('input[name="lokasi_koordinat"]');
                             if (lokasiField) {
                                 lokasiField.value = gpsStr;
@@ -971,7 +979,6 @@
                             }
                         });
                     } else if (h.toLowerCase() === 'minggu_ke') {
-                        // MINGGU KE harusnya tertulis "Minggu ke-1 DD/MM/YYYY s/d DD/MM/YYYY"
                         input = document.createElement('select');
                         input.name = h;
                         input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
@@ -981,7 +988,7 @@
                         defOpt.innerText = "-- Pilih Rentang Minggu (DD/MM/YYYY) --";
                         input.appendChild(defOpt);
 
-                        let baseDate = new Date(2026, 0, 5); // Contoh awal tahun/proyek 2026 (Senin)
+                        let baseDate = new Date(2026, 0, 5);
                         for (let w = 1; w <= 24; w++) {
                             let startD = new Date(baseDate);
                             startD.setDate(baseDate.getDate() + (w - 1) * 7);
@@ -1006,7 +1013,6 @@
                         let rawDate = rowData && rowData[h] ? rowData[h] : new Date().toISOString().split('T')[0];
                         input.value = convertToInputDate(rawDate);
                     } else if (h.toLowerCase() === 'target_kurva_s' || h.toLowerCase() === 'realisasi_fisik') {
-                        // TARGET KURVA S & TARGET FISIK: Diberi tambahan "%" di belakang angka (minimal 0 maksimal 100)
                         input = document.createElement('input');
                         input.type = "number";
                         input.step = "0.01";
@@ -1018,7 +1024,6 @@
                         let rawVal = rowData && rowData[h] !== undefined ? rowData[h] : "";
                         input.value = String(rawVal).replace('%', '');
                     } else if (h.toLowerCase() === 'tanggal_upload') {
-                        // TANGGAL UPLOAD (format DD/MM/YYYY) dengan nilai default adalah tanggal ketika input data
                         input = document.createElement('input');
                         input.type = "text";
                         input.name = h;
