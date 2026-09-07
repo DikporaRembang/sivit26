@@ -620,7 +620,6 @@
                     td.className = "p-3 text-slate-900 text-xs truncate max-w-xs font-bold";
                     let val = row[h] !== undefined ? row[h] : "";
 
-                    // PERUBAHAN FORMAT RUPIAH MENJADI "Rp 50.000" (Tanpa teks rb)
                     if ((h.toLowerCase() === 'pagu' || h.toLowerCase() === 'pagu_lama' || h.toLowerCase() === 'pagu_baru' || h.toLowerCase() === 'penggunaan_anggaran') && !isNaN(val) && val !== "") {
                         let angkaNum = Number(val);
                         val = "Rp " + angkaNum.toLocaleString('id-ID');
@@ -798,7 +797,7 @@
                         metaInfo.innerText = "Mengekstrak metadata EXIF foto...";
                         
                         EXIF.getData(file, function() {
-                            let dateTime = EXIF.getTag(this, "DateTimeOriginal") || EXIF.getTag(this, "DateTime") || "-";
+                            let dateTime = EXIF.getTag(this, "DateTimeOriginal") || EXIF.getTag(this, "DateTime") || null;
                             let lat = EXIF.getTag(this, "GPSLatitude");
                             let latRef = EXIF.getTag(this, "GPSLatitudeRef");
                             let lon = EXIF.getTag(this, "GPSLongitude");
@@ -813,8 +812,36 @@
                                 gpsStr = `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
                             }
 
+                            // TANGGAL UPLOAD: otomatis dari metadata file gambar yang diupload, default tanggal input jika kosong
+                            let formattedDate = "";
+                            if (dateTime) {
+                                // Format EXIF biasanya "YYYY:MM:DD HH:MM:SS"
+                                let parts = dateTime.split(' ')[0].split(':');
+                                if (parts.length === 3) {
+                                    formattedDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
+                                }
+                            }
+                            if (!formattedDate) {
+                                let now = new Date();
+                                let dd = String(now.getDate()).padStart(2, '0');
+                                let mm = String(now.getMonth() + 1).padStart(2, '0');
+                                let yyyy = now.getFullYear();
+                                formattedDate = `${dd}/${mm}/${yyyy}`;
+                            }
+
+                            let tglUploadField = document.querySelector('input[name="tanggal_upload"]');
+                            if (tglUploadField) {
+                                tglUploadField.value = formattedDate;
+                            }
+
+                            // LOKASI KOORDINAT: terisi otomatis dari data lokasi metadata file gambar
+                            let lokasiField = document.querySelector('input[name="lokasi_koordinat"]');
+                            if (lokasiField) {
+                                lokasiField.value = gpsStr;
+                            }
+
                             hiddenValInput.value = file.name;
-                            metaInfo.innerHTML = `<span class="text-emerald-400 font-bold"><i class="fa-solid fa-circle-check"></i> Foto: ${file.name}</span><br>🕒 Waktu Upload/EXIF: ${dateTime}<br>📍 Lokasi Koordinat: ${gpsStr}`;
+                            metaInfo.innerHTML = `<span class="text-emerald-400 font-bold"><i class="fa-solid fa-circle-check"></i> Foto: ${file.name}</span><br>🕒 Waktu Upload (Metadata): ${formattedDate}<br>📍 Lokasi Koordinat (Metadata): ${gpsStr}`;
                         });
                     };
 
@@ -857,49 +884,13 @@
                             input.appendChild(opt);
                         });
                     } else if (h.toLowerCase() === 'pagu') {
-                        // Kontainer Wrapper untuk Input dan Real-time Formatting Pagu Ribuan
-                        let wrapper = document.createElement('div');
-                        wrapper.className = "relative";
-
                         input = document.createElement('input');
-                        input.type = "text";
-                        input.inputMode = "numeric";
+                        input.type = "number";
                         input.name = h;
-                        input.id = "inputPaguRibuan";
-                        input.placeholder = "Contoh: 50.000.000";
+                        input.placeholder = "Masukkan nominal pagu (misal: 50000000)";
                         input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-                        
                         let rawVal = rowData && rowData[h] !== undefined ? rowData[h] : "";
-                        if (rawVal !== "") {
-                            let cleanNum = String(rawVal).replace(/[^0-9]/g, '');
-                            input.value = cleanNum ? Number(cleanNum).toLocaleString('id-ID') : "";
-                        } else {
-                            input.value = "";
-                        }
-
-                        // Event listener format ribuan secara real-time saat mengetik
-                        input.oninput = function(e) {
-                            let cursorPosition = e.target.selectionStart;
-                            let originalLength = e.target.value.length;
-                            
-                            let cleanVal = e.target.value.replace(/[^0-9]/g, '');
-                            if (cleanVal === "") {
-                                e.target.value = "";
-                                return;
-                            }
-                            let formatted = Number(cleanVal).toLocaleString('id-ID');
-                            e.target.value = formatted;
-                            
-                            // Menyesuaikan posisi kursor agar tidak loncat ke belakang saat mengetik
-                            let newLength = formatted.length;
-                            cursorPosition = cursorPosition + (newLength - originalLength);
-                            try {
-                                e.target.setSelectionRange(cursorPosition, cursorPosition);
-                            } catch (err) {}
-                        };
-
-                        wrapper.appendChild(input);
-                        div.appendChild(wrapper);
+                        input.value = rawVal !== "" ? Number(rawVal) : "";
                     } else if (h.toLowerCase() === 'tanggal_mulai') {
                         input = document.createElement('input');
                         input.type = "date";
@@ -928,7 +919,6 @@
                         input.value = convertToInputDate(rawDate);
                         setTimeout(hitungTanggalSelesai, 200);
                     } 
-                    // PENGISIAN OTOMATIS KOLOM PERENCANA DAN PENGAWAS DARI TABEL USERS
                     else if (h.toLowerCase() === 'perencana') {
                         input = document.createElement('input');
                         input.type = "text";
@@ -981,19 +971,27 @@
                             }
                         });
                     } else if (h.toLowerCase() === 'minggu_ke') {
+                        // MINGGU KE harusnya tertulis "Minggu ke-1 DD/MM/YYYY s/d DD/MM/YYYY"
                         input = document.createElement('select');
                         input.name = h;
                         input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
                         
                         let defOpt = document.createElement('option');
                         defOpt.value = "";
-                        defOpt.innerText = "-- Pilih Rentang Mingguan (7 Hari) --";
+                        defOpt.innerText = "-- Pilih Rentang Minggu (DD/MM/YYYY) --";
                         input.appendChild(defOpt);
 
+                        let baseDate = new Date(2026, 0, 5); // Contoh awal tahun/proyek 2026 (Senin)
                         for (let w = 1; w <= 24; w++) {
-                            let startDay = (w - 1) * 7 + 1;
-                            let endDay = w * 7;
-                            let labelMinggu = `Minggu ke-${w} (Hari ke-${startDay} s.d. ${endDay})`;
+                            let startD = new Date(baseDate);
+                            startD.setDate(baseDate.getDate() + (w - 1) * 7);
+                            let endD = new Date(baseDate);
+                            endD.setDate(baseDate.getDate() + w * 7 - 1);
+
+                            let fmtStart = `${String(startD.getDate()).padStart(2, '0')}/${String(startD.getMonth() + 1).padStart(2, '0')}/${startD.getFullYear()}`;
+                            let fmtEnd = `${String(endD.getDate()).padStart(2, '0')}/${String(endD.getMonth() + 1).padStart(2, '0')}/${endD.getFullYear()}`;
+                            
+                            let labelMinggu = `Minggu ke-${w} ${fmtStart} s/d ${fmtEnd}`;
                             let opt = document.createElement('option');
                             opt.value = labelMinggu;
                             opt.innerText = labelMinggu;
@@ -1008,39 +1006,42 @@
                         let rawDate = rowData && rowData[h] ? rowData[h] : new Date().toISOString().split('T')[0];
                         input.value = convertToInputDate(rawDate);
                     } else if (h.toLowerCase() === 'target_kurva_s' || h.toLowerCase() === 'realisasi_fisik') {
+                        // TARGET KURVA S & TARGET FISIK: Diberi tambahan "%" di belakang angka (minimal 0 maksimal 100)
                         input = document.createElement('input');
                         input.type = "number";
                         input.step = "0.01";
                         input.max = "100";
                         input.min = "0";
                         input.name = h;
-                        input.placeholder = "0 - 100 (ditambahkan %)";
+                        input.placeholder = "Masukkan nilai (0 - 100)";
                         input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
                         let rawVal = rowData && rowData[h] !== undefined ? rowData[h] : "";
                         input.value = String(rawVal).replace('%', '');
-                    } else if (h.toLowerCase() === 'penggunaan_anggaran') {
+                    } else if (h.toLowerCase() === 'tanggal_upload') {
+                        // TANGGAL UPLOAD (format DD/MM/YYYY) dengan nilai default adalah tanggal ketika input data
                         input = document.createElement('input');
                         input.type = "text";
-                        input.inputMode = "numeric";
+                        input.name = h;
+                        input.readOnly = true;
+                        input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-300 cursor-not-allowed";
+                        let now = new Date();
+                        let defaultCurrDate = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+                        input.value = rowData && rowData[h] ? rowData[h] : defaultCurrDate;
+                    } else if (h.toLowerCase() === 'lokasi_koordinat') {
+                        input = document.createElement('input');
+                        input.type = "text";
+                        input.name = h;
+                        input.readOnly = true;
+                        input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-300 cursor-not-allowed";
+                        input.value = rowData && rowData[h] ? rowData[h] : "Otomatis dari metadata foto...";
+                    } else if (h.toLowerCase() === 'penggunaan_anggaran') {
+                        input = document.createElement('input');
+                        input.type = "number";
                         input.name = h;
                         input.placeholder = "Masukkan nominal penggunaan anggaran";
                         input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
                         let rawVal = rowData && rowData[h] !== undefined ? rowData[h] : "";
-                        if (rawVal !== "") {
-                            let cleanNum = String(rawVal).replace(/[^0-9]/g, '');
-                            input.value = cleanNum ? Number(cleanNum).toLocaleString('id-ID') : "";
-                        } else {
-                            input.value = "";
-                        }
-
-                        input.oninput = function(e) {
-                            let cleanVal = e.target.value.replace(/[^0-9]/g, '');
-                            if (cleanVal === "") {
-                                e.target.value = "";
-                                return;
-                            }
-                            e.target.value = Number(cleanVal).toLocaleString('id-ID');
-                        };
+                        input.value = rawVal !== "" ? Number(rawVal) : "";
                     } else if (h.toLowerCase() === 'status_verifikasi') {
                         input = document.createElement('input');
                         input.type = "text";
@@ -1173,14 +1174,12 @@
                         val = convertToDisplayDate(val);
                     }
 
-                    // Membersihkan format pemisah ribuan (titik) menjadi angka murni sebelum dikirim ke server/database
-                    if (input.name.toLowerCase() === 'pagu' || input.name.toLowerCase() === 'penggunaan_anggaran') {
-                        val = val.replace(/\./g, '');
-                    }
-
                     if (input.name === 'target_kurva_s' || input.name === 'realisasi_fisik') {
                         if (val !== "" && !val.toString().includes('%')) {
-                            val = val + '%';
+                            let num = Number(val);
+                            if (num < 0) num = 0;
+                            if (num > 100) num = 100;
+                            val = num + '%';
                         }
                     }
                     formData[input.name] = val;
