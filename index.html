@@ -251,7 +251,7 @@
 
     <!-- ================= SCRIPT UTAMA ================= -->
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwbNWzDuRt5lsNIMn9gp6YucHtKeD3cOwA80g_4KyvOvcrXZn8PAnBlyz2VWlHyCZtnVw/exec";
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzdcjhzntcjW2_6DhEwf97vhBb-6fCiKsGKMqqGUM4LG9oYvn7RRCKftgzZk3sXAdmwaA/exec";
         
         let currentUser = null;
         let currentActiveSheet = '';
@@ -505,8 +505,8 @@
             if (chartKurvaSInstance) chartKurvaSInstance.destroy();
 
             let labels = currentData.map(d => d.minggu_ke || d.tanggal_lapor || 'Minggu');
-            let targetData = currentData.map(d => Number(String(d.target_kurva_s || d.target_kurva).replace('%','')) || 0);
-            let realisasiData = currentData.map(d => Number(String(d.realisasi_fisik).replace('%','')) || 0);
+            let targetData = currentData.map(d => Number(String(d.target_kurva_s || d.target_kurva || 0).replace('%','')) || 0);
+            let realisasiData = currentData.map(d => Number(String(d.realisasi_fisik || 0).replace('%','')) || 0);
 
             chartKurvaSInstance = new Chart(ctx, {
                 type: 'line',
@@ -591,7 +591,8 @@
                     td.className = "p-3 text-slate-900 text-xs truncate max-w-xs font-bold";
                     let val = row[h] !== undefined ? row[h] : "";
 
-                    if ((h.toLowerCase() === 'pagu' || h.toLowerCase() === 'pagu_lama' || h.toLowerCase() === 'pagu_baru' || h.toLowerCase() === 'penggunaan_anggaran') && !isNaN(val) && val !== "") {
+                    let lowerH = h.toLowerCase();
+                    if ((lowerH === 'pagu' || lowerH === 'pagu_lama' || lowerH === 'pagu_baru' || lowerH === 'penggunaan_anggaran') && !isNaN(val) && val !== "") {
                         let ribuan = Math.round(Number(val) / 1000);
                         val = "Rp " + ribuan.toLocaleString('id-ID') + " rb";
                     }
@@ -735,9 +736,10 @@
                 div.appendChild(label);
 
                 let input;
+                let lowerH = h.toLowerCase();
 
-                // 1. FOTO DOKUMENTASI & EKSTRAKSI EXIF (Tanggal & Koordinat)
-                if (h.toLowerCase().includes('foto_dokumentasi') || h.toLowerCase().includes('foto')) {
+                // 1. FOTO DOKUMENTASI & EKSTRAKSI EXIF
+                if (lowerH.includes('foto_dokumentasi') || lowerH.includes('foto')) {
                     div.className = "space-y-2 p-3 bg-blue-950/60 rounded-xl border border-amber-400/30";
                     
                     input = document.createElement('input');
@@ -796,21 +798,21 @@
                 } 
                 // 2. TABEL: paket_pekerjaan_sd
                 else if (currentActiveSheet === 'paket_pekerjaan_sd') {
-                    if (h.toLowerCase() === 'paket_id') {
+                    if (lowerH === 'paket_id') {
                         input = document.createElement('input');
                         input.type = "text";
                         input.name = h;
                         input.readOnly = true;
                         input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-400 cursor-not-allowed font-bold";
                         input.value = rowData && rowData[h] ? rowData[h] : "PKT-" + currentUser.username + "-" + Math.floor(Date.now() / 1000);
-                    } else if (h.toLowerCase() === 'npsn') {
+                    } else if (lowerH === 'npsn') {
                         input = document.createElement('input');
                         input.type = "text";
                         input.name = h;
                         input.readOnly = true;
                         input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-blue-300 cursor-not-allowed";
                         input.value = currentUser.username;
-                    } else if (h.toLowerCase() === 'nama_menu') {
+                    } else if (lowerH === 'nama_menu') {
                         input = document.createElement('select');
                         input.name = h;
                         input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
@@ -828,15 +830,15 @@
                             if (rowData && rowData[h] === mName) opt.selected = true;
                             input.appendChild(opt);
                         });
-                    } else if (h.toLowerCase() === 'pagu') {
+                    } else if (lowerH === 'pagu') {
                         input = document.createElement('input');
                         input.type = "text";
                         input.name = h;
-                        input.placeholder = "Contoh: 50000 (pemenggalan dalam ribuan)";
+                        input.placeholder = "Contoh: 50000 (dalam ribuan)";
                         input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
                         let rawVal = rowData && rowData[h] !== undefined ? rowData[h] : "";
                         input.value = rawVal !== "" && !isNaN(rawVal) ? Math.round(Number(rawVal) / 1000) : rawVal;
-                    } else if (h.toLowerCase() === 'tanggal_mulai') {
+                    } else if (lowerH === 'tanggal_mulai') {
                         input = document.createElement('input');
                         input.type = "date";
                         input.name = h;
@@ -844,7 +846,7 @@
                         input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
                         input.value = rowData && rowData[h] ? rowData[h] : new Date().toISOString().split('T')[0];
                         input.onchange = hitungTanggalSelesai;
-                    } else if (h.toLowerCase() === 'lama_hari') {
+                    } else if (lowerH === 'lama_hari') {
                         input = document.createElement('input');
                         input.type = "number";
                         input.name = h;
@@ -852,7 +854,7 @@
                         input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
                         input.value = rowData && rowData[h] ? rowData[h] : "90";
                         input.oninput = hitungTanggalSelesai;
-                    } else if (h.toLowerCase() === 'tgl_selesai') {
+                    } else if (lowerH === 'tgl_selesai') {
                         input = document.createElement('input');
                         input.type = "date";
                         input.name = h;
@@ -861,7 +863,7 @@
                         input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-blue-300 cursor-not-allowed";
                         input.value = rowData && rowData[h] ? rowData[h] : "";
                         setTimeout(hitungTanggalSelesai, 200);
-                    } else if (h.toLowerCase() === 'perencana' || h.toLowerCase() === 'pengawas') {
+                    } else if (lowerH === 'perencana' || lowerH === 'pengawas') {
                         input = document.createElement('select');
                         input.name = h;
                         input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
@@ -889,14 +891,14 @@
                 } 
                 // 3. TABEL: laporan_progres
                 else if (currentActiveSheet === 'laporan_progres') {
-                    if (h.toLowerCase() === 'id') {
+                    if (lowerH === 'id' || lowerH === 'id_progres') {
                         input = document.createElement('input');
                         input.type = "text";
                         input.name = h;
                         input.readOnly = true;
                         input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-400 cursor-not-allowed font-bold";
                         input.value = rowData && rowData[h] ? rowData[h] : "LAP-" + currentUser.username + "-" + Math.floor(Date.now() / 1000);
-                    } else if (h.toLowerCase() === 'paket_id') {
+                    } else if (lowerH === 'paket_id') {
                         input = document.createElement('select');
                         input.name = h;
                         input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
@@ -917,7 +919,7 @@
                                 input.appendChild(opt);
                             }
                         });
-                    } else if (h.toLowerCase() === 'minggu_ke') {
+                    } else if (lowerH === 'minggu_ke') {
                         input = document.createElement('select');
                         input.name = h;
                         input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
@@ -937,39 +939,39 @@
                             if (rowData && rowData[h] === labelMinggu) opt.selected = true;
                             input.appendChild(opt);
                         }
-                    } else if (h.toLowerCase() === 'tanggal_lapor') {
+                    } else if (lowerH === 'tanggal_lapor') {
                         input = document.createElement('input');
                         input.type = "date";
                         input.name = h;
                         input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
                         input.value = rowData && rowData[h] ? rowData[h] : new Date().toISOString().split('T')[0];
-                    } else if (h.toLowerCase() === 'target_kurva_s' || h.toLowerCase() === 'realisasi_fisik') {
+                    } else if (lowerH === 'target_kurva_s' || lowerH === 'realisasi_fisik') {
                         input = document.createElement('input');
                         input.type = "number";
                         input.step = "0.01";
                         input.max = "100";
                         input.min = "0";
                         input.name = h;
-                        input.placeholder = "0 - 100 (ditambahkan %)";
+                        input.placeholder = "0 - 100";
                         input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
                         let rawVal = rowData && rowData[h] !== undefined ? rowData[h] : "";
                         input.value = String(rawVal).replace('%', '');
-                    } else if (h.toLowerCase() === 'penggunaan_anggaran') {
+                    } else if (lowerH === 'penggunaan_anggaran') {
                         input = document.createElement('input');
                         input.type = "text";
                         input.name = h;
-                        input.placeholder = "Contoh: 15000 (pemenggalan dalam ribuan)";
+                        input.placeholder = "Contoh: 15000 (dalam ribuan)";
                         input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
                         let rawVal = rowData && rowData[h] !== undefined ? rowData[h] : "";
                         input.value = rawVal !== "" && !isNaN(rawVal) ? Math.round(Number(rawVal) / 1000) : rawVal;
-                    } else if (h.toLowerCase() === 'status_verifikasi') {
+                    } else if (lowerH === 'status_verifikasi') {
                         input = document.createElement('input');
                         input.type = "text";
                         input.name = h;
                         input.readOnly = true;
                         input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-300 cursor-not-allowed font-bold";
                         input.value = rowData && rowData[h] ? rowData[h] : "DIAJUKAN";
-                    } else if (h.toLowerCase() === 'user_id') {
+                    } else if (lowerH === 'user_id') {
                         input = document.createElement('input');
                         input.type = "text";
                         input.name = h;
@@ -1093,11 +1095,12 @@
             document.querySelectorAll('#formFieldsContainer input, #formFieldsContainer select, #formFieldsContainer textarea').forEach(input => {
                 if(input.name && input.value !== undefined) {
                     let val = input.value;
-                    if (input.name === 'pagu' || input.name === 'penggunaan_anggaran') {
+                    let lowerName = input.name.toLowerCase();
+                    if (lowerName === 'pagu' || lowerName === 'penggunaan_anggaran') {
                         let cleanVal = val.toString().replace(/[^0-9]/g, '');
                         val = cleanVal ? Number(cleanVal) * 1000 : "";
                     }
-                    if (input.name === 'target_kurva_s' || input.name === 'realisasi_fisik') {
+                    if (lowerName === 'target_kurva_s' || lowerName === 'realisasi_fisik') {
                         if (val !== "" && !val.toString().includes('%')) {
                             val = val + '%';
                         }
@@ -1107,8 +1110,12 @@
             });
 
             if (currentUser.role === 'SEKOLAH') {
-                if (formData['npsn'] !== undefined) formData['npsn'] = currentUser.username;
-                if (formData['user_id'] !== undefined) formData['user_id'] = currentUser.nama_pengguna;
+                if (formData['npsn'] !== undefined || formData['NPSN'] !== undefined) {
+                    formData['npsn'] = currentUser.username;
+                }
+                if (formData['user_id'] !== undefined) {
+                    formData['user_id'] = currentUser.nama_pengguna;
+                }
             }
 
             let payload = {
