@@ -467,7 +467,6 @@
                 let btn = document.createElement('button');
                 btn.className = "w-full flex items-center space-x-2.5 px-3 py-2 rounded-xl text-left font-semibold text-blue-200 hover:bg-blue-900/60 hover:text-amber-400 transition-all text-xs";
                 btn.innerHTML = `<i class="fa-solid ${m.icon} w-4 text-center"></i><span>${m.name}</span>`;
-                // PERBAIKAN: Mengirimkan parameter nama menu (m.name) agar tidak menjadi undefined
                 btn.onclick = () => loadTableData(m.sheet, m.name);
                 container.appendChild(btn);
             });
@@ -475,7 +474,6 @@
 
         async function loadTableData(sheetName, title) {
             currentActiveSheet = sheetName;
-            // Jika title tidak sengaja kosong/undefined, berikan nilai fallback otomatis sesuai sheet
             let displayTitle = title;
             if (!displayTitle) {
                 if (sheetName === 'paket_pekerjaan_sd') displayTitle = currentUser.role === 'DINAS' ? 'Data Paket Pekerjaan SD' : 'Paket Pekerjaan Saya';
@@ -883,8 +881,23 @@
                         defOpt.innerText = "-- Pilih Menu Pekerjaan --";
                         input.appendChild(defOpt);
 
+                        // Ambil daftar nama menu yang sudah pernah diinput oleh sekolah ini sebelumnya (jika mode tambah baru)
+                        let existingMenus = [];
+                        if (!rowData && currentUser.role === 'SEKOLAH') {
+                            existingMenus = currentData
+                                .filter(d => String(d.npsn) === String(currentUser.username))
+                                .map(d => String(d.nama_menu).trim().toLowerCase());
+                        }
+
                         menuPekerjaanList.forEach(m => {
                             let mName = m.nama_menu || Object.values(m)[1];
+                            let mNameLower = String(mName).trim().toLowerCase();
+
+                            // Jika role SEKOLAH dan menu sudah pernah diinput, lewati atau disable opsi tersebut
+                            if (currentUser.role === 'SEKOLAH' && !rowData && existingMenus.includes(mNameLower)) {
+                                return;
+                            }
+
                             let opt = document.createElement('option');
                             opt.value = mName;
                             opt.innerText = mName;
@@ -1196,6 +1209,20 @@
                 if (formData['user_id'] !== undefined) formData['user_id'] = currentUser.nama_pengguna;
                 if (currentUser.perencana) formData['perencana'] = currentUser.perencana;
                 if (currentUser.pengawas) formData['pengawas'] = currentUser.pengawas;
+
+                // VALIDASI: Sekolah hanya boleh menginput 1 record saja per NAMA MENU (khusus untuk form tambah data baru / rowIndex kosong atau null)
+                if (currentActiveSheet === 'paket_pekerjaan_sd' && !rowIndex && formData['nama_menu']) {
+                    let selectedMenuInput = String(formData['nama_menu']).trim().toLowerCase();
+                    let alreadyExists = currentData.some(d => 
+                        String(d.npsn) === String(currentUser.username) && 
+                        String(d.nama_menu).trim().toLowerCase() === selectedMenuInput
+                    );
+
+                    if (alreadyExists) {
+                        alert("Menu pekerjaan sudah ada, coba isi menu pekerjaan yang lain");
+                        return; // Batalkan proses simpan
+                    }
+                }
             }
 
             let payload = {
