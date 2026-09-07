@@ -857,13 +857,49 @@
                             input.appendChild(opt);
                         });
                     } else if (h.toLowerCase() === 'pagu') {
+                        // Kontainer Wrapper untuk Input dan Real-time Formatting Pagu Ribuan
+                        let wrapper = document.createElement('div');
+                        wrapper.className = "relative";
+
                         input = document.createElement('input');
-                        input.type = "number";
+                        input.type = "text";
+                        input.inputMode = "numeric";
                         input.name = h;
-                        input.placeholder = "Masukkan nominal pagu (misal: 50000000)";
+                        input.id = "inputPaguRibuan";
+                        input.placeholder = "Contoh: 50.000.000";
                         input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
+                        
                         let rawVal = rowData && rowData[h] !== undefined ? rowData[h] : "";
-                        input.value = rawVal !== "" ? Number(rawVal) : "";
+                        if (rawVal !== "") {
+                            let cleanNum = String(rawVal).replace(/[^0-9]/g, '');
+                            input.value = cleanNum ? Number(cleanNum).toLocaleString('id-ID') : "";
+                        } else {
+                            input.value = "";
+                        }
+
+                        // Event listener format ribuan secara real-time saat mengetik
+                        input.oninput = function(e) {
+                            let cursorPosition = e.target.selectionStart;
+                            let originalLength = e.target.value.length;
+                            
+                            let cleanVal = e.target.value.replace(/[^0-9]/g, '');
+                            if (cleanVal === "") {
+                                e.target.value = "";
+                                return;
+                            }
+                            let formatted = Number(cleanVal).toLocaleString('id-ID');
+                            e.target.value = formatted;
+                            
+                            // Menyesuaikan posisi kursor agar tidak loncat ke belakang saat mengetik
+                            let newLength = formatted.length;
+                            cursorPosition = cursorPosition + (newLength - originalLength);
+                            try {
+                                e.target.setSelectionRange(cursorPosition, cursorPosition);
+                            } catch (err) {}
+                        };
+
+                        wrapper.appendChild(input);
+                        div.appendChild(wrapper);
                     } else if (h.toLowerCase() === 'tanggal_mulai') {
                         input = document.createElement('input');
                         input.type = "date";
@@ -984,12 +1020,27 @@
                         input.value = String(rawVal).replace('%', '');
                     } else if (h.toLowerCase() === 'penggunaan_anggaran') {
                         input = document.createElement('input');
-                        input.type = "number";
+                        input.type = "text";
+                        input.inputMode = "numeric";
                         input.name = h;
                         input.placeholder = "Masukkan nominal penggunaan anggaran";
                         input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
                         let rawVal = rowData && rowData[h] !== undefined ? rowData[h] : "";
-                        input.value = rawVal !== "" ? Number(rawVal) : "";
+                        if (rawVal !== "") {
+                            let cleanNum = String(rawVal).replace(/[^0-9]/g, '');
+                            input.value = cleanNum ? Number(cleanNum).toLocaleString('id-ID') : "";
+                        } else {
+                            input.value = "";
+                        }
+
+                        input.oninput = function(e) {
+                            let cleanVal = e.target.value.replace(/[^0-9]/g, '');
+                            if (cleanVal === "") {
+                                e.target.value = "";
+                                return;
+                            }
+                            e.target.value = Number(cleanVal).toLocaleString('id-ID');
+                        };
                     } else if (h.toLowerCase() === 'status_verifikasi') {
                         input = document.createElement('input');
                         input.type = "text";
@@ -1122,6 +1173,11 @@
                         val = convertToDisplayDate(val);
                     }
 
+                    // Membersihkan format pemisah ribuan (titik) menjadi angka murni sebelum dikirim ke server/database
+                    if (input.name.toLowerCase() === 'pagu' || input.name.toLowerCase() === 'penggunaan_anggaran') {
+                        val = val.replace(/\./g, '');
+                    }
+
                     if (input.name === 'target_kurva_s' || input.name === 'realisasi_fisik') {
                         if (val !== "" && !val.toString().includes('%')) {
                             val = val + '%';
@@ -1134,7 +1190,6 @@
             if (currentUser.role === 'SEKOLAH') {
                 if (formData['npsn'] !== undefined) formData['npsn'] = currentUser.username;
                 if (formData['user_id'] !== undefined) formData['user_id'] = currentUser.nama_pengguna;
-                // Memastikan nilai perencana dan pengawas terkirim otomatis dari data user yang login
                 if (currentUser.perencana) formData['perencana'] = currentUser.perencana;
                 if (currentUser.pengawas) formData['pengawas'] = currentUser.pengawas;
             }
