@@ -76,14 +76,12 @@
                 <button type="submit" class="w-full bg-amber-500 hover:bg-amber-400 text-blue-950 font-bold py-2.5 rounded-xl transition-all text-sm shadow-md shadow-amber-500/20">Kirim Pendaftaran</button>
             </form>
 
-<!-- TAMBAHAN INFORMASI PROGRAM & LOGO KEMENDIKDASMEN DI BAWAH FORM -->
             <div class="mt-6 pt-5 border-t border-blue-800/80 flex flex-col items-center text-center">
                 <img src="logopendidikan.png" alt="Logo Kemendikdasmen RI" class="w-10 h-10 object-contain mb-2 drop-shadow-md">
                 <p class="text-[10px] text-blue-200/90 leading-relaxed font-normal animate-pulse">
                     Revitalisasi Satuan Pendidikan Sekolah Dasar (SD) adalah program strategis Kementerian Pendidikan Dasar dan Menengah (Kemendikdasmen) sesuai dengan Instruksi Presiden untuk meningkatkan kualitas layanan pendidikan melalui pembenahan sarana dan prasarana sekolah.
                 </p>
             </div>
-            <!-- AKHIR TAMBAHAN -->
         </div>
     </div>
 
@@ -271,9 +269,6 @@
         let usersList = [];
         let chartKurvaSInstance = null;
 
-        // ==========================================
-        // LANGKAH 1: FUNGSI BANTUAN KONVERSI TANGGAL
-        // ==========================================
         function convertToInputDate(val) {
             if (!val) return new Date().toISOString().split('T')[0];
             if (val.includes('/')) {
@@ -625,9 +620,10 @@
                     td.className = "p-3 text-slate-900 text-xs truncate max-w-xs font-bold";
                     let val = row[h] !== undefined ? row[h] : "";
 
+                    // PERUBAHAN FORMAT RUPIAH MENJADI "Rp 50.000" (Tanpa teks rb)
                     if ((h.toLowerCase() === 'pagu' || h.toLowerCase() === 'pagu_lama' || h.toLowerCase() === 'pagu_baru' || h.toLowerCase() === 'penggunaan_anggaran') && !isNaN(val) && val !== "") {
-                        let ribuan = Math.round(Number(val) / 1000);
-                        val = "Rp " + ribuan.toLocaleString('id-ID') + " rb";
+                        let angkaNum = Number(val);
+                        val = "Rp " + angkaNum.toLocaleString('id-ID');
                     }
 
                     td.innerText = val;
@@ -770,7 +766,6 @@
 
                 let input;
 
-                // 1. FOTO DOKUMENTASI & EKSTRAKSI EXIF (Tanggal & Koordinat)
                 if (h.toLowerCase().includes('foto_dokumentasi') || h.toLowerCase().includes('foto')) {
                     div.className = "space-y-2 p-3 bg-blue-950/60 rounded-xl border border-amber-400/30";
                     
@@ -828,7 +823,6 @@
                     div.appendChild(hiddenValInput);
                     div.appendChild(metaInfo);
                 } 
-                // 2. TABEL: paket_pekerjaan_sd
                 else if (currentActiveSheet === 'paket_pekerjaan_sd') {
                     if (h.toLowerCase() === 'paket_id') {
                         input = document.createElement('input');
@@ -864,12 +858,12 @@
                         });
                     } else if (h.toLowerCase() === 'pagu') {
                         input = document.createElement('input');
-                        input.type = "text";
+                        input.type = "number";
                         input.name = h;
-                        input.placeholder = "Contoh: 50000 (pemenggalan dalam ribuan)";
+                        input.placeholder = "Masukkan nominal pagu (misal: 50000000)";
                         input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
                         let rawVal = rowData && rowData[h] !== undefined ? rowData[h] : "";
-                        input.value = rawVal !== "" && !isNaN(rawVal) ? Math.round(Number(rawVal) / 1000) : rawVal;
+                        input.value = rawVal !== "" ? Number(rawVal) : "";
                     } else if (h.toLowerCase() === 'tanggal_mulai') {
                         input = document.createElement('input');
                         input.type = "date";
@@ -897,24 +891,22 @@
                         let rawDate = rowData && rowData[h] ? rowData[h] : "";
                         input.value = convertToInputDate(rawDate);
                         setTimeout(hitungTanggalSelesai, 200);
-                    } else if (h.toLowerCase() === 'perencana' || h.toLowerCase() === 'pengawas') {
-                        input = document.createElement('select');
+                    } 
+                    // PENGISIAN OTOMATIS KOLOM PERENCANA DAN PENGAWAS DARI TABEL USERS
+                    else if (h.toLowerCase() === 'perencana') {
+                        input = document.createElement('input');
+                        input.type = "text";
                         input.name = h;
-                        input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-                        
-                        let defOpt = document.createElement('option');
-                        defOpt.value = "";
-                        defOpt.innerText = `-- Pilih ${h} --`;
-                        input.appendChild(defOpt);
-
-                        usersList.forEach(u => {
-                            let uName = u.nama_pengguna || u.username;
-                            let opt = document.createElement('option');
-                            opt.value = uName;
-                            opt.innerText = uName;
-                            if (rowData && rowData[h] === uName) opt.selected = true;
-                            input.appendChild(opt);
-                        });
+                        input.readOnly = true;
+                        input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-300 cursor-not-allowed font-bold";
+                        input.value = rowData && rowData[h] ? rowData[h] : (currentUser.perencana || "-");
+                    } else if (h.toLowerCase() === 'pengawas') {
+                        input = document.createElement('input');
+                        input.type = "text";
+                        input.name = h;
+                        input.readOnly = true;
+                        input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-300 cursor-not-allowed font-bold";
+                        input.value = rowData && rowData[h] ? rowData[h] : (currentUser.pengawas || "-");
                     } else {
                         input = document.createElement('input');
                         input.type = "text";
@@ -923,7 +915,6 @@
                         input.value = rowData ? (rowData[h] !== undefined ? rowData[h] : "") : "";
                     }
                 } 
-                // 3. TABEL: laporan_progres
                 else if (currentActiveSheet === 'laporan_progres') {
                     if (h.toLowerCase() === 'id') {
                         input = document.createElement('input');
@@ -993,12 +984,12 @@
                         input.value = String(rawVal).replace('%', '');
                     } else if (h.toLowerCase() === 'penggunaan_anggaran') {
                         input = document.createElement('input');
-                        input.type = "text";
+                        input.type = "number";
                         input.name = h;
-                        input.placeholder = "Contoh: 15000 (pemenggalan dalam ribuan)";
+                        input.placeholder = "Masukkan nominal penggunaan anggaran";
                         input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
                         let rawVal = rowData && rowData[h] !== undefined ? rowData[h] : "";
-                        input.value = rawVal !== "" && !isNaN(rawVal) ? Math.round(Number(rawVal) / 1000) : rawVal;
+                        input.value = rawVal !== "" ? Number(rawVal) : "";
                     } else if (h.toLowerCase() === 'status_verifikasi') {
                         input = document.createElement('input');
                         input.type = "text";
@@ -1088,9 +1079,9 @@
                     let badgeSelisih = "";
                     
                     if (selisih > 0) {
-                        badgeSelisih = `<span class="text-emerald-400 font-bold">+ Rp ${formatRibuan(selisih)} rb (Naik)</span>`;
+                        badgeSelisih = `<span class="text-emerald-400 font-bold">+ Rp ${selisih.toLocaleString('id-ID')} (Naik)</span>`;
                     } else if (selisih < 0) {
-                        badgeSelisih = `<span class="text-red-400 font-bold">- Rp ${formatRibuan(Math.abs(selisih))} rb (Turun)</span>`;
+                        badgeSelisih = `<span class="text-red-400 font-bold">- Rp ${Math.abs(selisih).toLocaleString('id-ID')} (Turun)</span>`;
                     } else {
                         badgeSelisih = `<span class="text-blue-300">Tetap</span>`;
                     }
@@ -1098,8 +1089,8 @@
                     let row = `<tr class="hover:bg-blue-900/40">
                         <td class="text-center p-2.5">${index + 1}</td>
                         <td class="p-2.5"><small>${item.time_stamp || '-'}</small></td>
-                        <td class="text-right p-2.5">Rp ${formatRibuan(paguLama)} rb</td>
-                        <td class="text-right p-2.5">Rp ${formatRibuan(paguBaru)} rb</td>
+                        <td class="text-right p-2.5">Rp ${paguLama.toLocaleString('id-ID')}</td>
+                        <td class="text-right p-2.5">Rp ${paguBaru.toLocaleString('id-ID')}</td>
                         <td class="text-center p-2.5">${badgeSelisih}</td>
                         <td class="p-2.5">${item.alasan_perubahan || '-'}</td>
                     </tr>`;
@@ -1117,10 +1108,6 @@
             modal.classList.remove('flex');
         }
 
-        function formatRibuan(angka) {
-            return Math.round(Number(angka) / 1000).toLocaleString('id-ID');
-        }
-
         function handleFormSubmit(e) {
             e.preventDefault();
             let rawRowIndex = document.getElementById('formRowIndex').value;
@@ -1131,15 +1118,10 @@
                 if(input.name && input.value !== undefined) {
                     let val = input.value;
                     
-                    // Konversi nilai tanggal dari input type="date" (YYYY-MM-DD) kembali ke (DD/MM/YYYY) sebelum dikirim
                     if (input.type === 'date' && val) {
                         val = convertToDisplayDate(val);
                     }
 
-                    if (input.name === 'pagu' || input.name === 'penggunaan_anggaran') {
-                        let cleanVal = val.toString().replace(/[^0-9]/g, '');
-                        val = cleanVal ? Number(cleanVal) * 1000 : "";
-                    }
                     if (input.name === 'target_kurva_s' || input.name === 'realisasi_fisik') {
                         if (val !== "" && !val.toString().includes('%')) {
                             val = val + '%';
@@ -1152,6 +1134,9 @@
             if (currentUser.role === 'SEKOLAH') {
                 if (formData['npsn'] !== undefined) formData['npsn'] = currentUser.username;
                 if (formData['user_id'] !== undefined) formData['user_id'] = currentUser.nama_pengguna;
+                // Memastikan nilai perencana dan pengawas terkirim otomatis dari data user yang login
+                if (currentUser.perencana) formData['perencana'] = currentUser.perencana;
+                if (currentUser.pengawas) formData['pengawas'] = currentUser.pengawas;
             }
 
             let payload = {
