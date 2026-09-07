@@ -12,7 +12,6 @@
     <!-- Chart.js untuk Kurva S & Grafik Progres -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* Memaksa seluruh teks di dalam isi tabel menjadi hitam pekat dan tebal */
         #tableBody td {
             color: #000000 !important;
             font-weight: 700 !important;
@@ -21,7 +20,7 @@
 </head>
 <body class="bg-gradient-to-br from-blue-950 via-blue-900 to-slate-900 min-h-screen text-white font-sans antialiased flex flex-col justify-between">
 
-    <!-- ================= AUTH CONTAINER (HALAMAN LOGIN & REGISTER) ================= -->
+    <!-- ================= AUTH CONTAINER ================= -->
     <div id="authContainer" class="flex-1 flex flex-col items-center justify-center p-4">
         <div class="max-w-md w-full bg-blue-900/40 backdrop-blur-md rounded-2xl shadow-2xl p-8 border border-amber-400/30">
             <div class="text-center mb-6 flex flex-col items-center">
@@ -39,7 +38,6 @@
                 <button id="tabRegister" onclick="switchTab('register')" class="flex-1 pb-3 font-semibold text-blue-300/60 border-b-2 border-transparent transition-all text-sm">Daftar Sekolah</button>
             </div>
 
-            <!-- Form Login -->
             <form id="formLogin" onsubmit="handleLogin(event)" class="space-y-4">
                 <div>
                     <label class="block text-xs font-semibold uppercase tracking-wider text-blue-200 mb-1">Username / NPSN</label>
@@ -57,7 +55,6 @@
                 <button type="submit" class="w-full bg-amber-500 hover:bg-amber-400 text-blue-950 font-bold py-2.5 rounded-xl transition-all text-sm shadow-md shadow-amber-500/20">Masuk Sistem</button>
             </form>
 
-            <!-- Form Register -->
             <form id="formRegister" onsubmit="handleRegister(event)" class="space-y-4 hidden">
                 <div>
                     <label class="block text-xs font-semibold uppercase tracking-wider text-blue-200 mb-1">NPSN Sekolah</label>
@@ -83,7 +80,6 @@
 
     <!-- ================= DASHBOARD CONTAINER ================= -->
     <div id="dashboardContainer" class="flex-1 flex flex-col hidden">
-        <!-- HEADER -->
         <header class="bg-blue-950 border-b border-blue-900 py-3 px-6 shadow-md flex items-center justify-between">
             <div class="flex items-center space-x-3">
                 <img src="bidangsd.png" alt="Logo" class="w-9 h-9 object-contain">
@@ -103,9 +99,7 @@
             </div>
         </header>
 
-        <!-- MAIN LAYOUT -->
         <div class="flex-1 flex max-w-7xl w-full mx-auto">
-            <!-- SIDEBAR -->
             <aside class="w-64 bg-slate-900 border-r border-blue-950 p-4 hidden md:flex flex-col justify-between shadow-sm">
                 <div class="space-y-1">
                     <p class="text-[10px] font-extrabold uppercase tracking-wider text-amber-400 px-3 mb-2">Menu Navigasi</p>
@@ -120,7 +114,6 @@
                 </div>
             </aside>
 
-            <!-- CONTENT AREA -->
             <main class="flex-1 p-4 md:p-6 overflow-x-auto bg-zinc-100">
                 <div id="sekolahIdentitasCard" class="hidden mb-6 bg-gradient-to-r from-blue-950 via-slate-900 to-blue-950 text-white rounded-xl p-5 shadow-md border border-amber-500/40">
                     <div class="flex items-center justify-between mb-3 pb-2 border-b border-blue-900">
@@ -159,7 +152,6 @@
                         <div id="actionButtonContainer" class="flex items-center space-x-2"></div>
                     </div>
 
-                    <!-- Container Grafik Kurva S -->
                     <div id="kurvaSContainer" class="hidden mb-6 p-4 bg-slate-50 rounded-xl border border-slate-200">
                         <h4 class="font-bold text-sm text-slate-800 mb-3"><i class="fa-solid fa-chart-line text-blue-900 mr-2"></i> Grafik Kurva S Progres Fisik</h4>
                         <div class="relative h-72 w-full">
@@ -210,7 +202,7 @@
                     <select id="verif-status" required class="w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none">
                         <option value="APPROVED">DISETUJUI (APPROVED)</option>
                         <option value="REJECTED">DITOLAK (REJECTED)</option>
-                        <option value="PENDING">PENDING</option>
+                        <option value="DIAJUKAN">DIAJUKAN (PENDING)</option>
                     </select>
                 </div>
                 <div>
@@ -266,6 +258,8 @@
         let currentHeaders = [];
         let currentData = [];
         let paketPekerjaanList = [];
+        let menuPekerjaanList = [];
+        let usersList = [];
         let chartKurvaSInstance = null;
 
         function switchTab(tab) {
@@ -374,7 +368,22 @@
                 currentUser = JSON.parse(saved);
                 initDashboard();
             }
+            loadReferenceTables();
         };
+
+        async function loadReferenceTables() {
+            try {
+                let resMenu = await fetch(`${WEB_APP_URL}?action=getRef&type=menu_pekerjaan`);
+                let dataMenu = await resMenu.json();
+                menuPekerjaanList = dataMenu.data || [];
+
+                let resUsers = await fetch(`${WEB_APP_URL}?action=getRef&type=users`);
+                let dataUsers = await resUsers.json();
+                usersList = dataUsers.data || [];
+            } catch (e) {
+                console.error("Gagal memuat tabel referensi:", e);
+            }
+        }
 
         function initDashboard() {
             document.getElementById('authContainer').classList.add('hidden');
@@ -489,13 +498,11 @@
 
         function renderKurvaSChart() {
             let ctx = document.getElementById('chartKurvaS').getContext('2d');
-            if (chartKurvaSInstance) {
-                chartKurvaSInstance.destroy();
-            }
+            if (chartKurvaSInstance) chartKurvaSInstance.destroy();
 
-            let labels = currentData.map(d => d.tanggal_lapor || d.tanggal || 'Minggu');
-            let targetData = currentData.map(d => Number(d.target_kurva_s) || 0);
-            let realisasiData = currentData.map(d => Number(d.realisasi_fisik) || 0);
+            let labels = currentData.map(d => d.minggu_ke || d.tanggal_lapor || 'Minggu');
+            let targetData = currentData.map(d => Number(String(d.target_kurva).replace('%','')) || 0);
+            let realisasiData = currentData.map(d => Number(String(d.realisasi_fisik).replace('%','')) || 0);
 
             chartKurvaSInstance = new Chart(ctx, {
                 type: 'line',
@@ -523,12 +530,7 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            max: 100
-                        }
-                    }
+                    scales: { y: { beginAtZero: true, max: 100 } }
                 }
             });
         }
@@ -586,7 +588,8 @@
                     let val = row[h] !== undefined ? row[h] : "";
 
                     if ((h.toLowerCase() === 'pagu' || h.toLowerCase() === 'pagu_lama' || h.toLowerCase() === 'pagu_baru' || h.toLowerCase() === 'penggunaan_anggaran') && !isNaN(val) && val !== "") {
-                        val = "Rp " + Number(val).toLocaleString('id-ID');
+                        let ribuan = Math.round(Number(val) / 1000);
+                        val = "Rp " + ribuan.toLocaleString('id-ID') + " rb";
                     }
 
                     td.innerText = val;
@@ -609,12 +612,6 @@
                         btnReject.innerHTML = `<i class="fa-solid fa-xmark mr-1"></i> Reject`;
                         btnReject.onclick = () => verifyReg(row.username || row.npsn, 'REJECTED');
                         tdAct.appendChild(btnReject);
-                    } else if (currentUser.role === 'SEKOLAH' && sheetName === 'users') {
-                        let btnEdit = document.createElement('button');
-                        btnEdit.className = "px-2.5 py-1 bg-blue-100 hover:bg-blue-200 text-blue-900 rounded-lg text-[11px] font-bold border border-blue-300";
-                        btnEdit.innerHTML = `<i class="fa-solid fa-pen-to-square mr-1"></i> Edit Perencana & Pengawas`;
-                        btnEdit.onclick = () => openModalForm(row);
-                        tdAct.appendChild(btnEdit);
                     } else {
                         if (sheetName === 'paket_pekerjaan_sd') {
                             let btnRiwayat = document.createElement('button');
@@ -735,6 +732,7 @@
 
                 let input;
 
+                // 1. FOTO DOKUMENTASI & EKSTRAKSI EXIF (Tanggal & Koordinat)
                 if (currentUser.role === 'SEKOLAH' && (h.toLowerCase().includes('foto') || h.toLowerCase().includes('dokumentasi') || h.toLowerCase().includes('lampiran') || h.toLowerCase().includes('file'))) {
                     div.className = "space-y-2 p-3 bg-blue-950/60 rounded-xl border border-amber-400/30";
                     
@@ -758,7 +756,7 @@
                     let metaInfo = document.createElement('div');
                     metaInfo.className = "text-[11px] text-blue-300 space-y-0.5 mt-1";
                     metaInfo.id = "metaInfo_" + h;
-                    metaInfo.innerText = rowData && rowData[h] ? "File tersimpan: " + rowData[h] : "Belum ada foto dipilih (Metadata EXIF akan otomatis diekstrak).";
+                    metaInfo.innerText = rowData && rowData[h] ? "File tersimpan: " + rowData[h] : "Belum ada foto dipilih (Metadata EXIF tanggal & GPS akan otomatis diekstrak).";
 
                     input.onchange = function(e) {
                         let file = e.target.files[0];
@@ -767,13 +765,13 @@
                         metaInfo.innerText = "Mengekstrak metadata EXIF foto...";
                         
                         EXIF.getData(file, function() {
-                            let dateTime = EXIF.getTag(this, "DateTimeOriginal") || EXIF.getTag(this, "DateTime") || "Tidak ditemukan";
+                            let dateTime = EXIF.getTag(this, "DateTimeOriginal") || EXIF.getTag(this, "DateTime") || "-";
                             let lat = EXIF.getTag(this, "GPSLatitude");
                             let latRef = EXIF.getTag(this, "GPSLatitudeRef");
                             let lon = EXIF.getTag(this, "GPSLongitude");
                             let lonRef = EXIF.getTag(this, "GPSLongitudeRef");
 
-                            let gpsStr = "Tidak ditemukan";
+                            let gpsStr = "-";
                             if (lat && lon) {
                                 let latitude = lat[0] + lat[1]/60 + lat[2]/3600;
                                 let longitude = lon[0] + lon[1]/60 + lon[2]/3600;
@@ -783,7 +781,14 @@
                             }
 
                             hiddenValInput.value = file.name;
-                            metaInfo.innerHTML = `<span class="text-emerald-400 font-bold"><i class="fa-solid fa-circle-check"></i> Foto: ${file.name}</span><br>🕒 Waktu: ${dateTime}<br>📍 GPS: ${gpsStr}`;
+                            metaInfo.innerHTML = `<span class="text-emerald-400 font-bold"><i class="fa-solid fa-circle-check"></i> Foto: ${file.name}</span><br>🕒 Waktu Upload/EXIF: ${dateTime}<br>📍 Lokasi Koordinat: ${gpsStr}`;
+
+                            // Otomatis isi field tanggal_upload dan lokasi_koordinat jika ada pada form
+                            let tglUploadField = document.querySelector('input[name="tanggal_upload"]');
+                            if (tglUploadField && dateTime !== "-") tglUploadField.value = dateTime;
+
+                            let lokField = document.querySelector('input[name="lokasi_koordinat"]');
+                            if (lokField && gpsStr !== "-") lokField.value = gpsStr;
                         });
                     };
 
@@ -792,77 +797,104 @@
                     div.appendChild(hiddenValInput);
                     div.appendChild(metaInfo);
                 } 
-                else if (currentUser.role === 'SEKOLAH' && (h === 'npsn' || h === 'user_id')) {
-                    input = document.createElement('input');
-                    input.type = "text";
-                    input.name = h;
-                    input.readOnly = true;
-                    input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-blue-300 cursor-not-allowed";
-                    input.value = currentUser.username;
-                } else if (currentUser.role === 'SEKOLAH' && h === 'nama_sekolah') {
-                    input = document.createElement('input');
-                    input.type = "text";
-                    input.name = h;
-                    input.readOnly = true;
-                    input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-blue-300 cursor-not-allowed";
-                    input.value = currentUser.sekolah ? currentUser.sekolah.nama_sekolah : currentUser.nama_pengguna;
-                } else {
-                    if (currentActiveSheet === 'laporan_progres') {
-                        if (h.toLowerCase() === 'id' || h.toLowerCase() === 'id_progres' || h.toLowerCase() === 'laporan_id') {
-                            input = document.createElement('input');
-                            input.type = "text";
-                            input.name = h;
-                            input.readOnly = true;
-                            input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-blue-400 cursor-not-allowed";
-                            input.value = rowData && rowData[h] ? rowData[h] : "PRG-" + currentUser.username + "-" + Math.floor(Date.now() / 1000);
-                        } else if (h.toLowerCase() === 'paket_id') {
-                            input = document.createElement('select');
-                            input.name = h;
-                            input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-                            
-                            let defaultOpt = document.createElement('option');
-                            defaultOpt.value = "";
-                            defaultOpt.innerText = "-- Pilih Paket Pekerjaan SD --";
-                            input.appendChild(defaultOpt);
+                // 2. PAKET PEKERJAAN & OTOMATISASI FIELD
+                else if (currentActiveSheet === 'paket_pekerjaan_sd') {
+                    if (h.toLowerCase() === 'paket_id') {
+                        input = document.createElement('input');
+                        input.type = "text";
+                        input.name = h;
+                        input.readOnly = true;
+                        input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-400 cursor-not-allowed font-bold";
+                        input.value = rowData && rowData[h] ? rowData[h] : "PKT-" + currentUser.username + "-" + Math.floor(Date.now() / 1000);
+                    } else if (h.toLowerCase() === 'nama_menu') {
+                        input = document.createElement('select');
+                        input.name = h;
+                        input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
+                        
+                        let defOpt = document.createElement('option');
+                        defOpt.value = "";
+                        defOpt.innerText = "-- Pilih Menu Pekerjaan --";
+                        input.appendChild(defOpt);
 
-                            paketPekerjaanList.forEach(p => {
-                                let pId = p['paket_id'] || Object.values(p)[1];
-                                let pName = p['nama_menu'] || p['nama_paket'] || '';
-                                let opt = document.createElement('option');
-                                opt.value = pId;
-                                opt.innerText = `${pId} - ${pName}`;
-                                if (rowData && rowData[h] === pId) opt.selected = true;
-                                input.appendChild(opt);
-                            });
-                        } else if (h.toLowerCase() === 'tanggal_lapor') {
-                            input = document.createElement('input');
-                            input.type = "date";
-                            input.name = h;
-                            input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-                            input.value = rowData && rowData[h] ? rowData[h] : new Date().toISOString().split('T')[0];
-                        } else if (h.toLowerCase() === 'target_kurva_s' || h.toLowerCase() === 'realisasi_fisik') {
-                            input = document.createElement('input');
-                            input.type = "number";
-                            input.step = "0.01";
-                            input.max = "100";
-                            input.min = "0";
-                            input.name = h;
-                            input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-                            input.value = rowData ? (rowData[h] !== undefined ? rowData[h] : "") : "";
-                        } else if (h.toLowerCase() === 'penggunaan_anggaran') {
-                            input = document.createElement('input');
-                            input.type = "text";
-                            input.name = h;
-                            input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-                            let rawVal = rowData && rowData[h] !== undefined ? rowData[h] : "";
-                            input.value = rawVal !== "" && !isNaN(rawVal) ? Number(rawVal).toLocaleString('id-ID') : rawVal;
-                        } else {
-                            input = document.createElement('input');
-                            input.type = "text";
-                            input.name = h;
-                            input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-                            input.value = rowData ? (rowData[h] !== undefined ? rowData[h] : "") : "";
-                        }
+                        menuPekerjaanList.forEach(m => {
+                            let mName = m.nama_menu || m.nama || Object.values(m)[0];
+                            let opt = document.createElement('option');
+                            opt.value = mName;
+                            opt.innerText = mName;
+                            if (rowData && rowData[h] === mName) opt.selected = true;
+                            input.appendChild(opt);
+                        });
+                    } else if (h.toLowerCase() === 'pagu') {
+                        input = document.createElement('input');
+                        input.type = "text";
+                        input.name = h;
+                        input.placeholder = "Contoh: 50000 (akan otomatis dipenggal dalam ribuan)";
+                        input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
+                        let rawVal = rowData && rowData[h] !== undefined ? rowData[h] : "";
+                        input.value = rawVal !== "" && !isNaN(rawVal) ? Math.round(Number(rawVal) / 1000) : rawVal;
+                    } else if (h.toLowerCase() === 'tanggal_mulai') {
+                        input = document.createElement('input');
+                        input.type = "date";
+                        input.name = h;
+                        input.id = "inputTanggalMulai";
+                        input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
+                        input.value = rowData && rowData[h] ? rowData[h] : new Date().toISOString().split('T')[0];
+                        
+                        input.onchange = function() {
+                            hitungTanggalSelesai();
+                        };
+                    } else if (h.toLowerCase() === 'lama_hari') {
+                        input = document.createElement('input');
+                        input.type = "number";
+                        input.name = h;
+                        input.id = "inputLamaHari";
+                        input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
+                        input.value = rowData && rowData[h] ? rowData[h] : "90";
+                        
+                        input.oninput = function() {
+                            hitungTanggalSelesai();
+                        };
+                    } else if (h.toLowerCase() === 'tanggal_selesai') {
+                        input = document.createElement('input');
+                        input.type = "date";
+                        input.name = h;
+                        input.id = "inputTanggalSelesai";
+                        input.readOnly = true;
+                        input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-blue-300 cursor-not-allowed";
+                        input.value = rowData && rowData[h] ? rowData[h] : "";
+                        setTimeout(hitungTanggalSelesai, 200);
+                    } else if (h.toLowerCase() === 'perencana' || h.toLowerCase() === 'pengawas') {
+                        input = document.createElement('select');
+                        input.name = h;
+                        input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
+                        
+                        let defOpt = document.createElement('option');
+                        defOpt.value = "";
+                        defOpt.innerText = `-- Pilih ${h.replace(/_/g, ' ')} --`;
+                        input.appendChild(defOpt);
+
+                        usersList.forEach(u => {
+                            let uName = u.nama_pengguna || u.username;
+                            let opt = document.createElement('option');
+                            opt.value = uName;
+                            opt.innerText = uName;
+                            if (rowData && rowData[h] === uName) opt.selected = true;
+                            input.appendChild(opt);
+                        });
+                    } else if (h === 'npsn' || h === 'user_id') {
+                        input = document.createElement('input');
+                        input.type = "text";
+                        input.name = h;
+                        input.readOnly = true;
+                        input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-blue-300 cursor-not-allowed";
+                        input.value = currentUser.username;
+                    } else if (h === 'nama_sekolah') {
+                        input = document.createElement('input');
+                        input.type = "text";
+                        input.name = h;
+                        input.readOnly = true;
+                        input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-blue-300 cursor-not-allowed";
+                        input.value = currentUser.sekolah ? currentUser.sekolah.nama_sekolah : currentUser.nama_pengguna;
                     } else {
                         input = document.createElement('input');
                         input.type = "text";
@@ -870,6 +902,108 @@
                         input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
                         input.value = rowData ? (rowData[h] !== undefined ? rowData[h] : "") : "";
                     }
+                } 
+                // 3. LAPORAN PROGRIS FISIK & RENTANG MINGGUAN
+                else if (currentActiveSheet === 'laporan_progres') {
+                    if (h.toLowerCase() === 'id' || h.toLowerCase() === 'id_progres' || h.toLowerCase() === 'laporan_id') {
+                        input = document.createElement('input');
+                        input.type = "text";
+                        input.name = h;
+                        input.readOnly = true;
+                        input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-400 cursor-not-allowed font-bold";
+                        input.value = rowData && rowData[h] ? rowData[h] : "PRG-" + currentUser.username + "-" + Math.floor(Date.now() / 1000);
+                    } else if (h.toLowerCase() === 'paket_id') {
+                        input = document.createElement('select');
+                        input.name = h;
+                        input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
+                        
+                        let defaultOpt = document.createElement('option');
+                        defaultOpt.value = "";
+                        defaultOpt.innerText = "-- Pilih Paket Pekerjaan --";
+                        input.appendChild(defaultOpt);
+
+                        paketPekerjaanList.forEach(p => {
+                            let pId = p['paket_id'] || Object.values(p)[1];
+                            let pName = p['nama_menu'] || p['nama_paket'] || '';
+                            let opt = document.createElement('option');
+                            opt.value = pId;
+                            opt.innerText = `${pId} - ${pName}`;
+                            if (rowData && rowData[h] === pId) opt.selected = true;
+                            input.appendChild(opt);
+                        });
+                    } else if (h.toLowerCase() === 'minggu_ke') {
+                        input = document.createElement('select');
+                        input.name = h;
+                        input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
+                        
+                        let defOpt = document.createElement('option');
+                        defOpt.value = "";
+                        defOpt.innerText = "-- Pilih Rentang Mingguan (7 Hari) --";
+                        input.appendChild(defOpt);
+
+                        // Generate 24 Minggu rentang 7 harian
+                        for (let w = 1; w <= 24; w++) {
+                            let startDay = (w - 1) * 7 + 1;
+                            let endDay = w * 7;
+                            let labelMinggu = `Minggu ke-${w} (Hari ke-${startDay} s.d. ${endDay})`;
+                            let opt = document.createElement('option');
+                            opt.value = labelMinggu;
+                            opt.innerText = labelMinggu;
+                            if (rowData && rowData[h] === labelMinggu) opt.selected = true;
+                            input.appendChild(opt);
+                        }
+                    } else if (h.toLowerCase() === 'tanggal_lapor') {
+                        input = document.createElement('input');
+                        input.type = "date";
+                        input.name = h;
+                        input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
+                        input.value = rowData && rowData[h] ? rowData[h] : new Date().toISOString().split('T')[0];
+                    } else if (h.toLowerCase() === 'target_kurva' || h.toLowerCase() === 'realisasi_fisik') {
+                        input = document.createElement('input');
+                        input.type = "number";
+                        input.step = "0.01";
+                        input.max = "100";
+                        input.min = "0";
+                        input.name = h;
+                        input.placeholder = "0 - 100 (dilampirkan lambang %)";
+                        input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
+                        let rawVal = rowData && rowData[h] !== undefined ? rowData[h] : "";
+                        input.value = String(rawVal).replace('%', '');
+                    } else if (h.toLowerCase() === 'penggunaan_anggaran') {
+                        input = document.createElement('input');
+                        input.type = "text";
+                        input.name = h;
+                        input.placeholder = "Contoh: 15000 (pemenggalan dalam ribuan)";
+                        input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
+                        let rawVal = rowData && rowData[h] !== undefined ? rowData[h] : "";
+                        input.value = rawVal !== "" && !isNaN(rawVal) ? Math.round(Number(rawVal) / 1000) : rawVal;
+                    } else if (h.toLowerCase() === 'status_verifikasi') {
+                        input = document.createElement('input');
+                        input.type = "text";
+                        input.name = h;
+                        input.readOnly = true;
+                        input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-300 cursor-not-allowed font-bold";
+                        input.value = rowData && rowData[h] ? rowData[h] : "DIAJUKAN";
+                    } else if (h.toLowerCase() === 'user_id') {
+                        input = document.createElement('input');
+                        input.type = "text";
+                        input.name = h;
+                        input.readOnly = true;
+                        input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-blue-300 cursor-not-allowed";
+                        input.value = currentUser.nama_pengguna;
+                    } else {
+                        input = document.createElement('input');
+                        input.type = "text";
+                        input.name = h;
+                        input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
+                        input.value = rowData ? (rowData[h] !== undefined ? rowData[h] : "") : "";
+                    }
+                } else {
+                    input = document.createElement('input');
+                    input.type = "text";
+                    input.name = h;
+                    input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
+                    input.value = rowData ? (rowData[h] !== undefined ? rowData[h] : "") : "";
                 }
 
                 if (!div.contains(input)) {
@@ -880,6 +1014,19 @@
 
             modal.classList.remove('hidden');
             modal.classList.add('flex');
+        }
+
+        function hitungTanggalSelesai() {
+            let tglMulaiEl = document.getElementById('inputTanggalMulai');
+            let lamaHariEl = document.getElementById('inputLamaHari');
+            let tglSelesaiEl = document.getElementById('inputTanggalSelesai');
+
+            if (tglMulaiEl && lamaHariEl && tglSelesaiEl && tglMulaiEl.value) {
+                let startDate = new Date(tglMulaiEl.value);
+                let days = parseInt(lamaHariEl.value) || 0;
+                startDate.setDate(startDate.getDate() + days);
+                tglSelesaiEl.value = startDate.toISOString().split('T')[0];
+            }
         }
 
         function closeModal() {
@@ -919,9 +1066,9 @@
                     let badgeSelisih = "";
                     
                     if (selisih > 0) {
-                        badgeSelisih = `<span class="text-emerald-400 font-bold">+ Rp ${formatRupiah(selisih)} (Naik)</span>`;
+                        badgeSelisih = `<span class="text-emerald-400 font-bold">+ Rp ${formatRibuan(selisih)} rb (Naik)</span>`;
                     } else if (selisih < 0) {
-                        badgeSelisih = `<span class="text-red-400 font-bold">- Rp ${formatRupiah(Math.abs(selisih))} (Turun)</span>`;
+                        badgeSelisih = `<span class="text-red-400 font-bold">- Rp ${formatRibuan(Math.abs(selisih))} rb (Turun)</span>`;
                     } else {
                         badgeSelisih = `<span class="text-blue-300">Tetap</span>`;
                     }
@@ -929,8 +1076,8 @@
                     let row = `<tr class="hover:bg-blue-900/40">
                         <td class="text-center p-2.5">${index + 1}</td>
                         <td class="p-2.5"><small>${item.tanggal || '-'}</small></td>
-                        <td class="text-right p-2.5">Rp ${formatRupiah(paguLama)}</td>
-                        <td class="text-right p-2.5">Rp ${formatRupiah(paguBaru)}</td>
+                        <td class="text-right p-2.5">Rp ${formatRibuan(paguLama)} rb</td>
+                        <td class="text-right p-2.5">Rp ${formatRibuan(paguBaru)} rb</td>
                         <td class="text-center p-2.5">${badgeSelisih}</td>
                         <td class="p-2.5">${item.keterangan || '-'}</td>
                     </tr>`;
@@ -948,8 +1095,8 @@
             modal.classList.remove('flex');
         }
 
-        function formatRupiah(angka) {
-            return Number(angka).toLocaleString('id-ID');
+        function formatRibuan(angka) {
+            return Math.round(Number(angka) / 1000).toLocaleString('id-ID');
         }
 
         function handleFormSubmit(e) {
@@ -960,20 +1107,25 @@
 
             document.querySelectorAll('#formFieldsContainer input, #formFieldsContainer select, #formFieldsContainer textarea').forEach(input => {
                 if(input.name && input.value !== undefined) {
-                    formData[input.name] = input.value;
+                    let val = input.value;
+                    // Konversi nilai ribuan kembali ke nilai penuh rupiah untuk disimpan di database
+                    if (input.name === 'pagu' || input.name === 'penggunaan_anggaran') {
+                        let cleanVal = val.toString().replace(/[^0-9]/g, '');
+                        val = cleanVal ? Number(cleanVal) * 1000 : "";
+                    }
+                    // Lampirkan lambang % pada target kurva / realisasi fisik
+                    if (input.name === 'target_kurva' || input.name === 'realisasi_fisik') {
+                        if (val !== "" && !val.toString().includes('%')) {
+                            val = val + '%';
+                        }
+                    }
+                    formData[input.name] = val;
                 }
             });
 
-            if (formData['pagu']) {
-                formData['pagu'] = formData['pagu'].toString().replace(/[^0-9]/g, '');
-            }
-            if (formData['penggunaan_anggaran']) {
-                formData['penggunaan_anggaran'] = formData['penggunaan_anggaran'].toString().replace(/[^0-9]/g, '');
-            }
-
             if (currentUser.role === 'SEKOLAH') {
                 if (formData['npsn'] !== undefined) formData['npsn'] = currentUser.username;
-                if (formData['user_id'] !== undefined) formData['user_id'] = currentUser.username;
+                if (formData['user_id'] !== undefined) formData['user_id'] = currentUser.nama_pengguna;
             }
 
             let payload = {
