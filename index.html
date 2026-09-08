@@ -942,13 +942,40 @@
                             input.appendChild(opt);
                         });
                     } else if (h.toLowerCase() === 'pagu') {
-                        input = document.createElement('input');
-                        input.type = "number";
-                        input.name = h;
-                        input.placeholder = "Masukkan nominal pagu (misal: 50000000)";
-                        input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
+                        // Implementasi format angka dengan pemenggalan ribuan secara dinamis
                         let rawVal = rowData && rowData[h] !== undefined ? rowData[h] : "";
-                        input.value = rawVal !== "" ? Number(rawVal) : "";
+                        let initialNum = rawVal !== "" ? Number(rawVal) : "";
+
+                        let wrapper = document.createElement('div');
+                        wrapper.className = "relative";
+
+                        input = document.createElement('input');
+                        input.type = "text";
+                        input.name = h;
+                        input.id = "inputPaguFormatted";
+                        input.placeholder = "Masukkan nominal pagu (misal: 50.000.000)";
+                        input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
+                        input.value = initialNum !== "" ? initialNum.toLocaleString('id-ID') : "";
+
+                        let hiddenRealInput = document.createElement('input');
+                        hiddenRealInput.type = "hidden";
+                        hiddenRealInput.id = "inputPaguReal";
+                        hiddenRealInput.name = h;
+                        hiddenRealInput.value = initialNum;
+
+                        // Ubah nama attribute input visual agar tidak konflik saat pengumpulan form data utama
+                        input.removeAttribute('name');
+
+                        input.oninput = function(e) {
+                            let cleanStr = this.value.replace(/[^0-9]/g, '');
+                            let num = cleanStr ? parseInt(cleanStr, 10) : 0;
+                            hiddenRealInput.value = num;
+                            this.value = num > 0 ? num.toLocaleString('id-ID') : "";
+                        };
+
+                        wrapper.appendChild(input);
+                        wrapper.appendChild(hiddenRealInput);
+                        div.appendChild(wrapper);
                     } else if (h.toLowerCase() === 'tanggal_mulai') {
                         input = document.createElement('input');
                         input.type = "date";
@@ -981,16 +1008,14 @@
                         input = document.createElement('input');
                         input.type = "text";
                         input.name = h;
-                        input.readOnly = true;
-                        input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-300 cursor-not-allowed font-bold";
-                        input.value = rowData && rowData[h] ? rowData[h] : (currentUser.perencana || "-");
+                        input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
+                        input.value = rowData && rowData[h] !== undefined ? rowData[h] : (currentUser.perencana || "");
                     } else if (h.toLowerCase() === 'pengawas') {
                         input = document.createElement('input');
                         input.type = "text";
                         input.name = h;
-                        input.readOnly = true;
-                        input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-300 cursor-not-allowed font-bold";
-                        input.value = rowData && rowData[h] ? rowData[h] : (currentUser.pengawas || "-");
+                        input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
+                        input.value = rowData && rowData[h] !== undefined ? rowData[h] : (currentUser.pengawas || "");
                     } else {
                         input = document.createElement('input');
                         input.type = "text";
@@ -1120,14 +1145,19 @@
                     }
                 } 
                 else if (isUserSchoolEditing) {
-                    // Penanganan Form Profil / Users untuk Role SEKOLAH:
-                    // Semua input dikunci (readOnly = true), termasuk perencana dan pengawas agar sekolah tidak dapat mengubahnya secara mandiri.
+                    // Konfigurasi Form Profil / Users untuk Role SEKOLAH:
+                    // Kolom username, nama_pengguna, dan role dikunci, sedangkan perencana & pengawas kini diizinkan untuk diubah.
                     input = document.createElement('input');
                     input.type = "text";
                     input.name = h;
                     input.value = rowData ? (rowData[h] !== undefined ? rowData[h] : "") : "";
-                    input.readOnly = true;
-                    input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-blue-300 cursor-not-allowed";
+                    
+                    if (h.toLowerCase() === 'username' || h.toLowerCase() === 'npsn' || h.toLowerCase() === 'role' || h.toLowerCase() === 'nama_pengguna') {
+                        input.readOnly = true;
+                        input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-blue-300 cursor-not-allowed";
+                    } else {
+                        input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
+                    }
                 }
                 else {
                     input = document.createElement('input');
@@ -1296,9 +1326,6 @@
             }
 
             if (currentUser.role === 'SEKOLAH') {
-                if (currentUser.perencana) formData['perencana'] = currentUser.perencana;
-                if (currentUser.pengawas) formData['pengawas'] = currentUser.pengawas;
-
                 if (currentActiveSheet === 'users') {
                     formData['username'] = currentUser.username;
                 }
