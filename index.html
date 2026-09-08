@@ -1120,18 +1120,14 @@
                     }
                 } 
                 else if (isUserSchoolEditing) {
+                    // Penanganan Form Profil / Users untuk Role SEKOLAH:
+                    // Semua input dikunci (readOnly = true), termasuk perencana dan pengawas agar sekolah tidak dapat mengubahnya secara mandiri.
                     input = document.createElement('input');
                     input.type = "text";
                     input.name = h;
                     input.value = rowData ? (rowData[h] !== undefined ? rowData[h] : "") : "";
-
-                    let lowerH = h.toLowerCase();
-                    if (lowerH !== 'perencana' && lowerH !== 'pengawas') {
-                        input.readOnly = true;
-                        input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-blue-300 cursor-not-allowed";
-                    } else {
-                        input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-                    }
+                    input.readOnly = true;
+                    input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-blue-300 cursor-not-allowed";
                 }
                 else {
                     input = document.createElement('input');
