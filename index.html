@@ -1237,31 +1237,88 @@
             modal.classList.remove('flex');
         }
 
-        function handleFormSubmit(e) {
-            e.preventDefault();
-            let rawRowIndex = document.getElementById('formRowIndex').value;
-            let rowIndex = rawRowIndex ? Number(rawRowIndex) : null;
-            let formData = {};
+async function handleFormSubmit(event) {
+    event.preventDefault();
 
-            document.querySelectorAll('#formFieldsContainer input, #formFieldsContainer select, #formFieldsContainer textarea').forEach(input => {
-                if(input.name && input.value !== undefined) {
-                    let val = input.value;
+    // Ambil elemen tombol simpan
+    let btnSave = document.getElementById('btnSaveModal');
+    
+    // Cek pengaman ganda: Jika tombol sudah disabled, abaikan eksekusi klik susulan
+    if (btnSave.disabled) return;
+
+    // Kumpulkan data form
+    let form = document.getElementById('dataForm');
+    let formData = new FormData(form);
+    let dataObj = {};
+    formData.forEach((value, key) => { dataObj[key] = value; });
+
+    // Tambahkan informasi tambahan jika diperlukan (misal: nama_menu yang dipilih)
+    let selectedMenuInput = String(dataObj['nama_menu'] || '').trim().toLowerCase();
+
+    // Validasi tambahan di sisi klien (opsional sebagai lapis pertama)
+    let alreadyExists = currentData.some(d => 
+        String(d.npsn) === String(currentUser.username) && 
+        String(d.nama_menu).trim().toLowerCase() === selectedMenuInput
+    );
+
+    if (alreadyExists) {
+        Swal.fire('Peringatan', 'Paket pekerjaan ini sudah terdaftar dalam data Anda.', 'warning');
+        return;
+    }
+
+    // --- DI-DISABLE UNTUK MENCEGAH DOUBLE CLICK ---
+    btnSave.disabled = true;
+    let originalBtnText = btnSave.innerText;
+    btnSave.innerText = "Menyimpan...";
+    btnSave.classList.add('opacity-50', 'cursor-not-allowed');
+
+    try {
+        // Kirim data ke backend Google Apps Script
+        let response = await google.script.run
+            .withSuccessHandler(function(response) {
+                // Kembalikan tombol ke keadaan semula
+                btnSave.disabled = false;
+                btnSave.innerText = originalBtnText;
+                btnSave.classList.remove('opacity-50', 'cursor-not-allowed');
+
+                let res = typeof response === 'string' ? JSON.parse(response) : response;
+                
+                if (res.status === "success") {
+                    Swal.fire({
+                        icon: 'Berhasil',
+                        title: 'Sukses',
+                        text: res.pesan,
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
                     
-                    if (input.type === 'date' && val) {
-                        val = convertToDisplayDate(val);
-                    }
-
-                    if (input.name === 'target_kurva_s' || input.name === 'realisasi_fisik') {
-                        if (val !== "" && !val.toString().includes('%')) {
-                            let num = Number(val);
-                            if (num < 0) num = 0;
-                            if (num > 100) num = 100;
-                            val = num + '%';
-                        }
-                    }
-                    formData[input.name] = val;
+                    // Tutup modal & muat ulang data tabel
+                    closeModal();
+                    loadTableData(); 
+                } else {
+                    Swal.fire('Gagal', res.pesan || 'Terjadi kesalahan saat menyimpan data.', 'error');
                 }
-            });
+            })
+            .withFailureHandler(function(error) {
+                // Kembalikan tombol ke keadaan semula jika error
+                btnSave.disabled = false;
+                btnSave.innerText = originalBtnText;
+                btnSave.classList.remove('opacity-50', 'cursor-not-allowed');
+
+                Swal.fire('Error', 'Koneksi gagal: ' + error.message, 'error');
+            })
+            .saveData(null, currentActiveSheet, dataObj); // Sesuaikan parameter pemanggilan fungsi backend Anda
+
+    } catch (err) {
+        // Tangkap error tak terduga
+        btnSave.disabled = false;
+        btnSave.innerText = originalBtnText;
+        btnSave.classList.remove('opacity-50', 'cursor-not-allowed');
+        
+        console.error(err);
+        Swal.fire('Error', 'Terjadi kesalahan sistem.', 'error');
+    }
+}
 
             // VALIDASI SISI KLIEN (Laporan Progres Fisik): Minggu ke-, Target Kurva S, Realisasi Fisik, Penggunaan Anggaran tidak boleh lebih kecil dari minggu sebelumnya
             if (currentActiveSheet === 'laporan_progres') {
