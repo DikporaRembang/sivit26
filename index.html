@@ -465,7 +465,7 @@
 
             menus.forEach(m => {
                 let btn = document.createElement('button');
-                btn.className = "w-full flex items-center space-x-2.5 px-3 py-2 rounded-xl text-left font-semibold text-blue-200 hover:bg-blue-900/60 hover:text-amber-400 transition-all text-xs";
+                btn.className = "w-full flex items-center space-x-2.5 px-3 py-2 rounded-xl text-left font-semibold text-blue-200 hover:bg-blue-900/60 hover:text-amber-400 transition-all text-xs cursor-pointer";
                 btn.innerHTML = `<i class="fa-solid ${m.icon} w-4 text-center"></i><span>${m.name}</span>`;
                 btn.onclick = () => loadTableData(m.sheet, m.name);
                 container.appendChild(btn);
@@ -504,13 +504,13 @@
 
             if (currentUser.role === 'SEKOLAH' && sheetName === 'paket_pekerjaan_sd') {
                 let btnAdd = document.createElement('button');
-                btnAdd.className = "bg-amber-500 hover:bg-amber-400 text-blue-950 font-bold px-3.5 py-1.5 rounded-xl text-xs shadow-xs flex items-center space-x-1.5";
+                btnAdd.className = "bg-amber-500 hover:bg-amber-400 text-blue-950 font-bold px-3.5 py-1.5 rounded-xl text-xs shadow-xs flex items-center space-x-1.5 cursor-pointer";
                 btnAdd.innerHTML = `<i class="fa-solid fa-plus"></i><span>Tambah Paket</span>`;
                 btnAdd.onclick = () => openModalForm();
                 actionBtnContainer.appendChild(btnAdd);
             } else if (currentUser.role === 'SEKOLAH' && sheetName === 'laporan_progres') {
                 let btnAdd = document.createElement('button');
-                btnAdd.className = "bg-amber-500 hover:bg-amber-400 text-blue-950 font-bold px-3.5 py-1.5 rounded-xl text-xs shadow-xs flex items-center space-x-1.5";
+                btnAdd.className = "bg-amber-500 hover:bg-amber-400 text-blue-950 font-bold px-3.5 py-1.5 rounded-xl text-xs shadow-xs flex items-center space-x-1.5 cursor-pointer";
                 btnAdd.innerHTML = `<i class="fa-solid fa-plus"></i><span>Tambah Laporan</span>`;
                 btnAdd.onclick = () => openModalForm();
                 actionBtnContainer.appendChild(btnAdd);
@@ -525,12 +525,10 @@
                     currentHeaders = result.header || [];
                     currentData = result.data || [];
 
-                    // Memperbarui referensi users dan paket secara lokal untuk mapping nama_pengguna
                     if (targetSheet === 'users') {
                         usersList = currentData;
                     }
 
-                    // STRICT FILTER: Jika role SEKOLAH membuka menu Profil & Tim Teknis (users), saring data secara ketat hanya untuk NPSN/username miliknya sendiri
                     if (currentUser.role === 'SEKOLAH' && sheetName === 'users') {
                         currentData = currentData.filter(d => {
                             let npsnVal = String(d.username || d.npsn || '').trim();
@@ -642,13 +640,11 @@
                     td.className = "p-3 text-slate-900 text-xs truncate max-w-xs font-bold";
                     let val = row[h] !== undefined ? row[h] : "";
 
-                    // Tambahan Logika: Format currency Rp untuk PAGU dan PENGGUNAAN ANGGARAN
                     if ((h.toLowerCase() === 'pagu' || h.toLowerCase() === 'pagu_lama' || h.toLowerCase() === 'pagu_baru' || h.toLowerCase() === 'penggunaan_anggaran') && !isNaN(val) && val !== "") {
                         let angkaNum = Number(val);
                         val = "Rp " + angkaNum.toLocaleString('id-ID');
                     }
 
-                    // Tambahan Logika: Keterangan (nama_pengguna sesuai NPSN) pada PAKET ID untuk role DINAS maupun SEKOLAH di sub menu terkait
                     if (h.toLowerCase() === 'paket_id') {
                         let npsnKey = row.npsn || "";
                         let matchedUser = usersList.find(u => String(u.username || u.npsn || '').trim() === String(npsnKey).trim());
@@ -668,20 +664,20 @@
 
                     if (sheetName === 'sekolah_pending') {
                         let btnApprove = document.createElement('button');
-                        btnApprove.className = "px-2.5 py-1 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 rounded-lg text-[11px] font-bold border border-emerald-300";
+                        btnApprove.className = "px-2.5 py-1 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 rounded-lg text-[11px] font-bold border border-emerald-300 cursor-pointer";
                         btnApprove.innerHTML = `<i class="fa-solid fa-check mr-1"></i> Approve`;
                         btnApprove.onclick = () => verifyReg(row.username || row.npsn, 'APPROVED');
                         tdAct.appendChild(btnApprove);
 
                         let btnReject = document.createElement('button');
-                        btnReject.className = "px-2.5 py-1 bg-red-100 hover:bg-red-200 text-red-800 rounded-lg text-[11px] font-bold border border-red-300";
+                        btnReject.className = "px-2.5 py-1 bg-red-100 hover:bg-red-200 text-red-800 rounded-lg text-[11px] font-bold border border-red-300 cursor-pointer";
                         btnReject.innerHTML = `<i class="fa-solid fa-xmark mr-1"></i> Reject`;
                         btnReject.onclick = () => verifyReg(row.username || row.npsn, 'REJECTED');
                         tdAct.appendChild(btnReject);
                     } else {
                         if (sheetName === 'paket_pekerjaan_sd') {
                             let btnRiwayat = document.createElement('button');
-                            btnRiwayat.className = "px-2.5 py-1 bg-cyan-100 hover:bg-cyan-200 text-cyan-900 rounded-lg text-[11px] font-bold border border-cyan-300 mr-1";
+                            btnRiwayat.className = "px-2.5 py-1 bg-cyan-100 hover:bg-cyan-200 text-cyan-900 rounded-lg text-[11px] font-bold border border-cyan-300 mr-1 cursor-pointer";
                             btnRiwayat.innerHTML = `<i class="fa-solid fa-clock-rotate-left mr-1"></i> Riwayat Pagu`;
                             btnRiwayat.onclick = () => bukaRiwayatPagu(row.npsn || currentUser.username, row.paket_id);
                             tdAct.appendChild(btnRiwayat);
@@ -689,14 +685,13 @@
 
                         if (currentUser.role === 'DINAS' && sheetName === 'laporan_progres') {
                             let btnVerif = document.createElement('button');
-                            btnVerif.className = "px-2.5 py-1 bg-amber-100 hover:bg-amber-200 text-amber-900 rounded-lg text-[11px] font-bold border border-amber-300 mr-1";
+                            btnVerif.className = "px-2.5 py-1 bg-amber-100 hover:bg-amber-200 text-amber-900 rounded-lg text-[11px] font-bold border border-amber-300 mr-1 cursor-pointer";
                             btnVerif.innerHTML = `<i class="fa-solid fa-clipboard-check mr-1"></i> Verifikasi`;
                             let idLap = row.id || row.id_progres || Object.values(row)[0];
                             btnVerif.onclick = () => openVerifikasiModal(idLap);
                             tdAct.appendChild(btnVerif);
                         }
 
-                        // VALIDASI KETAT PADA TOMBOL EDIT: Pastikan SEKOLAH hanya memunculkan tombol edit jika baris tersebut benar-benar miliknya
                         let allowEdit = true;
                         if (currentUser.role === 'SEKOLAH' && sheetName === 'users') {
                             let rowIdentifier = String(row.username || row.npsn || "").trim();
@@ -707,7 +702,7 @@
 
                         if (allowEdit) {
                             let btnEdit = document.createElement('button');
-                            btnEdit.className = "px-2.5 py-1 bg-blue-100 hover:bg-blue-200 text-blue-900 rounded-lg text-[11px] font-bold border border-blue-300";
+                            btnEdit.className = "px-2.5 py-1 bg-blue-100 hover:bg-blue-200 text-blue-900 rounded-lg text-[11px] font-bold border border-blue-300 cursor-pointer";
                             btnEdit.innerHTML = `<i class="fa-solid fa-pen-to-square"></i>`;
                             btnEdit.onclick = () => openModalForm(row);
                             tdAct.appendChild(btnEdit);
@@ -715,7 +710,7 @@
 
                         if (currentUser.role === 'DINAS' && sheetName !== 'users') {
                             let btnDel = document.createElement('button');
-                            btnDel.className = "px-2.5 py-1 bg-red-100 hover:bg-red-200 text-red-800 rounded-lg text-[11px] font-bold border border-red-300 ml-1";
+                            btnDel.className = "px-2.5 py-1 bg-red-100 hover:bg-red-200 text-red-800 rounded-lg text-[11px] font-bold border border-red-300 ml-1 cursor-pointer";
                             btnDel.innerHTML = `<i class="fa-solid fa-trash"></i>`;
                             btnDel.onclick = () => deleteRowData(row._rowIndex);
                             tdAct.appendChild(btnDel);
@@ -788,7 +783,6 @@
         }
 
         function openModalForm(rowData = null) {
-            // STRICT PROTECTION: Blokir akses form jika sekolah mencoba membuka form data milik sekolah lain di menu users
             if (currentUser.role === 'SEKOLAH' && currentActiveSheet === 'users' && rowData) {
                 let rowIdentifier = String(rowData.username || rowData.npsn || "").trim();
                 if (rowIdentifier !== String(currentUser.username).trim()) {
@@ -1126,7 +1120,6 @@
                     }
                 } 
                 else if (isUserSchoolEditing) {
-                    // Jika SEKOLAH mengedit Profil & Tim Teknis (users), kunci semua kolom kecuali perencana dan pengawas
                     input = document.createElement('input');
                     input.type = "text";
                     input.name = h;
@@ -1237,90 +1230,20 @@
             modal.classList.remove('flex');
         }
 
-async function handleFormSubmit(event) {
-    event.preventDefault();
+        async function handleFormSubmit(event) {
+            event.preventDefault();
 
-    // Ambil elemen tombol simpan
-    let btnSave = document.getElementById('btnSaveModal');
-    
-    // Cek pengaman ganda: Jika tombol sudah disabled, abaikan eksekusi klik susulan
-    if (btnSave.disabled) return;
+            let btnSave = document.getElementById('btnSaveModal');
+            if (btnSave.disabled) return;
 
-    // Kumpulkan data form
-    let form = document.getElementById('dataForm');
-    let formData = new FormData(form);
-    let dataObj = {};
-    formData.forEach((value, key) => { dataObj[key] = value; });
+            let formInputs = document.querySelectorAll('#dynamicForm [name]');
+            let formData = {};
+            formInputs.forEach(input => {
+                formData[input.name] = input.value;
+            });
 
-    // Tambahkan informasi tambahan jika diperlukan (misal: nama_menu yang dipilih)
-    let selectedMenuInput = String(dataObj['nama_menu'] || '').trim().toLowerCase();
+            let rowIndex = document.getElementById('formRowIndex').value;
 
-    // Validasi tambahan di sisi klien (opsional sebagai lapis pertama)
-    let alreadyExists = currentData.some(d => 
-        String(d.npsn) === String(currentUser.username) && 
-        String(d.nama_menu).trim().toLowerCase() === selectedMenuInput
-    );
-
-    if (alreadyExists) {
-        Swal.fire('Peringatan', 'Paket pekerjaan ini sudah terdaftar dalam data Anda.', 'warning');
-        return;
-    }
-
-    // --- DI-DISABLE UNTUK MENCEGAH DOUBLE CLICK ---
-    btnSave.disabled = true;
-    let originalBtnText = btnSave.innerText;
-    btnSave.innerText = "Menyimpan...";
-    btnSave.classList.add('opacity-50', 'cursor-not-allowed');
-
-    try {
-        // Kirim data ke backend Google Apps Script
-        let response = await google.script.run
-            .withSuccessHandler(function(response) {
-                // Kembalikan tombol ke keadaan semula
-                btnSave.disabled = false;
-                btnSave.innerText = originalBtnText;
-                btnSave.classList.remove('opacity-50', 'cursor-not-allowed');
-
-                let res = typeof response === 'string' ? JSON.parse(response) : response;
-                
-                if (res.status === "success") {
-                    Swal.fire({
-                        icon: 'Berhasil',
-                        title: 'Sukses',
-                        text: res.pesan,
-                        timer: 1500,
-                        showConfirmButton: false
-                    });
-                    
-                    // Tutup modal & muat ulang data tabel
-                    closeModal();
-                    loadTableData(); 
-                } else {
-                    Swal.fire('Gagal', res.pesan || 'Terjadi kesalahan saat menyimpan data.', 'error');
-                }
-            })
-            .withFailureHandler(function(error) {
-                // Kembalikan tombol ke keadaan semula jika error
-                btnSave.disabled = false;
-                btnSave.innerText = originalBtnText;
-                btnSave.classList.remove('opacity-50', 'cursor-not-allowed');
-
-                Swal.fire('Error', 'Koneksi gagal: ' + error.message, 'error');
-            })
-            .saveData(null, currentActiveSheet, dataObj); // Sesuaikan parameter pemanggilan fungsi backend Anda
-
-    } catch (err) {
-        // Tangkap error tak terduga
-        btnSave.disabled = false;
-        btnSave.innerText = originalBtnText;
-        btnSave.classList.remove('opacity-50', 'cursor-not-allowed');
-        
-        console.error(err);
-        Swal.fire('Error', 'Terjadi kesalahan sistem.', 'error');
-    }
-}
-
-            // VALIDASI SISI KLIEN (Laporan Progres Fisik): Minggu ke-, Target Kurva S, Realisasi Fisik, Penggunaan Anggaran tidak boleh lebih kecil dari minggu sebelumnya
             if (currentActiveSheet === 'laporan_progres') {
                 let currMingguStr = formData['minggu_ke'] || "";
                 let matchMinggu = currMingguStr.match(/Minggu\s+ke-(\d+)/i);
@@ -1329,15 +1252,14 @@ async function handleFormSubmit(event) {
 
                 let currTarget = parseFloat(String(formData['target_kurva_s']).replace('%','')) || 0;
                 let currRealisasi = parseFloat(String(formData['realisasi_fisik']).replace('%','')) || 0;
-                let currAnggaran = parseFloat(String(formData['pengggunaan_anggaran'] || formData['penggunaan_anggaran']).replace(/[^0-9.-]+/g,"")) || 0;
+                let currAnggaran = parseFloat(String(formData['penggunaan_anggaran'] || 0).replace(/[^0-9.-]+/g,"")) || 0;
 
                 if (selectedPaketId) {
-                    // Cek duplikasi nomor minggu untuk paket yang sama
                     let sameMingguExist = currentData.some(d => {
                         let dMingguStr = String(d.minggu_ke || "");
                         let dMatch = dMingguStr.match(/Minggu\s+ke-(\d+)/i);
                         let dNum = dMatch ? parseInt(dMatch[1]) : parseInt(dMingguStr) || 0;
-                        let isSameRow = rowIndex ? d._rowIndex === rowIndex : false;
+                        let isSameRow = rowIndex ? Number(d._rowIndex) === Number(rowIndex) : false;
                         return String(d.paket_id) === String(selectedPaketId) && dNum === currMingguNum && !isSameRow;
                     });
 
@@ -1351,26 +1273,21 @@ async function handleFormSubmit(event) {
                             let dMingguStr = String(d.minggu_ke || "");
                             let dMatch = dMingguStr.match(/Minggu\s+ke-(\d+)/i);
                             let dNum = dMatch ? parseInt(dMatch[1]) : parseInt(dMingguStr) || 0;
-                            let isSameRow = rowIndex ? d._rowIndex === rowIndex : false;
+                            let isSameRow = rowIndex ? Number(d._rowIndex) === Number(rowIndex) : false;
                             return String(d.paket_id) === String(selectedPaketId) && dNum === (currMingguNum - 1) && !isSameRow;
                         });
 
                         if (prevData) {
-                            let prevMingguNum = matchMinggu ? parseInt(matchMinggu[1]) : 0;
                             let prevTarget = parseFloat(String(prevData.target_kurva_s || 0).replace('%','')) || 0;
                             let prevRealisasi = parseFloat(String(prevData.realisasi_fisik || 0).replace('%','')) || 0;
                             let prevAnggaran = parseFloat(String(prevData.penggunaan_anggaran || 0).replace(/[^0-9.-]+/g,"")) || 0;
 
-                            if (currMingguNum <= prevMingguNum && !rowIndex) {
-                                alert(`Validasi Gagal: Input Minggu ke-${currMingguNum} tidak boleh lebih kecil atau sama dengan minggu sebelumnya yang sudah tercatat.`);
-                                return;
-                            }
                             if (currTarget < prevTarget) {
-                                alert(`Validasi Gagal: Target Kurva S (${currTarget}%) tidak boleh lebih kecil dari Minggu ke-${currMingguNum - 1} (${prevTarget}%).`);
+                                alert(`Validasi Gagal: Target Kurva S (${currTarget}%) tidak boleh lebih kecil dari minggu sebelumnya (${prevTarget}%).`);
                                 return;
                             }
                             if (currRealisasi < prevRealisasi) {
-                                alert(`Validasi Gagal: Realisasi Fisik (${currRealisasi}%) tidak boleh lebih kecil dari Minggu ke-${currMingguNum - 1} (${prevRealisasi}%).`);
+                                alert(`Validasi Gagal: Realisasi Fisik (${currRealisasi}%) tidak boleh lebih kecil dari minggu sebelumnya (${prevRealisasi}%).`);
                                 return;
                             }
                             if (currAnggaran < prevAnggaran) {
@@ -1408,29 +1325,37 @@ async function handleFormSubmit(event) {
                 action: "saveData",
                 sheet: currentActiveSheet,
                 formData: formData,
-                rowIndex: rowIndex,
+                rowIndex: rowIndex ? Number(rowIndex) : null,
                 role: currentUser.role
             };
 
-            document.getElementById('btnSaveModal').innerText = "Menyimpan...";
+            btnSave.disabled = true;
+            let originalText = btnSave.innerText;
+            btnSave.innerText = "Menyimpan...";
+            btnSave.classList.add('opacity-50', 'cursor-not-allowed');
 
-            fetch(WEB_APP_URL, {
-                method: "POST",
-                body: JSON.stringify(payload)
-            })
-            .then(res => res.json())
-            .then(res => {
-                document.getElementById('btnSaveModal').innerText = "Simpan Data";
-                alert(res.pesan);
-                if(res.status === 'success') {
+            try {
+                let res = await fetch(WEB_APP_URL, {
+                    method: "POST",
+                    body: JSON.stringify(payload)
+                });
+                let data = await res.json();
+                
+                btnSave.disabled = false;
+                btnSave.innerText = originalText;
+                btnSave.classList.remove('opacity-50', 'cursor-not-allowed');
+
+                alert(data.pesan);
+                if(data.status === 'success') {
                     closeModal();
                     loadTableData(currentActiveSheet);
                 }
-            })
-            .catch(err => {
-                document.getElementById('btnSaveModal').innerText = "Simpan Data";
+            } catch (err) {
+                btnSave.disabled = false;
+                btnSave.innerText = originalText;
+                btnSave.classList.remove('opacity-50', 'cursor-not-allowed');
                 alert("Kesalahan jaringan saat menyimpan data.");
-            });
+            }
         }
 
         function deleteRowData(rowIndex) {
