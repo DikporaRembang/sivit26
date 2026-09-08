@@ -256,7 +256,7 @@
         </div>
     </div>
 
-<!-- ================= SCRIPT UTAMA ================= -->
+<!-- ================= SCRIPT UTAMA & BACKEND APPS SCRIPT ================= -->
     <script>
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyDwVmyL6P6lsA0DItJWhWlFZ7z-JNS82tWidwTdpbxCo0n4gQE-KAQe0z0It0nGMJmnQ/exec";
         
@@ -942,7 +942,6 @@
                             input.appendChild(opt);
                         });
                     } else if (h.toLowerCase() === 'pagu') {
-                        // Implementasi format angka dengan pemenggalan ribuan secara dinamis
                         let rawVal = rowData && rowData[h] !== undefined ? rowData[h] : "";
                         let initialNum = rawVal !== "" ? Number(rawVal) : "";
 
@@ -963,7 +962,6 @@
                         hiddenRealInput.name = h;
                         hiddenRealInput.value = initialNum;
 
-                        // Ubah nama attribute input visual agar tidak konflik saat pengumpulan form data utama
                         input.removeAttribute('name');
 
                         input.oninput = function(e) {
@@ -1145,8 +1143,6 @@
                     }
                 } 
                 else if (isUserSchoolEditing) {
-                    // Konfigurasi Form Profil / Users untuk Role SEKOLAH:
-                    // Kolom username, nama_pengguna, dan role dikunci, sedangkan perencana & pengawas kini diizinkan untuk diubah.
                     input = document.createElement('input');
                     input.type = "text";
                     input.name = h;
