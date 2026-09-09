@@ -79,7 +79,7 @@
             <div class="mt-6 pt-5 border-t border-blue-800/80 flex flex-col items-center text-center">
                 <img src="logopendidikan.png" alt="Logo Kemendikdasmen RI" class="w-10 h-10 object-contain mb-2 drop-shadow-md">
                 <p class="text-[10px] text-blue-200/90 leading-relaxed font-normal animate-pulse">
-                    Revitalisasi Satuan Pendidikan Sekolah Dasar (SD) adalah program strategis Kementerian Pendidikan Dasar dan Menengah (Kemendikdasmen) sesuai dengan Instruksi Presiden untuk meningkatkan kualitas layanan pendidikan melalui pembenahan sarana dan prasarana sekolah.
+                    Revitalisasi Satuan Pendidikan Sekolah Dasar (SD) adalah program strategis Kementerian Pendidikan Dasar dan Menengah (Kemendikdasmen).
                 </p>
             </div>
         </div>
@@ -256,7 +256,7 @@
         </div>
     </div>
 
-<!-- ================= SCRIPT UTAMA & BACKEND APPS SCRIPT ================= -->
+<!-- ================= SCRIPT UTAMA ================= -->
     <script>
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxhzME8s-mk9xOJBokxK6VXXjdictBvP_LT-AF2w5I6l0jquU6k3w5V3gRNEZjlRA-zrw/exec";
         
@@ -275,17 +275,6 @@
                 let parts = val.split('/');
                 if (parts.length === 3) {
                     return `${parts[2]}-${parts[1]}-${parts[0]}`;
-                }
-            }
-            return val;
-        }
-
-        function convertToDisplayDate(val) {
-            if (!val) return "";
-            if (val.includes('-')) {
-                let parts = val.split('T')[0].split('-');
-                if (parts.length === 3) {
-                    return `${parts[2]}/${parts[1]}/${parts[0]}`;
                 }
             }
             return val;
@@ -874,7 +863,7 @@
                     let manualFallbackContainer = document.createElement('div');
                     manualFallbackContainer.className = "hidden mt-2 p-2 bg-amber-950/40 border border-amber-500/40 rounded-lg text-[11px] text-amber-200 space-y-1";
                     manualFallbackContainer.innerHTML = `
-                        <p class="font-bold"><i class="fa-solid triangle-exclamation"></i> Metadata EXIF GPS/Tanggal tidak ditemukan pada foto ini.</p>
+                        <p class="font-bold"><i class="fa-solid fa-triangle-exclamation"></i> Metadata EXIF GPS/Tanggal tidak ditemukan pada foto ini.</p>
                         <p>Silakan masukkan koordinat GPS secara manual (Contoh: -6.69123, 111.34123):</p>
                         <input type="text" id="manualGpsInput" placeholder="Latitude, Longitude" class="w-full px-2 py-1 bg-blue-950 border border-amber-500/50 rounded text-white text-xs">
                     `;
@@ -970,21 +959,8 @@
                         defOpt.innerText = "-- Pilih Menu Pekerjaan --";
                         input.appendChild(defOpt);
 
-                        let existingMenus = [];
-                        if (!rowData && currentUser.role === 'SEKOLAH') {
-                            existingMenus = currentData
-                                .filter(d => String(d.npsn) === String(currentUser.username))
-                                .map(d => String(d.nama_menu).trim().toLowerCase());
-                        }
-
                         menuPekerjaanList.forEach(m => {
                             let mName = m.nama_menu || Object.values(m)[1];
-                            let mNameLower = String(mName).trim().toLowerCase();
-
-                            if (currentUser.role === 'SEKOLAH' && !rowData && existingMenus.includes(mNameLower)) {
-                                return;
-                            }
-
                             let opt = document.createElement('option');
                             opt.value = mName;
                             opt.innerText = mName;
@@ -1000,9 +976,8 @@
 
                         input = document.createElement('input');
                         input.type = "text";
-                        input.name = h;
                         input.id = "inputPaguFormatted";
-                        input.placeholder = "Masukkan nominal pagu (misal: 50.000.000)";
+                        input.placeholder = "Masukkan nominal pagu";
                         input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
                         input.value = initialNum !== "" ? initialNum.toLocaleString('id-ID') : "";
 
@@ -1012,9 +987,7 @@
                         hiddenRealInput.name = h;
                         hiddenRealInput.value = initialNum;
 
-                        input.removeAttribute('name');
-
-                        input.oninput = function(e) {
+                        input.oninput = function() {
                             let cleanStr = this.value.replace(/[^0-9]/g, '');
                             let num = cleanStr ? parseInt(cleanStr, 10) : 0;
                             hiddenRealInput.value = num;
@@ -1030,8 +1003,7 @@
                         input.name = h;
                         input.id = "inputTanggalMulai";
                         input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-                        let rawDate = rowData && rowData[h] ? rowData[h] : new Date().toISOString().split('T')[0];
-                        input.value = convertToInputDate(rawDate);
+                        input.value = convertToInputDate(rowData && rowData[h] ? rowData[h] : new Date().toISOString().split('T')[0]);
                         input.onchange = hitungTanggalSelesai;
                     } else if (h.toLowerCase() === 'lama_hari') {
                         input = document.createElement('input');
@@ -1048,22 +1020,14 @@
                         input.id = "inputTanggalSelesai";
                         input.readOnly = true;
                         input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-blue-300 cursor-not-allowed";
-                        let rawDate = rowData && rowData[h] ? rowData[h] : "";
-                        input.value = convertToInputDate(rawDate);
+                        input.value = convertToInputDate(rowData && rowData[h] ? rowData[h] : "");
                         setTimeout(hitungTanggalSelesai, 200);
-                    } 
-                    else if (h.toLowerCase() === 'perencana') {
+                    } else if (h.toLowerCase() === 'perencana' || h.toLowerCase() === 'pengawas') {
                         input = document.createElement('input');
                         input.type = "text";
                         input.name = h;
                         input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-                        input.value = rowData && rowData[h] !== undefined ? rowData[h] : (currentUser.perencana || "");
-                    } else if (h.toLowerCase() === 'pengawas') {
-                        input = document.createElement('input');
-                        input.type = "text";
-                        input.name = h;
-                        input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-                        input.value = rowData && rowData[h] !== undefined ? rowData[h] : (currentUser.pengawas || "");
+                        input.value = rowData && rowData[h] !== undefined ? rowData[h] : (currentUser[h] || "");
                     } else {
                         input = document.createElement('input');
                         input.type = "text";
@@ -1108,7 +1072,7 @@
                         
                         let defOpt = document.createElement('option');
                         defOpt.value = "";
-                        defOpt.innerText = "-- Pilih Rentang Minggu (DD/MM/YYYY) --";
+                        defOpt.innerText = "-- Pilih Rentang Minggu --";
                         input.appendChild(defOpt);
 
                         let baseDate = new Date(2026, 0, 5);
@@ -1133,8 +1097,7 @@
                         input.type = "date";
                         input.name = h;
                         input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-                        let rawDate = rowData && rowData[h] ? rowData[h] : new Date().toISOString().split('T')[0];
-                        input.value = convertToInputDate(rawDate);
+                        input.value = convertToInputDate(rowData && rowData[h] ? rowData[h] : new Date().toISOString().split('T')[0]);
                     } else if (h.toLowerCase() === 'target_kurva_s' || h.toLowerCase() === 'realisasi_fisik') {
                         input = document.createElement('input');
                         input.type = "number";
@@ -1142,10 +1105,9 @@
                         input.max = "100";
                         input.min = "0";
                         input.name = h;
-                        input.placeholder = "Masukkan nilai (0 - 100)";
+                        input.placeholder = "0 - 100";
                         input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-                        let rawVal = rowData && rowData[h] !== undefined ? rowData[h] : "";
-                        input.value = String(rawVal).replace('%', '');
+                        input.value = rowData && rowData[h] !== undefined ? String(rowData[h]).replace('%', '') : "";
                     } else if (h.toLowerCase() === 'tanggal_upload') {
                         input = document.createElement('input');
                         input.type = "text";
@@ -1153,23 +1115,21 @@
                         input.readOnly = true;
                         input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-300 cursor-not-allowed";
                         let now = new Date();
-                        let defaultCurrDate = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
-                        input.value = rowData && rowData[h] ? rowData[h] : defaultCurrDate;
+                        input.value = rowData && rowData[h] ? rowData[h] : `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
                     } else if (h.toLowerCase() === 'lokasi_koordinat') {
                         input = document.createElement('input');
                         input.type = "text";
                         input.name = h;
                         input.readOnly = true;
                         input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-300 cursor-not-allowed";
-                        input.value = rowData && rowData[h] ? rowData[h] : "Otomatis dari metadata foto atau isi manual...";
+                        input.value = rowData && rowData[h] ? rowData[h] : "Otomatis dari metadata foto...";
                     } else if (h.toLowerCase() === 'penggunaan_anggaran') {
                         input = document.createElement('input');
                         input.type = "number";
                         input.name = h;
-                        input.placeholder = "Masukkan nominal penggunaan anggaran";
+                        input.placeholder = "Nominal anggaran";
                         input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-                        let rawVal = rowData && rowData[h] !== undefined ? rowData[h] : "";
-                        input.value = rawVal !== "" ? Number(rawVal) : "";
+                        input.value = rowData && rowData[h] !== undefined ? Number(rowData[h]) : "";
                     } else if (h.toLowerCase() === 'status_verifikasi') {
                         input = document.createElement('input');
                         input.type = "text";
@@ -1257,7 +1217,7 @@
                 tbody.innerHTML = "";
                 
                 if (filtered.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-blue-300 py-4">Belum ada riwayat perubahan pagu untuk paket ini.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-blue-300 py-4">Belum ada riwayat perubahan pagu.</td></tr>';
                     document.getElementById('infoNamaSekolah').innerText = "NPSN: " + npsn;
                     document.getElementById('infoNamaMenu').innerText = "Paket ID: " + paketId;
                     return;
@@ -1315,80 +1275,6 @@
             });
 
             let rowIndex = document.getElementById('formRowIndex').value;
-
-            if (currentActiveSheet === 'laporan_progres') {
-                let currMingguStr = formData['minggu_ke'] || "";
-                let matchMinggu = currMingguStr.match(/Minggu\s+ke-(\d+)/i);
-                let currMingguNum = matchMinggu ? parseInt(matchMinggu[1]) : parseInt(currMingguStr) || 0;
-                let selectedPaketId = formData['paket_id'];
-
-                let currTarget = parseFloat(String(formData['target_kurva_s']).replace('%','')) || 0;
-                let currRealisasi = parseFloat(String(formData['realisasi_fisik']).replace('%','')) || 0;
-                let currAnggaran = parseFloat(String(formData['penggunaan_anggaran'] || 0).replace(/[^0-9.-]+/g,"")) || 0;
-
-                if (selectedPaketId) {
-                    let sameMingguExist = currentData.some(d => {
-                        let dMingguStr = String(d.minggu_ke || "");
-                        let dMatch = dMingguStr.match(/Minggu\s+ke-(\d+)/i);
-                        let dNum = dMatch ? parseInt(dMatch[1]) : parseInt(dMingguStr) || 0;
-                        let isSameRow = rowIndex ? Number(d._rowIndex) === Number(rowIndex) : false;
-                        return String(d.paket_id) === String(selectedPaketId) && dNum === currMingguNum && !isSameRow;
-                    });
-
-                    if (sameMingguExist) {
-                        alert(`Validasi Gagal: Laporan untuk Minggu ke-${currMingguNum} pada paket ini sudah pernah diinput sebelumnya.`);
-                        return;
-                    }
-
-                    if (currMingguNum > 1) {
-                        let prevData = currentData.find(d => {
-                            let dMingguStr = String(d.minggu_ke || "");
-                            let dMatch = dMingguStr.match(/Minggu\s+ke-(\d+)/i);
-                            let dNum = dMatch ? parseInt(dMatch[1]) : parseInt(dMingguStr) || 0;
-                            let isSameRow = rowIndex ? Number(d._rowIndex) === Number(rowIndex) : false;
-                            return String(d.paket_id) === String(selectedPaketId) && dNum === (currMingguNum - 1) && !isSameRow;
-                        });
-
-                        if (prevData) {
-                            let prevTarget = parseFloat(String(prevData.target_kurva_s || 0).replace('%','')) || 0;
-                            let prevRealisasi = parseFloat(String(prevData.realisasi_fisik || 0).replace('%','')) || 0;
-                            let prevAnggaran = parseFloat(String(prevData.penggunaan_anggaran || 0).replace(/[^0-9.-]+/g,"")) || 0;
-
-                            if (currTarget < prevTarget) {
-                                alert(`Validasi Gagal: Target Kurva S (${currTarget}%) tidak boleh lebih kecil dari minggu sebelumnya (${prevTarget}%).`);
-                                return;
-                            }
-                            if (currRealisasi < prevRealisasi) {
-                                alert(`Validasi Gagal: Realisasi Fisik (${currRealisasi}%) tidak boleh lebih kecil dari minggu sebelumnya (${prevRealisasi}%).`);
-                                return;
-                            }
-                            if (currAnggaran < prevAnggaran) {
-                                alert(`Validasi Gagal: Penggunaan Anggaran (Rp ${currAnggaran.toLocaleString('id-ID')}) tidak boleh lebih kecil dari minggu sebelumnya (Rp ${prevAnggaran.toLocaleString('id-ID')}).`);
-                                return;
-                            }
-                        }
-                    }
-                }
-            }
-
-            if (currentUser.role === 'SEKOLAH') {
-                if (currentActiveSheet === 'users') {
-                    formData['username'] = currentUser.username;
-                }
-
-                if (currentActiveSheet === 'paket_pekerjaan_sd' && !rowIndex && formData['nama_menu']) {
-                    let selectedMenuInput = String(formData['nama_menu']).trim().toLowerCase();
-                    let alreadyExists = currentData.some(d => 
-                        String(d.npsn) === String(currentUser.username) && 
-                        String(d.nama_menu).trim().toLowerCase() === selectedMenuInput
-                    );
-
-                    if (alreadyExists) {
-                        alert("Menu pekerjaan sudah ada, coba isi menu pekerjaan yang lain");
-                        return;
-                    }
-                }
-            }
 
             let payload = {
                 action: "saveData",
