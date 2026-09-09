@@ -178,7 +178,7 @@
                 </div>
 
                 <div id="kurvaSContainer" class="hidden mb-6 p-4 bg-slate-50 rounded-xl border border-slate-200">
-                    <h4 class="font-bold text-sm text-slate-800 mb-3"><i class="fa-solid fa-chart-line text-blue-900 mr-2"></i> Grafik Kurva S Progres Fisik</h4>
+                    <h4 class="font-bold text-sm text-slate-800 mb-3"><i class="fa-solid fa-chart-line text-blue-900 mr-2"></i> Grafik Kurva S (Progres Fisik, Target, & Anggaran %)</h4>
                     <div class="relative h-72 w-full">
                         <canvas id="chartKurvaS"></canvas>
                     </div>
@@ -539,6 +539,8 @@
         let kurvaEl = document.getElementById('kurvaSContainer');
         if (sheetName === 'kurva_s') {
             kurvaEl.classList.remove('hidden');
+            await loadReferenceTables(); // Pastikan paketPekerjaanList ter-update
+            renderKurvaSChart();
         } else {
             kurvaEl.classList.add('hidden');
         }
@@ -590,11 +592,6 @@
                 }
 
                 renderTable(currentHeaders, currentData, sheetName);
-
-                // Integrasi pemanggilan render kurva S setelah data sukses ditarik
-                if (sheetName === 'kurva_s') {
-                    renderKurvaSChart();
-                }
             } else {
                 bodyEl.innerHTML = `<tr><td colspan="10" class="text-center p-4 text-red-500 text-xs">${result.message || 'Gagal memuat data'}</td></tr>`;
             }
@@ -610,6 +607,19 @@
         let labels = currentData.map(d => d.minggu_ke || d.tanggal_lapor || 'Minggu');
         let targetData = currentData.map(d => Number(String(d.target_kurva_s || 0).replace('%','')) || 0);
         let realisasiData = currentData.map(d => Number(String(d.realisasi_fisik || 0).replace('%','')) || 0);
+        
+        // Menghitung persentase penggunaan anggaran berdasarkan pagu terakhir di paket_pekerjaan_sd
+        let anggaranPersenData = currentData.map(d => {
+            let pId = String(d.paket_id || '').trim();
+            let matchedPaket = paketPekerjaanList.find(p => String(p.paket_id || p.id_paket || '').trim() === pId);
+            let paguPekerjaan = matchedPaket ? (Number(matchedPaket.pagu) || 0) : 0;
+            let penggunaan = Number(d.penggunaan_anggaran) || 0;
+            
+            if (paguPekerjaan > 0) {
+                return Number(((penggunaan / paguPekerjaan) * 100).toFixed(2));
+            }
+            return 0;
+        });
 
         chartKurvaSInstance = new Chart(ctx, {
             type: 'line',
@@ -622,7 +632,7 @@
                         borderColor: 'rgb(59, 130, 246)',
                         backgroundColor: 'rgba(59, 130, 246, 0.1)',
                         tension: 0.3,
-                        fill: true
+                        fill: false
                     },
                     {
                         label: 'Realisasi Fisik (%)',
@@ -630,7 +640,15 @@
                         borderColor: 'rgb(245, 158, 11)',
                         backgroundColor: 'rgba(245, 158, 11, 0.1)',
                         tension: 0.3,
-                        fill: true
+                        fill: false
+                    },
+                    {
+                        label: 'Penggunaan Anggaran (%)',
+                        data: anggaranPersenData.length ? anggaranPersenData : [0, 20, 50, 85],
+                        borderColor: 'rgb(16, 185, 129)',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        tension: 0.3,
+                        fill: false
                     }
                 ]
             },
