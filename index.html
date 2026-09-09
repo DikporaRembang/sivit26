@@ -258,7 +258,7 @@
 
 <!-- ================= SCRIPT UTAMA ================= -->
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwq3_cRxyBkmPWSHYATACRfBVo4edn32S5-T2w3t6yiil8pOJaUUEstZ1v2wl69F1BthQ/exec";
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwb3ciN6M8aSEqDBJyiqJ7waq85aK_Rzf5rNoj3zAZyGXofo0LZh9JA2YCNsk6fvp3W/exec";
         
         let currentUser = null;
         let currentActiveSheet = '';
@@ -336,7 +336,7 @@
                 let res = await fetch(`${WEB_APP_URL}?action=login&username=${encodeURIComponent(u)}&password=${encodeURIComponent(p)}`);
                 let data = await res.json();
                 if (data.status === 'success') {
-                    currentUser = data;
+                    currentUser = data.data;
                     localStorage.setItem('sivit_user', JSON.stringify(currentUser));
                     initDashboard();
                 } else {
