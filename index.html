@@ -40,8 +40,8 @@
 
             <form id="formLogin" onsubmit="handleLogin(event)" class="space-y-4">
                 <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-blue-200 mb-1">Username / NPSN</label>
-                    <input type="text" id="loginUser" required class="w-full px-3.5 py-2.5 border border-blue-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400 text-sm bg-blue-950/50 text-white">
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-blue-200 mb-1">NPSN / Username</label>
+                    <input type="text" id="loginUser" required placeholder="Masukkan NPSN..." class="w-full px-3.5 py-2.5 border border-blue-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400 text-sm bg-blue-950/50 text-white">
                 </div>
                 <div>
                     <label class="block text-xs font-semibold uppercase tracking-wider text-blue-200 mb-1">Password</label>
@@ -57,7 +57,7 @@
 
             <form id="formRegister" onsubmit="handleRegister(event)" class="space-y-4 hidden">
                 <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-blue-200 mb-1">NPSN Sekolah</label>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-blue-200 mb-1">NPSN Sekolah (ID Utama)</label>
                     <input type="text" id="regNpsn" required placeholder="Masukkan NPSN resmi..." class="w-full px-3.5 py-2.5 border border-blue-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400 text-sm bg-blue-950/50 text-white">
                 </div>
                 <div>
@@ -132,7 +132,7 @@
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-xs">
                         <div>
-                            <p class="text-slate-300 font-bold uppercase text-[10px]">NPSN</p>
+                            <p class="text-slate-300 font-bold uppercase text-[10px]">NPSN (ID)</p>
                             <p class="font-extrabold text-white mt-0.5 text-sm" id="cardNpsn">-</p>
                         </div>
                         <div>
@@ -258,7 +258,7 @@
 
 <!-- ================= SCRIPT UTAMA ================= -->
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzrrs7lhmFl4Sqgwic4cG69oDwPpUtOOtVGBDmlo0L_P5whogVA6POliwbplVmUTJPHwg/exec";
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzzLoikWLzaVCv_VBH1gTUrDYqhf4NngZiyjBNobCWJ-TPb5295qRBCa6MsQY8AU5kgXw/exec";
         
         let currentUser = null;
         let currentActiveSheet = '';
@@ -411,11 +411,11 @@
             document.getElementById('authContainer').classList.add('hidden');
             document.getElementById('dashboardContainer').classList.remove('hidden');
             document.getElementById('userNameDisplay').innerText = currentUser.nama_pengguna;
-            document.getElementById('userNpsnDisplay').innerText = "Role: " + currentUser.role + (currentUser.username ? " | " + currentUser.username : "");
+            document.getElementById('userNpsnDisplay').innerText = "NPSN/ID: " + currentUser.username + " | Role: " + currentUser.role;
 
             if (currentUser.role === 'SEKOLAH' && currentUser.sekolah) {
                 document.getElementById('sekolahIdentitasCard').classList.remove('hidden');
-                document.getElementById('cardNpsn').innerText = currentUser.sekolah.npsn || '-';
+                document.getElementById('cardNpsn').innerText = currentUser.sekolah.npsn || currentUser.username || '-';
                 document.getElementById('cardNamaSekolah').innerText = currentUser.sekolah.nama_sekolah || '-';
                 document.getElementById('cardKecamatan').innerText = currentUser.sekolah.kecamatan || '-';
                 document.getElementById('cardAlamat').innerText = currentUser.sekolah.alamat_lengkap || '-';
@@ -444,7 +444,6 @@
                     { name: 'Manajemen User', sheet: 'users', icon: 'fa-users-gear' }
                 ];
             } else {
-                // Menu khusus SEKOLAH yang sudah dipisahkan fungsionalitasnya
                 menus = [
                     { name: 'Paket Pekerjaan Saya', sheet: 'paket_pekerjaan_sd', icon: 'fa-box' },
                     { name: 'Laporan Progres Fisik', sheet: 'laporan_progres', icon: 'fa-clipboard-list' },
