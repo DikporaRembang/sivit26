@@ -258,7 +258,7 @@
 
 <!-- ================= SCRIPT UTAMA & BACKEND APPS SCRIPT ================= -->
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxXYZeizfMmJ_ILvETAsuHOUrDvJ8PIQBT3wnUBg46xy13cAtdMsITTcP7RcNobOa6JHg/exec";
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxhzME8s-mk9xOJBokxK6VXXjdictBvP_LT-AF2w5I6l0jquU6k3w5V3gRNEZjlRA-zrw/exec";
         
         let currentUser = null;
         let currentActiveSheet = '';
@@ -700,7 +700,6 @@
                             }
                         }
 
-                        // Penguncian di Frontend jika laporan sudah APPROVED oleh Dinas
                         if (currentUser.role === 'SEKOLAH' && sheetName === 'laporan_progres') {
                             if (String(row.status_verifikasi) === 'APPROVED') {
                                 allowEdit = false;
@@ -850,7 +849,6 @@
                     metaInfo.id = "metaInfo_" + h;
                     metaInfo.innerText = rowData && rowData[h] ? "File tersimpan: " + rowData[h] : "Belum ada foto dipilih (Metadata EXIF tanggal & GPS akan otomatis diekstrak).";
 
-                    // Fallback EXIF input manual container jika metadata tidak ditemukan
                     let manualFallbackContainer = document.createElement('div');
                     manualFallbackContainer.className = "hidden mt-2 p-2 bg-amber-950/40 border border-amber-500/40 rounded-lg text-[11px] text-amber-200 space-y-1";
                     manualFallbackContainer.innerHTML = `
@@ -1370,13 +1368,13 @@
                 }
             }
 
-let payload = {
+            let payload = {
                 action: "saveData",
                 sheet: currentActiveSheet,
                 formData: formData,
                 rowIndex: rowIndex ? Number(rowIndex) : null,
                 role: currentUser.role,
-                role_npsn: currentUser.username // <-- Tambahan baris ini
+                role_npsn: currentUser.username
             };
 
             btnSave.disabled = true;
@@ -1406,6 +1404,7 @@ let payload = {
                 btnSave.classList.remove('opacity-50', 'cursor-not-allowed');
                 alert("Kesalahan jaringan saat menyimpan data.");
             }
+        }
             
         function deleteRowData(rowIndex) {
             if(!confirm("Yakin ingin menghapus baris data ini?")) return;
