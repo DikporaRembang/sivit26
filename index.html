@@ -1370,12 +1370,13 @@
                 }
             }
 
-            let payload = {
+let payload = {
                 action: "saveData",
                 sheet: currentActiveSheet,
                 formData: formData,
                 rowIndex: rowIndex ? Number(rowIndex) : null,
-                role: currentUser.role
+                role: currentUser.role,
+                role_npsn: currentUser.username // <-- Tambahan baris ini
             };
 
             btnSave.disabled = true;
@@ -1405,8 +1406,7 @@
                 btnSave.classList.remove('opacity-50', 'cursor-not-allowed');
                 alert("Kesalahan jaringan saat menyimpan data.");
             }
-        }
-
+            
         function deleteRowData(rowIndex) {
             if(!confirm("Yakin ingin menghapus baris data ini?")) return;
 
