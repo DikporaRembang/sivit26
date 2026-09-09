@@ -96,6 +96,24 @@
                 </div>
             </div>
             <div class="flex items-center space-x-4">
+                <!-- Dropdown Notifikasi In-App -->
+                <div class="relative">
+                    <button onclick="toggleNotifDropdown()" class="relative p-2 bg-blue-900 hover:bg-blue-800 text-amber-400 rounded-lg text-xs transition-colors border border-blue-800 cursor-pointer">
+                        <i class="fa-solid fa-bell text-sm"></i>
+                        <span id="notifBadge" class="absolute -top-1 -right-1 bg-red-600 text-white font-bold text-[9px] px-1.5 py-0.2 rounded-full hidden">0</span>
+                    </button>
+                    <!-- Panel Dropdown Notifikasi -->
+                    <div id="notifDropdown" class="absolute right-0 mt-2 w-72 sm:w-80 bg-blue-900 border border-amber-400/40 rounded-xl shadow-2xl hidden z-50 text-white">
+                        <div class="p-3 border-b border-blue-800 flex justify-between items-center">
+                            <span class="font-bold text-xs text-amber-400"><i class="fa-solid fa-bell mr-1"></i> Notifikasi Sistem</span>
+                            <span class="text-[10px] text-blue-300">Pusat Informasi</span>
+                        </div>
+                        <div id="notifListContainer" class="max-h-64 overflow-y-auto divide-y divide-blue-800/60 text-xs">
+                            <div class="p-3 text-center text-blue-300">Memuat notifikasi...</div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="text-right hidden sm:block">
                     <p class="text-xs font-bold text-white" id="userNameDisplay">-</p>
                     <p class="text-[11px] text-amber-300 font-bold" id="userNpsnDisplay">-</p>
@@ -311,6 +329,48 @@
             }
         }
 
+        // Fungsi Toggle Dropdown Notifikasi In-App
+        function toggleNotifDropdown() {
+            let dropdown = document.getElementById('notifDropdown');
+            dropdown.classList.toggle('hidden');
+        }
+
+        // Fungsi Memuat Notifikasi dari Backend (Nomor 1)
+        function loadNotifikasi(penerima) {
+            let container = document.getElementById('notifListContainer');
+            fetch(`${WEB_APP_URL}?action=getNotifikasi&penerima=${encodeURIComponent(penerima)}`)
+                .then(res => res.json())
+                .then(response => {
+                    if(response.status === 'success') {
+                        let listNotif = response.data || [];
+                        let badge = document.getElementById('notifBadge');
+                        
+                        if (listNotif.length > 0) {
+                            badge.innerText = listNotif.length;
+                            badge.classList.remove('hidden');
+                            
+                            container.innerHTML = "";
+                            listNotif.reverse().forEach(n => {
+                                let div = document.createElement('div');
+                                div.className = "p-3 hover:bg-blue-800/40 transition-colors";
+                                div.innerHTML = `
+                                    <p class="text-blue-100 font-medium mb-1">${n.pesan}</p>
+                                    <span class="text-[9px] text-amber-300 font-semibold"><i class="fa-regular fa-clock mr-1"></i>${n.waktu || '-'}</span>
+                                `;
+                                container.appendChild(div);
+                            });
+                        } else {
+                            badge.classList.add('hidden');
+                            container.innerHTML = `<div class="p-4 text-center text-blue-300">Tidak ada notifikasi baru.</div>`;
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error("Gagal memuat notifikasi", error);
+                    container.innerHTML = `<div class="p-4 text-center text-red-400">Gagal memuat notifikasi.</div>`;
+                });
+        }
+
         document.getElementById('regNpsn').addEventListener('blur', function() {
             let npsn = this.value.trim();
             if (!npsn) return;
@@ -412,6 +472,10 @@
             document.getElementById('dashboardContainer').classList.remove('hidden');
             document.getElementById('userNameDisplay').innerText = currentUser.nama_pengguna;
             document.getElementById('userNpsnDisplay').innerText = "NPSN/ID: " + currentUser.username + " | Role: " + currentUser.role;
+
+            // Pemanggilan otomatis fungsi loadNotifikasi saat login berhasil (Nomor 2)
+            let targetPenerima = (currentUser.role === 'DINAS') ? 'DINAS' : currentUser.username;
+            loadNotifikasi(targetPenerima);
 
             if (currentUser.role === 'SEKOLAH' && currentUser.sekolah) {
                 document.getElementById('sekolahIdentitasCard').classList.remove('hidden');
