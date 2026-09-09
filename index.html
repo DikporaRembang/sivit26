@@ -700,10 +700,18 @@
                             }
                         }
 
+                        // Aturan Edit Laporan Progres Fisik oleh SEKOLAH
+                        // Sekolah HANYA bisa edit jika statusnya DITOLAK (REJECTED). Jika APPROVED atau DIAJUKAN, tidak bisa diedit.
                         if (currentUser.role === 'SEKOLAH' && sheetName === 'laporan_progres') {
-                            if (String(row.status_verifikasi) === 'APPROVED') {
+                            let statusVerif = String(row.status_verifikasi || '').trim();
+                            if (statusVerif !== 'REJECTED') {
                                 allowEdit = false;
                             }
+                        }
+
+                        // Role DINAS tidak boleh mengedit data laporan progres fisik secara langsung (hanya tombol verifikasi)
+                        if (currentUser.role === 'DINAS' && sheetName === 'laporan_progres') {
+                            allowEdit = false;
                         }
 
                         if (allowEdit) {
@@ -712,10 +720,17 @@
                             btnEdit.innerHTML = `<i class="fa-solid fa-pen-to-square"></i>`;
                             btnEdit.onclick = () => openModalForm(row);
                             tdAct.appendChild(btnEdit);
-                        } else if (currentUser.role === 'SEKOLAH' && sheetName === 'laporan_progres' && String(row.status_verifikasi) === 'APPROVED') {
+                        } else if (currentUser.role === 'SEKOLAH' && sheetName === 'laporan_progres') {
+                            let statusVerif = String(row.status_verifikasi || '').trim();
                             let badgeLocked = document.createElement('span');
-                            badgeLocked.className = "text-[10px] text-emerald-700 bg-emerald-100 px-2 py-1 rounded font-bold border border-emerald-300";
-                            badgeLocked.innerText = "Terkunci (APPROVED)";
+                            badgeLocked.className = "text-[10px] px-2 py-1 rounded font-bold border ";
+                            if (statusVerif === 'APPROVED') {
+                                badgeLocked.className += "text-emerald-700 bg-emerald-100 border-emerald-300";
+                                badgeLocked.innerText = "Terkunci (APPROVED)";
+                            } else {
+                                badgeLocked.className += "text-amber-700 bg-amber-100 border-amber-300";
+                                badgeLocked.innerText = "Menunggu Verifikasi";
+                            }
                             tdAct.appendChild(badgeLocked);
                         }
 
