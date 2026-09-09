@@ -329,13 +329,11 @@
             }
         }
 
-        // Fungsi Toggle Dropdown Notifikasi In-App
         function toggleNotifDropdown() {
             let dropdown = document.getElementById('notifDropdown');
             dropdown.classList.toggle('hidden');
         }
 
-        // Fungsi Memuat Notifikasi dari Backend (Nomor 1)
         function loadNotifikasi(penerima) {
             let container = document.getElementById('notifListContainer');
             fetch(`${WEB_APP_URL}?action=getNotifikasi&penerima=${encodeURIComponent(penerima)}`)
@@ -473,7 +471,6 @@
             document.getElementById('userNameDisplay').innerText = currentUser.nama_pengguna;
             document.getElementById('userNpsnDisplay').innerText = "NPSN/ID: " + currentUser.username + " | Role: " + currentUser.role;
 
-            // Pemanggilan otomatis fungsi loadNotifikasi saat login berhasil (Nomor 2)
             let targetPenerima = (currentUser.role === 'DINAS') ? 'DINAS' : currentUser.username;
             loadNotifikasi(targetPenerima);
 
