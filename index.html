@@ -276,7 +276,7 @@
 
 <!-- ================= SCRIPT UTAMA ================= -->
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzduSQ-KOkRNeh3tnDmSflS3r7vJgJcPRHfgDEWjnYh4aTwLvEaQxWqviJol6YBb1L-bQ/exec";
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw1l9zDP9qrNsWCkn6xH8wXKcqUZPGCcvjToMfR0U4iNQAn_MUdu0K0pDNQXeF7YKBt1w/exec";
         
         let currentUser = null;
         let currentActiveSheet = '';
@@ -329,13 +329,11 @@
             }
         }
 
-        // Fungsi Toggle Dropdown Notifikasi In-App
         function toggleNotifDropdown() {
             let dropdown = document.getElementById('notifDropdown');
             dropdown.classList.toggle('hidden');
         }
 
-        // Fungsi Memuat Notifikasi dari Backend (Nomor 1)
         function loadNotifikasi(penerima) {
             let container = document.getElementById('notifListContainer');
             fetch(`${WEB_APP_URL}?action=getNotifikasi&penerima=${encodeURIComponent(penerima)}`)
@@ -473,7 +471,6 @@
             document.getElementById('userNameDisplay').innerText = currentUser.nama_pengguna;
             document.getElementById('userNpsnDisplay').innerText = "NPSN/ID: " + currentUser.username + " | Role: " + currentUser.role;
 
-            // Pemanggilan otomatis fungsi loadNotifikasi saat login berhasil (Nomor 2)
             let targetPenerima = (currentUser.role === 'DINAS') ? 'DINAS' : currentUser.username;
             loadNotifikasi(targetPenerima);
 
@@ -939,6 +936,17 @@
                         metaInfo.innerText = "Mengekstrak metadata EXIF foto...";
                         manualFallbackContainer.classList.add('hidden');
                         
+                        let reader = new FileReader();
+                        reader.onload = function(evt) {
+                            let base64String = evt.target.result;
+                            hiddenValInput.value = JSON.stringify({
+                                base64: base64String,
+                                name: file.name,
+                                type: file.type
+                            });
+                        };
+                        reader.readAsDataURL(file);
+
                         EXIF.getData(file, function() {
                             let dateTime = EXIF.getTag(this, "DateTimeOriginal") || EXIF.getTag(this, "DateTime") || null;
                             let lat = EXIF.getTag(this, "GPSLatitude");
@@ -987,7 +995,6 @@
                                 lokasiField.value = gpsStr;
                             }
 
-                            hiddenValInput.value = file.name;
                             metaInfo.innerHTML = `<span class="text-emerald-400 font-bold"><i class="fa-solid fa-circle-check"></i> Foto: ${file.name}</span><br>🕒 Waktu Upload: ${formattedDate}<br>📍 Lokasi Koordinat: ${gpsStr || 'Belum ada GPS (harap isi manual di bawah)'}`;
                         });
                     };
