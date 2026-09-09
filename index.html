@@ -1,15 +1,13 @@
 <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SIVIT26 - Sistem Informasi Pemantauan Revitalisasi SD Kabupaten Rembang 2026</title>
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Pustaka Exif-JS untuk membaca metadata foto (tanggal & koordinat GPS) -->
     <script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
-    <!-- Chart.js untuk Kurva S & Grafik Progres -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         #tableBody td {
@@ -20,17 +18,13 @@
 </head>
 <body class="bg-gradient-to-br from-blue-950 via-blue-900 to-slate-900 min-h-screen text-white font-sans antialiased flex flex-col justify-between">
 
-<!-- ================= AUTH CONTAINER ================= -->
+<!-- AUTH CONTAINER -->
     <div id="authContainer" class="flex-1 flex flex-col items-center justify-center p-4">
         <div class="max-w-md w-full bg-blue-900/40 backdrop-blur-md rounded-2xl shadow-2xl p-8 border border-amber-400/30">
             <div class="text-center mb-6 flex flex-col items-center">
                 <img src="bidangsd.png" alt="Logo Aplikasi" class="w-12 h-12 object-contain mb-2" onerror="this.style.display='none'">
                 <h1 class="text-2xl font-black text-amber-400 tracking-wide">SIVIT26</h1>
                 <p class="text-[11px] font-semibold text-blue-200 mt-1 leading-snug">Sistem Informasi Pemantauan Revitalisasi SD Kabupaten Rembang 2026</p>
-                <div class="mt-3 p-3 bg-blue-950/60 rounded-xl border border-amber-400/20 text-[11px] text-blue-100 leading-relaxed text-left w-full">
-                    <p class="font-bold text-amber-400 mb-0.5 text-center">Dinas Pendidikan, Pemuda dan Olahraga Kabupaten Rembang</p>
-                    <p class="text-center text-blue-300">Seksi Kelembagaan, Sarana dan Prasarana Bidang SD</p>
-                </div>
             </div>
 
             <div class="flex border-b border-blue-800 mb-6">
@@ -47,45 +41,38 @@
                     <label class="block text-xs font-semibold uppercase tracking-wider text-blue-200 mb-1">Password</label>
                     <div class="relative">
                         <input type="password" id="loginPass" required class="w-full px-3.5 py-2.5 pr-10 border border-blue-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400 text-sm bg-blue-950/50 text-white">
-                        <button type="button" onclick="togglePasswordVisibility('loginPass', 'eyeIconLogin')" class="absolute inset-y-0 right-0 px-3.5 flex items-center text-blue-300 hover:text-white focus:outline-none cursor-pointer">
+                        <button type="button" onclick="togglePasswordVisibility('loginPass', 'eyeIconLogin')" class="absolute inset-y-0 right-0 px-3.5 flex items-center text-blue-300 hover:text-white cursor-pointer">
                             <i id="eyeIconLogin" class="fa-solid fa-eye text-xs"></i>
                         </button>
                     </div>
                 </div>
-                <button type="submit" class="w-full bg-amber-500 hover:bg-amber-400 text-blue-950 font-bold py-2.5 rounded-xl transition-all text-sm shadow-md shadow-amber-500/20 cursor-pointer">Masuk Sistem</button>
+                <button type="submit" class="w-full bg-amber-500 hover:bg-amber-400 text-blue-950 font-bold py-2.5 rounded-xl transition-all text-sm shadow-md cursor-pointer">Masuk Sistem</button>
             </form>
 
             <form id="formRegister" onsubmit="handleRegister(event)" class="space-y-4 hidden">
                 <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-blue-200 mb-1">NPSN Sekolah (ID Utama)</label>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-blue-200 mb-1">NPSN Sekolah</label>
                     <input type="text" id="regNpsn" required placeholder="Masukkan NPSN resmi..." class="w-full px-3.5 py-2.5 border border-blue-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400 text-sm bg-blue-950/50 text-white">
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-blue-200 mb-1">Nama Sekolah (Autofill)</label>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-blue-200 mb-1">Nama Sekolah</label>
                     <input type="text" id="regNamaSekolah" readonly placeholder="Otomatis dari database dinas..." class="w-full px-3.5 py-2.5 bg-blue-950/30 border border-blue-800 rounded-xl text-blue-300 text-sm cursor-not-allowed">
                 </div>
                 <div>
                     <label class="block text-xs font-semibold uppercase tracking-wider text-blue-200 mb-1">Password Akun</label>
                     <div class="relative">
                         <input type="password" id="regPass" required class="w-full px-3.5 py-2.5 pr-10 border border-blue-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400 text-sm bg-blue-950/50 text-white">
-                        <button type="button" onclick="togglePasswordVisibility('regPass', 'eyeIconReg')" class="absolute inset-y-0 right-0 px-3.5 flex items-center text-blue-300 hover:text-white focus:outline-none cursor-pointer">
+                        <button type="button" onclick="togglePasswordVisibility('regPass', 'eyeIconReg')" class="absolute inset-y-0 right-0 px-3.5 flex items-center text-blue-300 hover:text-white cursor-pointer">
                             <i id="eyeIconReg" class="fa-solid fa-eye text-xs"></i>
                         </button>
                     </div>
                 </div>
-                <button type="submit" class="w-full bg-amber-500 hover:bg-amber-400 text-blue-950 font-bold py-2.5 rounded-xl transition-all text-sm shadow-md shadow-amber-500/20 cursor-pointer">Kirim Pendaftaran</button>
+                <button type="submit" class="w-full bg-amber-500 hover:bg-amber-400 text-blue-950 font-bold py-2.5 rounded-xl transition-all text-sm shadow-md cursor-pointer">Kirim Pendaftaran</button>
             </form>
-
-            <div class="mt-6 pt-5 border-t border-blue-800/80 flex flex-col items-center text-center">
-                <img src="logopendidikan.png" alt="Logo Kemendikdasmen RI" class="w-10 h-10 object-contain mb-2 drop-shadow-md" onerror="this.style.display='none'">
-                <p class="text-[10px] text-blue-200/90 leading-relaxed font-normal animate-pulse">
-                    Revitalisasi Satuan Pendidikan Sekolah Dasar (SD) adalah program strategis Kementerian Pendidikan Dasar dan Menengah (Kemendikdasmen).
-                </p>
-            </div>
         </div>
     </div>
 
-    <!-- ================= DASHBOARD CONTAINER ================= -->
+<!-- DASHBOARD CONTAINER -->
     <div id="dashboardContainer" class="flex-1 flex flex-col hidden">
         <header class="bg-blue-950 border-b border-blue-900 py-3 px-6 shadow-md flex items-center justify-between">
             <div class="flex items-center space-x-3">
@@ -100,7 +87,7 @@
                     <p class="text-xs font-bold text-white" id="userNameDisplay">-</p>
                     <p class="text-[11px] text-amber-300 font-bold" id="userNpsnDisplay">-</p>
                 </div>
-                <button onclick="logout()" class="bg-red-600 hover:bg-red-700 text-white px-3.5 py-1.5 rounded-lg text-xs font-bold transition-colors shadow-xs border border-red-700 cursor-pointer">
+                <button onclick="logout()" class="bg-red-600 hover:bg-red-700 text-white px-3.5 py-1.5 rounded-lg text-xs font-bold transition-colors cursor-pointer">
                     <i class="fa-solid fa-power-off mr-1.5"></i> Keluar
                 </button>
             </div>
@@ -111,13 +98,6 @@
                 <div class="space-y-1">
                     <p class="text-[10px] font-extrabold uppercase tracking-wider text-amber-400 px-3 mb-2">Menu Navigasi</p>
                     <div id="sidebarMenuContainer" class="space-y-1 text-white font-bold text-xs"></div>
-                </div>
-                <div class="pt-4 border-t border-blue-950 px-2 flex flex-col items-center text-center space-y-2">
-                    <img src="logorembang.png" alt="Logo Kabupaten" class="w-10 h-10 object-contain drop-shadow-sm" onerror="this.style.display='none'">
-                    <div class="leading-tight">
-                        <p class="font-bold text-amber-400 text-[10px]">SIVIT26 Kab. Rembang</p>
-                        <p class="mt-0.5 text-[10px] text-slate-300 font-medium">Seksi Kelembagaan & Sarpras</p>
-                    </div>
                 </div>
             </aside>
 
@@ -131,26 +111,14 @@
                         <span class="text-[10px] bg-amber-400/20 text-amber-300 font-semibold px-2.5 py-0.5 rounded-full border border-amber-400/30">Terverifikasi</span>
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-xs">
-                        <div>
-                            <p class="text-slate-300 font-bold uppercase text-[10px]">NPSN (ID)</p>
-                            <p class="font-extrabold text-white mt-0.5 text-sm" id="cardNpsn">-</p>
-                        </div>
-                        <div>
-                            <p class="text-slate-300 font-bold uppercase text-[10px]">Nama Sekolah</p>
-                            <p class="font-extrabold text-white mt-0.5 text-sm" id="cardNamaSekolah">-</p>
-                        </div>
-                        <div>
-                            <p class="text-slate-300 font-bold uppercase text-[10px]">Kecamatan</p>
-                            <p class="font-extrabold text-white mt-0.5 text-sm" id="cardKecamatan">-</p>
-                        </div>
-                        <div>
-                            <p class="text-slate-300 font-bold uppercase text-[10px]">Alamat Lengkap</p>
-                            <p class="font-extrabold text-white mt-0.5 text-sm truncate" id="cardAlamat">-</p>
-                        </div>
+                        <div><p class="text-slate-300 font-bold uppercase text-[10px]">NPSN</p><p class="font-extrabold text-white mt-0.5 text-sm" id="cardNpsn">-</p></div>
+                        <div><p class="text-slate-300 font-bold uppercase text-[10px]">Nama Sekolah</p><p class="font-extrabold text-white mt-0.5 text-sm" id="cardNamaSekolah">-</p></div>
+                        <div><p class="text-slate-300 font-bold uppercase text-[10px]">Kecamatan</p><p class="font-extrabold text-white mt-0.5 text-sm" id="cardKecamatan">-</p></div>
+                        <div><p class="text-slate-300 font-bold uppercase text-[10px]">Alamat</p><p class="font-extrabold text-white mt-0.5 text-sm truncate" id="cardAlamat">-</p></div>
                     </div>
                 </div>
 
-                <div id="printableArea" class="bg-white rounded-xl border border-slate-300 shadow-xs p-6 text-slate-900">
+                <div class="bg-white rounded-xl border border-slate-300 shadow-xs p-6 text-slate-900">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-200">
                         <div>
                             <h3 class="text-base font-bold text-slate-900 tracking-tight" id="contentTitle">Pilih Menu</h3>
@@ -161,9 +129,7 @@
 
                     <div id="kurvaSContainer" class="hidden mb-6 p-4 bg-slate-50 rounded-xl border border-slate-200">
                         <h4 class="font-bold text-sm text-slate-800 mb-3"><i class="fa-solid fa-chart-line text-blue-900 mr-2"></i> Grafik Kurva S Progres Fisik</h4>
-                        <div class="relative h-72 w-full">
-                            <canvas id="chartKurvaS"></canvas>
-                        </div>
+                        <div class="relative h-72 w-full"><canvas id="chartKurvaS"></canvas></div>
                     </div>
 
                     <div class="overflow-x-auto">
@@ -177,7 +143,7 @@
         </div>
     </div>
     
-    <!-- ================= MODAL FORM ================= -->
+<!-- MODAL FORM -->
     <div id="dataModal" class="fixed inset-0 bg-blue-950/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
         <div class="bg-blue-900 border border-amber-400/40 rounded-2xl max-w-lg w-full p-6 shadow-2xl text-white">
             <div class="flex justify-between items-center mb-4 pb-2 border-b border-blue-800">
@@ -189,13 +155,13 @@
                 <div id="formFieldsContainer" class="space-y-3 max-h-[60vh] overflow-y-auto pr-1"></div>
                 <div class="flex justify-end space-x-2 pt-3 border-t border-blue-800">
                     <button type="button" onclick="closeModal()" class="px-4 py-2 bg-blue-800 hover:bg-blue-700 text-blue-200 rounded-xl text-xs font-medium cursor-pointer">Batal</button>
-                    <button type="submit" id="btnSaveModal" class="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-blue-950 font-bold rounded-xl text-xs shadow-sm cursor-pointer">Simpan Data</button>
+                    <button type="submit" id="btnSaveModal" class="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-blue-950 font-bold rounded-xl text-xs cursor-pointer">Simpan Data</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- ================= MODAL VERIFIKASI DINAS ================= -->
+    <!-- MODAL VERIFIKASI DINAS -->
     <div id="verifikasi-modal" class="fixed inset-0 bg-blue-950/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
         <div class="bg-blue-900 border border-amber-400/40 rounded-2xl max-w-md w-full p-6 shadow-2xl text-white">
             <div class="flex justify-between items-center mb-4 pb-2 border-b border-blue-800">
@@ -205,8 +171,8 @@
             <form onsubmit="submitVerifikasiLaporan(event)" class="space-y-4">
                 <input type="hidden" id="verif-id-laporan">
                 <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-blue-200 mb-1">Status Verifikasi (oleh DINAS)</label>
-                    <select id="verif-status" required class="w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none">
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-blue-200 mb-1">Status Verifikasi</label>
+                    <select id="verif-status" required class="w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white">
                         <option value="DISETUJUI">DISETUJUI (APPROVED)</option>
                         <option value="DITOLAK">DITOLAK (REJECTED)</option>
                         <option value="DIAJUKAN">DIAJUKAN (PENDING)</option>
@@ -214,16 +180,16 @@
                 </div>
                 <div>
                     <label class="block text-xs font-semibold uppercase tracking-wider text-blue-200 mb-1">Catatan Dinas</label>
-                    <textarea id="verif-catatan" rows="3" placeholder="Tuliskan catatan verifikasi dari Dinas..." class="w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none"></textarea>
+                    <textarea id="verif-catatan" rows="3" class="w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white"></textarea>
                 </div>
                 <div class="flex justify-end space-x-2 pt-3 border-t border-blue-800">
-                    <button type="button" onclick="closeVerifikasiModal()" class="px-4 py-2 bg-blue-800 hover:bg-blue-700 text-blue-200 rounded-xl text-xs font-medium cursor-pointer">Batal</button>
-                    <button type="submit" class="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-blue-950 font-bold rounded-xl text-xs shadow-sm cursor-pointer">Kirim Verifikasi</button>
+                    <button type="button" onclick="closeVerifikasiModal()" class="px-4 py-2 bg-blue-800 text-blue-200 rounded-xl text-xs cursor-pointer">Batal</button>
+                    <button type="submit" class="px-4 py-2 bg-amber-500 text-blue-950 font-bold rounded-xl text-xs cursor-pointer">Kirim</button>
                 </div>
             </form>
         </div>
     </div>
-
+    
     <!-- ================= MODAL RIWAYAT PAGU ================= -->
     <div id="modalRiwayatPagu" class="fixed inset-0 bg-blue-950/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
         <div class="bg-blue-900 border border-amber-400/40 rounded-2xl max-w-2xl w-full p-6 shadow-2xl text-white">
