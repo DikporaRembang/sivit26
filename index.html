@@ -444,6 +444,7 @@
                     { name: 'Manajemen User', sheet: 'users', icon: 'fa-users-gear' }
                 ];
             } else {
+                // Menu khusus SEKOLAH yang sudah dipisahkan fungsionalitasnya
                 menus = [
                     { name: 'Paket Pekerjaan Saya', sheet: 'paket_pekerjaan_sd', icon: 'fa-box' },
                     { name: 'Laporan Progres Fisik', sheet: 'laporan_progres', icon: 'fa-clipboard-list' },
@@ -543,8 +544,8 @@
             if (chartKurvaSInstance) chartKurvaSInstance.destroy();
 
             let labels = currentData.map(d => d.minggu_ke || d.tanggal_lapor || 'Minggu');
-            let targetData = currentData.map(d => Number(String(d.target_kurva_s || d.target_kurva).replace('%','')) || 0);
-            let realisasiData = currentData.map(d => Number(String(d.realisasi_fisik).replace('%','')) || 0);
+            let targetData = currentData.map(d => Number(String(d.target_kurva_s || d.target_kurva || 0).replace('%','')) || 0);
+            let realisasiData = currentData.map(d => Number(String(d.realisasi_fisik || 0).replace('%','')) || 0);
 
             chartKurvaSInstance = new Chart(ctx, {
                 type: 'line',
@@ -1213,7 +1214,7 @@
             fetch(`${WEB_APP_URL}?action=getData&sheet=riwayat_pagu&role=DINAS&npsn=`)
             .then(res => res.json())
             .then(res => {
-                let filtered = (res.data || []).filter(item => String(item.npsn) === String(npsn) && String(item.paket_id) === String(paketId));
+                let filtered = (res.data || []).filter(item => String(item.npsn).trim() === String(npsn).trim() && String(item.paket_id).trim() === String(paketId).trim());
                 tbody.innerHTML = "";
                 
                 if (filtered.length === 0) {
