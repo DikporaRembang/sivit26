@@ -79,7 +79,7 @@
             <div class="mt-6 pt-5 border-t border-blue-800/80 flex flex-col items-center text-center">
                 <img src="logopendidikan.png" alt="Logo Kemendikdasmen RI" class="w-10 h-10 object-contain mb-2 drop-shadow-md" onerror="this.style.display='none'">
                 <p class="text-[10px] text-blue-200/90 leading-relaxed font-normal animate-pulse">
-                    Revitalisasi Satuan Pendidikan Sekolah Dasar (SD) adalah program strategis nasional Kementerian Pendidikan Dasar dan Menengah (Kemendikdasmen), Mari wujudkan sekolah yang berkualitas!.
+                    Revitalisasi Satuan Pendidikan Sekolah Dasar (SD) adalah program strategis Kementerian Pendidikan Dasar dan Menengah (Kemendikdasmen).
                 </p>
             </div>
         </div>
@@ -324,7 +324,7 @@
                         document.getElementById('regNamaSekolah').value = "";
                     }
                 })
-                .catch(err => alert("Gagal memverifikasi NPSN."));
+                .catch(err => alert("Gagal memverifikasi NPSN.[cite: 10]"));
         });
 
         async function handleLogin(e) {
@@ -343,7 +343,7 @@
                     alert(data.pesan);
                 }
             } catch (err) {
-                alert('Gagal terhubung ke server.');
+                alert('Gagal terhubung ke server.[cite: 10]');
             }
         }
 
@@ -369,7 +369,7 @@
                     switchTab('login');
                 }
             } catch (err) {
-                alert('Gagal mengirim pendaftaran.');
+                alert('Gagal mengirim pendaftaran.[cite: 10]');
             }
         }
 
@@ -534,7 +534,7 @@
                     bodyEl.innerHTML = `<tr><td colspan="10" class="text-center p-4 text-red-500 text-xs">${result.message || 'Gagal memuat data'}</td></tr>`;
                 }
             } catch (err) {
-                bodyEl.innerHTML = `<tr><td colspan="10" class="text-center p-4 text-red-500 text-xs">Kesalahan jaringan saat mengambil data.</td></tr>`;
+                bodyEl.innerHTML = `<tr><td colspan="10" class="text-center p-4 text-red-500 text-xs">Kesalahan jaringan saat mengambil data.[cite: 10]</td></tr>`;
             }
         }
 
@@ -755,7 +755,7 @@
                 alert(data.pesan);
                 loadTableData('sekolah_pending', 'Verifikasi Sekolah');
             } catch (err) {
-                alert('Gagal memproses verifikasi.');
+                alert('Gagal memproses verifikasi.[cite: 10]');
             }
         }
 
@@ -800,7 +800,7 @@
                     loadTableData('laporan_progres', 'Laporan Progres');
                 }
             } catch (err) {
-                alert('Gagal mengirim verifikasi laporan.');
+                alert('Gagal mengirim verifikasi laporan.[cite: 10]');
             }
         }
 
@@ -1310,7 +1310,7 @@
                 btnSave.disabled = false;
                 btnSave.innerText = originalText;
                 btnSave.classList.remove('opacity-50', 'cursor-not-allowed');
-                alert("Kesalahan jaringan saat menyimpan data.");
+                alert("Kesalahan jaringan saat menyimpan data.[cite: 10]");
             }
         }
             
