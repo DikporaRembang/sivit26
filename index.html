@@ -609,9 +609,10 @@
                     }
 
                     if (h.toLowerCase() === 'status' || h.toLowerCase() === 'status_verifikasi') {
-                        if (val === 'APPROVED' || val === 'DISETUJUI') {
+                        let upperVal = String(val).trim().toUpperCase();
+                        if (upperVal === 'APPROVED' || upperVal === 'DISETUJUI' || upperVal === 'SETUJU') {
                             val = 'DISETUJUI';
-                        } else if (val === 'REJECTED' || val === 'DITOLAK') {
+                        } else if (upperVal === 'REJECTED' || upperVal === 'DITOLAK') {
                             val = 'DITOLAK';
                         } else {
                             val = 'DIAJUKAN';
