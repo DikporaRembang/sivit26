@@ -275,10 +275,10 @@
 </div>
     
 <!-- ================= SCRIPT UTAMA ================= -->
-    <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzI5iKUlu2klAzyr6EP4L22-I9XV-f8ON54TLG9ElmIK-83qy2dq495jW6qe0uHa-NsxQ/exec";
+<script>
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzI5iKUlu2klAzyr6EP4L22-I9XV-f8ON54TLG9ElmIK-83qy2dq495jW6qe0uHa-NsxQ/exec";
         
-let currentUser = null;
+    let currentUser = null;
     let currentActiveSheet = '';
     let currentHeaders = [];
     let currentData = [];
@@ -298,7 +298,7 @@ let currentUser = null;
         return val;
     }
 
-function switchTab(tab) {
+    function switchTab(tab) {
         let btnLogin = document.getElementById('tabLogin');
         let btnReg = document.getElementById('tabRegister');
         let formLogin = document.getElementById('formLogin');
@@ -369,7 +369,7 @@ function switchTab(tab) {
             });
     }
         
-document.getElementById('regNpsn').addEventListener('blur', function() {
+    document.getElementById('regNpsn').addEventListener('blur', function() {
         let npsn = this.value.trim();
         if (!npsn) return;
         fetch(`${WEB_APP_URL}?action=checkNpsn&npsn=${npsn}`)
@@ -539,7 +539,6 @@ document.getElementById('regNpsn').addEventListener('blur', function() {
         let kurvaEl = document.getElementById('kurvaSContainer');
         if (sheetName === 'kurva_s') {
             kurvaEl.classList.remove('hidden');
-            renderKurvaSChart();
         } else {
             kurvaEl.classList.add('hidden');
         }
@@ -591,6 +590,11 @@ document.getElementById('regNpsn').addEventListener('blur', function() {
                 }
 
                 renderTable(currentHeaders, currentData, sheetName);
+
+                // Integrasi pemanggilan render kurva S setelah data sukses ditarik
+                if (sheetName === 'kurva_s') {
+                    renderKurvaSChart();
+                }
             } else {
                 bodyEl.innerHTML = `<tr><td colspan="10" class="text-center p-4 text-red-500 text-xs">${result.message || 'Gagal memuat data'}</td></tr>`;
             }
@@ -599,7 +603,7 @@ document.getElementById('regNpsn').addEventListener('blur', function() {
         }
     }
         
-function renderKurvaSChart() {
+    function renderKurvaSChart() {
         let ctx = document.getElementById('chartKurvaS').getContext('2d');
         if (chartKurvaSInstance) chartKurvaSInstance.destroy();
 
