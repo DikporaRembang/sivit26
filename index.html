@@ -326,7 +326,7 @@
     
 <!-- ================= SCRIPT UTAMA ================= -->
 <script>
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzgTm-o0RX_NZr74sT5u-EImC0fRfy2cJ3pPpo-w5OxGx9fzNQsTF2fapDJWwGNQMOp/exec";
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz-etfJ_YGMAg5VJFkg39_xSibe46wI0YIRr4-f-RM0sl3AFnluHahxh7umD7Ucvb8fog/exec";
         
     let currentUser = null;
     let currentActiveSheet = '';
@@ -402,10 +402,13 @@
                         container.innerHTML = "";
                         listNotif.reverse().forEach(n => {
                             let div = document.createElement('div');
-                            div.className = "p-3 hover:bg-blue-800/40 transition-colors";
+                            div.className = "p-3 hover:bg-blue-800/40 transition-colors flex flex-col justify-between";
                             div.innerHTML = `
-                                <p class="text-blue-100 font-medium mb-1">${n.pesan}</p>
-                                <span class="text-[9px] text-amber-300 font-semibold"><i class="fa-regular fa-clock mr-1"></i>${n.waktu || '-'}</span>
+                                <div>
+                                    <p class="text-blue-100 font-medium mb-1">${n.pesan}</p>
+                                    <span class="text-[9px] text-amber-300 font-semibold"><i class="fa-regular fa-clock mr-1"></i>${n.waktu || '-'}</span>
+                                </div>
+                                ${n.id ? `<button onclick="eksekusiDanHapusNotifikasi('${n.id}')" class="mt-2 self-end px-2 py-1 bg-amber-500 hover:bg-amber-400 text-blue-950 font-bold rounded text-[10px] cursor-pointer"><i class="fa-solid fa-check mr-1"></i> Selesai / Eksekusi</button>` : ''}
                             `;
                             container.appendChild(div);
                         });
@@ -419,6 +422,26 @@
                 console.error("Gagal memuat notifikasi", error);
                 container.innerHTML = `<div class="p-4 text-center text-red-400">Gagal memuat notifikasi.</div>`;
             });
+    }
+
+    function eksekusiDanHapusNotifikasi(idNotifikasi) {
+        // 1. Lakukan proses utama eksekusi (misal: verifikasi laporan, update data, dll)
+        // ... proses eksekusi Anda di sini ...
+
+        // 2. Kirim permintaan ke backend untuk menghapus notifikasi yang sudah dieksekusi
+        fetch(`${WEB_APP_URL}?action=hapusNotifikasi&id=${idNotifikasi}`)
+            .then(response => response.json())
+            .then(result => {
+                if (result.status === "success") {
+                    console.log("Notifikasi berhasil dibersihkan.");
+                    // Muat ulang komponen daftar notifikasi di UI agar langsung hilang
+                    let targetPenerima = (currentUser && currentUser.role === 'DINAS') ? 'DINAS' : (currentUser ? currentUser.username : '');
+                    loadNotifikasi(targetPenerima); 
+                } else {
+                    console.warn("Gagal menghapus notifikasi: " + result.message);
+                }
+            })
+            .catch(error => console.error("Error:", error));
     }
         
     document.getElementById('regNpsn').addEventListener('blur', function() {
