@@ -1135,13 +1135,11 @@ async function cetakLaporanResmi(paketId, npsn) {
             console.error("Gagal mengambil data progres untuk cetak:", e);
         }
 
-        // PERBAIKAN: Mengambil nilai pagu dari berbagai kemungkinan nama kolom/properti data
         let rawPagu = paket.pagu !== undefined ? paket.pagu : (paket.pagu_anggaran !== undefined ? paket.pagu_anggaran : paket.nilai_pagu);
         let numericPagu = 0;
         if (typeof rawPagu === 'number') {
             numericPagu = rawPagu;
         } else if (typeof rawPagu === 'string') {
-            // Membersihkan string dari karakter selain angka (misal "Rp 50.000.000" menjadi "50000000")
             let cleaned = rawPagu.replace(/[^0-9.-]+/g,"");
             numericPagu = parseFloat(cleaned) || 0;
         }
@@ -1160,16 +1158,16 @@ async function cetakLaporanResmi(paketId, npsn) {
                 </style>
             </head>
             <body class="p-8 bg-white text-gray-900 font-sans">
-                <!-- KOP SURAT DENGAN LOGO DI KANAN -->
-                <div class="flex items-center justify-between border-b-4 border-double border-gray-800 pb-4 mb-6">
+                <!-- KOP SURAT DENGAN LOGO DI KIRI DAN NAMA PENGGUNA SERTA KECAMATAN -->
+                <div class="flex items-center border-b-4 border-double border-gray-800 pb-4 mb-6">
+                    <div class="flex-shrink-0 mr-4">
+                        <img src="logorembang.png" alt="Logo Rembang" class="w-16 h-16 object-contain">
+                    </div>
                     <div class="text-center w-full">
                         <h2 class="text-sm font-bold uppercase tracking-wider">PEMERINTAH KABUPATEN REMBANG</h2>
                         <h1 class="text-base font-extrabold uppercase tracking-wide">DINAS PENDIDIKAN, PEMUDA DAN OLAHRAGA</h1>
-                        <p class="text-xs font-medium">Seksi Kelembagaan, Sarana dan Prasarana Bidang SD</p>
+                        <p class="text-xs font-medium">${namaSekolah} - Kecamatan ${kecamatanSekolah}</p>
                         <p class="text-[10px] text-gray-600 mt-0.5">Sistem Informasi Pemantauan Revitalisasi SD (SIVIT26 Tahun 2026)</p>
-                    </div>
-                    <div class="flex-shrink-0 ml-4">
-                        <img src="logorembang.png" alt="Logo Rembang" class="w-16 h-16 object-contain">
                     </div>
                 </div>
 
@@ -1250,7 +1248,6 @@ async function cetakLaporanResmi(paketId, npsn) {
         `);
         printWindow.document.close();
     }
-
     async function verifyReg(npsn, status) {
         if(!confirm(`Ubah status pendaftaran sekolah menjadi ${status}?`)) return;
         try {
