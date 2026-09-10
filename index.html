@@ -326,7 +326,7 @@
     
 <!-- ================= SCRIPT UTAMA ================= -->
 <script>
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx7tUESBxKKgYRw01A6vRU95DMZsDflEQwhDc60aPj0LykCXDe0Rb852DlQGLs6HIvmRA/exec";
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzDf2Wu60Dw_fvs9FhteVwFht_2MoUj9rknW2yBmTuS4xsTULVoKFKU7TLRkllqvsDw2w/exec";
         
     let currentUser = null;
     let currentActiveSheet = '';
@@ -705,10 +705,16 @@
 
         if (currentUser.role === 'SEKOLAH' && sheetName === 'paket_pekerjaan_sd') {
             let btnAdd = document.createElement('button');
+            btnAdd.id = "btnTambahPaket";
             btnAdd.className = "bg-amber-500 hover:bg-amber-400 text-blue-950 font-bold px-3.5 py-1.5 rounded-xl text-xs shadow-xs flex items-center space-x-1.5 cursor-pointer";
             btnAdd.innerHTML = `<i class="fa-solid fa-plus"></i><span>Tambah Paket</span>`;
             btnAdd.onclick = () => openModalForm();
             actionBtnContainer.appendChild(btnAdd);
+
+            let infoKuota = document.createElement('span');
+            infoKuota.id = "infoKuotaPaket";
+            infoKuota.className = "text-xs font-bold text-amber-300 ml-2";
+            actionBtnContainer.appendChild(infoKuota);
         } else if (currentUser.role === 'SEKOLAH' && sheetName === 'laporan_progres') {
             let btnAdd = document.createElement('button');
             btnAdd.className = "bg-amber-500 hover:bg-amber-400 text-blue-950 font-bold px-3.5 py-1.5 rounded-xl text-xs shadow-xs flex items-center space-x-1.5 cursor-pointer";
@@ -1119,6 +1125,11 @@
             }
             bodyEl.appendChild(tr);
         });
+
+        // Panggil inisialisasiFormPaket setelah tabel paket_pekerjaan_sd dimuat (jika role sekolah)
+        if (currentUser && currentUser.role === 'SEKOLAH' && sheetName === 'paket_pekerjaan_sd') {
+            inialisasiFormPaket(currentUser.username);
+        }
     }
 
     async function cetakLaporanResmi(paketId, npsn) {
@@ -1480,14 +1491,6 @@
                 div.appendChild(manualFallbackContainer);
             } 
             else if (currentActiveSheet === 'paket_pekerjaan_sd') {
-                if (!rowData && currentUser.role === 'SEKOLAH') {
-                    let existingPaket = paketPekerjaanList.filter(p => String(p.npsn || '').trim() === String(currentUser.username).trim());
-                    if (existingPaket.length >= 1) {
-                        alert("Batas Maksimal: Sekolah Anda hanya diizinkan menginput 1 Nama Menu Pekerjaan revitalisasi.");
-                        return; 
-                    }
-                }
-
                 if (h.toLowerCase() === 'paket_id') {
                     input = document.createElement('input');
                     input.type = "text";
@@ -1504,6 +1507,7 @@
                     input.value = currentUser.username;
                 } else if (h.toLowerCase() === 'nama_menu') {
                     input = document.createElement('select');
+                    input.id = "nama_menu";
                     input.name = h;
                     input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
                     
@@ -1750,6 +1754,47 @@
 
         modal.classList.remove('hidden');
         modal.classList.add('flex');
+
+        // Jika form paket pekerjaan dibuka untuk sekolah, panggil inisialisasiFormPaket
+        if (currentUser && currentUser.role === 'SEKOLAH' && currentActiveSheet === 'paket_pekerjaan_sd') {
+            inialisasiFormPaket(currentUser.username);
+        }
+    }
+
+    function inisialisasiFormPaket(npsn) {
+        google.script.run.withSuccessHandler(function(result) {
+            var selectElement = document.getElementById("nama_menu");
+            if (!selectElement) return;
+            var menuSudahDipilih = result.menuSudahDipilih;
+            
+            // Loop pada dropdown menu untuk memblokir opsi yang sudah dipilih sekolah ini
+            for (var i = 0; i < selectElement.options.length; i++) {
+                var optValue = selectElement.options[i].value;
+                if (!optValue) continue;
+                
+                if (menuSudahDipilih.includes(optValue)) {
+                    selectElement.options[i].disabled = true;
+                    selectElement.options[i].text = selectElement.options[i].text.replace(" (Sudah Dipilih)", "") + " (Sudah Dipilih)";
+                } else {
+                    selectElement.options[i].disabled = false;
+                }
+            }
+            
+            // Jika sisa kuota habis (semua menu di tabel menu_pekerjaan sudah dipilih)
+            var btnTambah = document.getElementById("btnTambahPaket");
+            var infoKuota = document.getElementById("infoKuotaPaket");
+            if (btnTambah && infoKuota) {
+                if (result.sisaKuota <= 0) {
+                    btnTambah.disabled = true;
+                    btnTambah.classList.add("opacity-50", "cursor-not-allowed");
+                    infoKuota.innerText = "Anda telah menggunakan seluruh kuota menu dari tabel menu_pekerjaan.";
+                } else {
+                    btnTambah.disabled = false;
+                    btnTambah.classList.remove("opacity-50", "cursor-not-allowed");
+                    infoKuota.innerText = "Sisa kuota menu tersedia: " + result.sisaKuota;
+                }
+            }
+        }).getStatusKuotaSekolah(npsn);
     }
 
     function hitungTanggalSelesai() {
