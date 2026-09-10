@@ -1271,6 +1271,41 @@
         }
     }
 
+    function hitungTglSelesaiFormatID() {
+        let tglMulaiInput = document.querySelector('input[name="tanggal_mulai"]');
+        let lamaHariInput = document.querySelector('input[name="lama_hari"]');
+        let tglSelesaiInput = document.querySelector('input[name="tgl_selesai"]');
+
+        if (tglMulaiInput && lamaHariInput && tglSelesaiInput) {
+            let valMulai = tglMulaiInput.value.trim(); // Format: dd-mm-yyyy
+            let lamaHari = parseInt(lamaHariInput.value);
+
+            // Validasi pola dd-mm-yyyy sederhana
+            let parts = valMulai.split('-');
+            if (parts.length === 3 && parts[0].length === 2 && parts[1].length === 2 && parts[2].length === 4) {
+                let day = parseInt(parts[0], 10);
+                let month = parseInt(parts[1], 10) - 1; // Bulan di JS dimulai dari 0
+                let year = parseInt(parts[2], 10);
+
+                let startDate = new Date(year, month, day);
+
+                if (!isNaN(startDate.getTime()) && !isNaN(lamaHari) && lamaHari > 0) {
+                    // Tambahkan hari sejumlah lama_hari
+                    startDate.setDate(startDate.getDate() + lamaHari);
+
+                    // Format kembali ke dd-mm-yyyy
+                    let d = String(startDate.getDate()).padStart(2, '0');
+                    let m = String(startDate.getMonth() + 1).padStart(2, '0');
+                    let y = startDate.getFullYear();
+
+                    tglSelesaiInput.value = `${d}-${m}-${y}`;
+                    return;
+                }
+            }
+            // Jika format belum lengkap/valid, kosongkan tanggal selesai
+            tglSelesaiInput.value = "";
+        }
+    }
     function openModalForm(rowData = null) {
         if (currentUser.role === 'SEKOLAH' && currentActiveSheet === 'users' && rowData) {
             let rowIdentifier = String(rowData.username || rowData.npsn || "").trim();
