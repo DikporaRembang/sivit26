@@ -995,11 +995,24 @@
                         tdAct.appendChild(btnVerif);
                     }
 
+                    // Di dalam renderTable(), pada bagian penentuan izin edit (allowEdit)
                     let allowEdit = true;
-                    if (currentUser.role === 'SEKOLAH' && sheetName === 'users') {
-                        let rowIdentifier = String(row.username || row.npsn || "").trim();
-                        if (rowIdentifier !== String(currentUser.username).trim()) {
-                            allowEdit = false;
+
+                    if (currentUser.role === 'SEKOLAH') {
+                        if (sheetName === 'paket_pekerjaan_sd') {
+                            // Pastikan sekolah hanya bisa mengedit data milik mereka sendiri berdasarkan NPSN
+                            let rowNpsn = String(row.npsn || '').trim();
+                            let userNpsn = String(currentUser.username || '').trim();
+                            if (rowNpsn === userNpsn) {
+                                allowEdit = true; // Memberikan akses tombol Edit untuk mengubah pagu / data menu
+                            } else {
+                                allowEdit = false;
+                            }
+                            } else if (sheetName === 'laporan_progres') {
+                            let statusVerif = String(row.status_verifikasi || '').trim();
+                            if (statusVerif !== 'DITOLAK' && statusVerif !== 'REJECTED') {
+                                allowEdit = false;
+                            }
                         }
                     }
 
