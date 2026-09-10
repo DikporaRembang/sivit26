@@ -1900,6 +1900,59 @@
         modal.classList.add('hidden');
         modal.classList.remove('flex');
     }
+
+    function formatRupiah(angka) {
+    let number_string = angka.replace(/[^,\d]/g, '').toString(),
+        split = number_string.split(','),
+        sisa = split[0].length % 3,
+        rupiah = split[0].substr(0, sisa),
+        ribuan = split[0].substr(sisa).match(/\d{3}/gi);
+    if (ribuan) {
+        let separator = sisa ? '.' : '';
+        rupiah += separator + ribuan.join('.');
+    }
+    return split[1] != undefined ? rupiah + ',' + split[1] : rupiah;
+}
+
+    function hitungTglSelesaiFormatID() {
+        let tglMulaiHidden = document.querySelector('input[type="hidden"][name="tanggal_mulai"]');
+        let lamaHariInput = document.querySelector('input[name="lama_hari"]');
+        let tglSelesaiHidden = document.querySelector('input[type="hidden"][name="tgl_selesai"]');
+        let tglSelesaiPicker = document.getElementById('tgl_selesai_picker');
+
+        if (tglMulaiHidden && lamaHariInput && tglSelesaiHidden) {
+            let valMulai = tglMulaiHidden.value.trim(); // Format: dd-mm-yyyy
+            let lamaHari = parseInt(lamaHariInput.value);
+
+            let parts = valMulai.split('-');
+            if (parts.length === 3 && parts[0].length === 2 && parts[1].length === 2 && parts[2].length === 4) {
+                let day = parseInt(parts[0], 10);
+                let month = parseInt(parts[1], 10) - 1;
+                let year = parseInt(parts[2], 10);
+
+                let startDate = new Date(year, month, day);
+
+                if (!isNaN(startDate.getTime()) && !isNaN(lamaHari) && lamaHari > 0) {
+                    startDate.setDate(startDate.getDate() + lamaHari);
+
+                    let d = String(startDate.getDate()).padStart(2, '0');
+                    let m = String(startDate.getMonth() + 1).padStart(2, '0');
+                    let y = startDate.getFullYear();
+
+                    // Simpan format dd-mm-yyyy ke hidden input
+                    tglSelesaiHidden.value = `${d}-${m}-${y}`;
+                
+                    // Perbarui tampilan kalender visual untuk tgl_selesai (yyyy-mm-dd)
+                    if (tglSelesaiPicker) {
+                        tglSelesaiPicker.value = `${y}-${m}-${d}`;
+                    }
+                    return;
+                }
+            }
+            tglSelesaiHidden.value = "";
+            if (tglSelesaiPicker) tglSelesaiPicker.value = "";
+        }
+    }
 </script>
 </body>
 </html>
