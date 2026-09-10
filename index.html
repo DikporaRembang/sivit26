@@ -553,7 +553,7 @@
                     : 'text-slate-300 hover:bg-blue-900/40 hover:text-white'
             }`;
             btn.innerHTML = `<i class="fa-solid ${m.icon} w-5 text-center"></i><span>${m.name}</span>`;
-            btn.onclick = () => switchTab(m.sheet);
+            btn.onclick = () => loadTableData(m.sheet, m.name);
             sidebarMenu.appendChild(btn);
         });
     }
@@ -574,8 +574,10 @@
         displayTitle = 'Data Referensi Sekolah';
     } else if (sheetName === 'users') {
         displayTitle = 'Manajemen Pengguna Sistem';
+    } else if (sheetName === 'menu_pekerjaan') {
+        displayTitle = 'Daftar Menu Pekerjaan';
     }
-
+    
         document.getElementById('contentTitle').innerText = displayTitle;
         document.getElementById('contentSubtitle').innerText = "Memuat data dari server...";
         
