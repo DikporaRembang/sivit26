@@ -519,13 +519,14 @@
     }
 
     function renderSidebar() {
-        let container = document.getElementById('sidebarMenuContainer');
-        container.innerHTML = "";
+        let sidebarMenu = document.getElementById('sidebarMenu');
+        if (!sidebarMenu) return;
+        sidebarMenu.innerHTML = '';
 
         let menus = [];
         if (currentUser.role === 'DINAS') {
             menus = [
-                { name: 'Paket Pekerjaan SD', sheet: 'paket_pekerjaan_sd', icon: 'fa-boxes-packing' },
+                { name: 'Monitor Paket Pekerjaan Sekolah', sheet: 'paket_pekerjaan_sd', icon: 'fa-boxes-packing' },
                 { name: 'Verifikasi Sekolah', sheet: 'sekolah_pending', icon: 'fa-user-check' },
                 { name: 'Peta Persebaran (GIS)', sheet: 'peta_gis', icon: 'fa-map-location-dot' },
                 { name: 'Laporan Progres', sheet: 'laporan_progres', icon: 'fa-chart-line' },
@@ -533,36 +534,46 @@
                 { name: 'Data Sekolah', sheet: 'sekolah', icon: 'fa-school' },
                 { name: 'Manajemen User', sheet: 'users', icon: 'fa-users-gear' }
             ];
-        } else {
+        } else if (currentUser.role === 'SEKOLAH') {
             menus = [
-                { name: 'Paket Pekerjaan Saya', sheet: 'paket_pekerjaan_sd', icon: 'fa-box' },
-                { name: 'Peta Persebaran (GIS)', sheet: 'peta_gis', icon: 'fa-map-location-dot' },
-                { name: 'Laporan Progres Fisik', sheet: 'laporan_progres', icon: 'fa-clipboard-list' },
+                { name: 'Paket Pekerjaan Saya', sheet: 'paket_pekerjaan_sd', icon: 'fa-boxes-packing' },
+                { name: 'Laporan Progres', sheet: 'laporan_progres', icon: 'fa-chart-line' },
                 { name: 'Kurva S & Grafik', sheet: 'kurva_s', icon: 'fa-chart-area' },
-                { name: 'Profil & Tim Teknis', sheet: 'users', icon: 'fa-user-gear' }
+                { name: 'Profil Sekolah', sheet: 'sekolah', icon: 'fa-school' }
             ];
         }
 
         menus.forEach(m => {
             let btn = document.createElement('button');
-            btn.className = "w-full flex items-center space-x-2.5 px-3 py-2 rounded-xl text-left font-semibold text-blue-200 hover:bg-blue-900/60 hover:text-amber-400 transition-all text-xs cursor-pointer";
-            btn.innerHTML = `<i class="fa-solid ${m.icon} w-4 text-center"></i><span>${m.name}</span>`;
-            btn.onclick = () => loadTableData(m.sheet, m.name);
-            container.appendChild(btn);
+            let isActive = currentActiveSheet === m.sheet;
+            btn.className = `w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-xs font-semibold transition-all duration-200 ${
+                isActive 
+                    ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-lg shadow-amber-500/20' 
+                    : 'text-slate-300 hover:bg-blue-900/40 hover:text-white'
+            }`;
+            btn.innerHTML = `<i class="fa-solid ${m.icon} w-5 text-center"></i><span>${m.name}</span>`;
+            btn.onclick = () => switchTab(m.sheet);
+            sidebarMenu.appendChild(btn);
         });
     }
-
     async function loadTableData(sheetName, title) {
         currentActiveSheet = sheetName;
-        let displayTitle = title;
-        if (!displayTitle) {
-            if (sheetName === 'paket_pekerjaan_sd') displayTitle = currentUser.role === 'DINAS' ? 'Data Paket Pekerjaan SD' : 'Paket Pekerjaan Saya';
-            else if (sheetName === 'laporan_progres') displayTitle = currentUser.role === 'DINAS' ? 'Laporan Progres' : 'Laporan Progres Fisik';
-            else if (sheetName === 'kurva_s') displayTitle = 'Kurva S & Grafik';
-            else if (sheetName === 'peta_gis') displayTitle = 'Peta Persebaran Lokasi Revitalisasi (GIS)';
-            else if (sheetName === 'users') displayTitle = currentUser.role === 'DINAS' ? 'Manajemen User' : 'Profil & Tim Teknis';
-            else displayTitle = sheetName;
-        }
+        let displayTitle = '';
+    if (sheetName === 'paket_pekerjaan_sd') {
+        displayTitle = currentUser.role === 'DINAS' ? 'Monitor Paket Pekerjaan Sekolah' : 'Paket Pekerjaan Saya';
+    } else if (sheetName === 'sekolah_pending') {
+        displayTitle = 'Verifikasi Sekolah';
+    } else if (sheetName === 'peta_gis') {
+        displayTitle = 'Peta Persebaran (GIS)';
+    } else if (sheetName === 'laporan_progres') {
+        displayTitle = 'Laporan Progres Pekerjaan';
+    } else if (sheetName === 'kurva_s') {
+        displayTitle = 'Kurva S & Grafik Progres';
+    } else if (sheetName === 'sekolah') {
+        displayTitle = 'Data Referensi Sekolah';
+    } else if (sheetName === 'users') {
+        displayTitle = 'Manajemen Pengguna Sistem';
+    }
 
         document.getElementById('contentTitle').innerText = displayTitle;
         document.getElementById('contentSubtitle').innerText = "Memuat data dari server...";
