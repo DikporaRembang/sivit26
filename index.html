@@ -168,6 +168,25 @@
                 </div>
             </div>
 
+            <!-- ================= FITUR BARU: FILTER DINAS & AKSES SEKOLAH ================= -->
+            <div id="filterDinasContainer" class="hidden mb-6 p-4 bg-blue-950 rounded-xl border border-amber-500/40 text-white shadow-md">
+                <h4 class="font-bold text-sm text-amber-400 mb-3"><i class="fa-solid fa-filter mr-2"></i> Filter Rekapitulasi Dinas (Berdasarkan NPSN & Paket Pekerjaan)</h4>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                    <div>
+                        <label class="block font-bold text-blue-200 mb-1">Pilih Sekolah (NPSN):</label>
+                        <select id="selectDinasNpsn" onchange="filterDataDinasAndPaket()" class="w-full px-3 py-2 bg-blue-900 border border-blue-700 rounded-lg text-white font-semibold">
+                            <option value="">-- Semua Sekolah (Semua NPSN) --</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-blue-200 mb-1">Nama Menu Pekerjaan (Paket):</label>
+                        <select id="selectDinasPaket" onchange="filterDataDinasAndPaket()" class="w-full px-3 py-2 bg-blue-900 border border-blue-700 rounded-lg text-white font-semibold">
+                            <option value="">-- Semua Menu Pekerjaan --</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
             <div id="printableArea" class="bg-white rounded-xl border border-slate-300 shadow-xs p-6 text-slate-900">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-200">
                     <div>
@@ -177,8 +196,14 @@
                     <div id="actionButtonContainer" class="flex items-center space-x-2"></div>
                 </div>
 
+                <!-- Kurva S & Grafik Container dengan Tombol Ekspor JPEG -->
                 <div id="kurvaSContainer" class="hidden mb-6 p-4 bg-slate-50 rounded-xl border border-slate-200">
-                    <h4 class="font-bold text-sm text-slate-800 mb-3"><i class="fa-solid fa-chart-line text-blue-900 mr-2"></i> Grafik Kurva S (Progres Fisik, Target, & Anggaran %)</h4>
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3 gap-2">
+                        <h4 class="font-bold text-sm text-slate-800"><i class="fa-solid fa-chart-line text-blue-900 mr-2"></i> Grafik Kurva S (Progres Fisik, Target, & Anggaran %)</h4>
+                        <button onclick="eksporGrafikJPEG()" class="bg-blue-900 hover:bg-blue-800 text-amber-400 font-bold px-3 py-1.5 rounded-lg text-xs shadow-sm flex items-center space-x-1.5 cursor-pointer border border-amber-400/40 transition-all">
+                            <i class="fa-solid fa-file-image"></i><span>Ekspor Grafik ke JPEG</span>
+                        </button>
+                    </div>
                     <div class="relative h-72 w-full">
                         <canvas id="chartKurvaS"></canvas>
                     </div>
@@ -282,6 +307,7 @@
     let currentActiveSheet = '';
     let currentHeaders = [];
     let currentData = [];
+    let originalServerData = []; // Menyimpan data murni sebelum filter lokal dinas
     let paketPekerjaanList = [];
     let menuPekerjaanList = [];
     let usersList = [];
@@ -460,9 +486,46 @@
             let resPaket = await fetch(`${WEB_APP_URL}?action=getData&sheet=paket_pekerjaan_sd&role=DINAS&npsn=`);
             let dataPaket = await resPaket.json();
             paketPekerjaanList = dataPaket.data || [];
+
+            // Populate Dropdown Filter Dinas jika Dinas aktif
+            populateDinasFilterOptions();
         } catch (e) {
             console.error("Gagal memuat tabel referensi:", e);
         }
+    }
+
+    function populateDinasFilterOptions() {
+        if (!currentUser || currentUser.role !== 'DINAS') return;
+        
+        let selectNpsn = document.getElementById('selectDinasNpsn');
+        let selectPaket = document.getElementById('selectDinasPaket');
+        if (!selectNpsn || !selectPaket) return;
+
+        // Simpan nilai pilihan saat ini jika ada
+        let currentNpsnVal = selectNpsn.value;
+        let currentPaketVal = selectPaket.value;
+
+        selectNpsn.innerHTML = '<option value="">-- Semua Sekolah (Semua NPSN) --</option>';
+        let uniqueNpsn = [...new Set(paketPekerjaanList.map(item => String(item.npsn || '').trim()).filter(Boolean))];
+        uniqueNpsn.forEach(npsn => {
+            let matchedUser = usersList.find(u => String(u.username || u.npsn || '').trim() === npsn);
+            let namaSekolah = matchedUser ? (matchedUser.nama_pengguna || matchedUser.nama_sekolah) : 'Sekolah ' + npsn;
+            let opt = document.createElement('option');
+            opt.value = npsn;
+            opt.innerText = `${npsn} - ${namaSekolah}`;
+            selectNpsn.appendChild(opt);
+        });
+        selectNpsn.value = currentNpsnVal;
+
+        selectPaket.innerHTML = '<option value="">-- Semua Menu Pekerjaan --</option>';
+        let uniqueMenu = [...new Set(paketPekerjaanList.map(item => String(item.nama_menu || '').trim()).filter(Boolean))];
+        uniqueMenu.forEach(menu => {
+            let opt = document.createElement('option');
+            opt.value = menu;
+            opt.innerText = menu;
+            selectPaket.appendChild(opt);
+        });
+        selectPaket.value = currentPaketVal;
     }
 
     function initDashboard() {
@@ -501,6 +564,7 @@
                 { name: 'Paket Pekerjaan SD', sheet: 'paket_pekerjaan_sd', icon: 'fa-boxes-packing' },
                 { name: 'Verifikasi Sekolah', sheet: 'sekolah_pending', icon: 'fa-user-check' },
                 { name: 'Laporan Progres', sheet: 'laporan_progres', icon: 'fa-chart-line' },
+                { name: 'Kurva S & Grafik', sheet: 'kurva_s', icon: 'fa-chart-area' }, // Dinas juga bisa akses Kurva S terpusat
                 { name: 'Data Sekolah', sheet: 'sekolah', icon: 'fa-school' },
                 { name: 'Manajemen User', sheet: 'users', icon: 'fa-users-gear' }
             ];
@@ -508,7 +572,7 @@
             menus = [
                 { name: 'Paket Pekerjaan Saya', sheet: 'paket_pekerjaan_sd', icon: 'fa-box' },
                 { name: 'Laporan Progres Fisik', sheet: 'laporan_progres', icon: 'fa-clipboard-list' },
-                { name: 'Kurva S & Grafik', sheet: 'kurva_s', icon: 'fa-chart-area' },
+                { name: 'Kurva S & Grafik', sheet: 'kurva_s', icon: 'fa-chart-area' }, // Akses langsung di dashboard sekolah
                 { name: 'Profil & Tim Teknis', sheet: 'users', icon: 'fa-user-gear' }
             ];
         }
@@ -536,7 +600,17 @@
         document.getElementById('contentTitle').innerText = displayTitle;
         document.getElementById('contentSubtitle').innerText = "Memuat data dari server...";
         
+        let filterDinasEl = document.getElementById('filterDinasContainer');
         let kurvaEl = document.getElementById('kurvaSContainer');
+
+        // Tampilkan filter Dinas hanya di menu tabel utama / laporan / kurva S jika role DINAS
+        if (currentUser.role === 'DINAS' && (sheetName === 'paket_pekerjaan_sd' || sheetName === 'laporan_progres' || sheetName === 'kurva_s')) {
+            filterDinasEl.classList.remove('hidden');
+            populateDinasFilterOptions();
+        } else {
+            filterDinasEl.classList.add('hidden');
+        }
+
         if (sheetName === 'kurva_s') {
             kurvaEl.classList.remove('hidden');
             await loadReferenceTables();
@@ -574,7 +648,8 @@
 
             if (result.status === 'success') {
                 currentHeaders = result.header || [];
-                currentData = result.data || [];
+                originalServerData = result.data || [];
+                currentData = [...originalServerData];
 
                 if (targetSheet === 'users') {
                     usersList = currentData;
@@ -589,14 +664,53 @@
 
                 if (targetSheet === 'paket_pekerjaan_sd') {
                     paketPekerjaanList = currentData;
+                    populateDinasFilterOptions();
                 }
 
                 renderTable(currentHeaders, currentData, sheetName);
+                if (sheetName === 'kurva_s') {
+                    renderKurvaSChart();
+                }
             } else {
                 bodyEl.innerHTML = `<tr><td colspan="10" class="text-center p-4 text-red-500 text-xs">${result.message || 'Gagal memuat data'}</td></tr>`;
             }
         } catch (err) {
             bodyEl.innerHTML = `<tr><td colspan="10" class="text-center p-4 text-red-500 text-xs">Kesalahan jaringan saat mengambil data.</td></tr>`;
+        }
+    }
+
+    // Fungsi Filter Dinas Berdasarkan NPSN & Menu Paket Pekerjaan
+    function filterDataDinasAndPaket() {
+        if (!currentUser || currentUser.role !== 'DINAS') return;
+
+        let selectedNpsn = document.getElementById('selectDinasNpsn').value;
+        let selectedPaketMenu = document.getElementById('selectDinasPaket').value;
+
+        currentData = originalServerData.filter(row => {
+            let matchNpsn = true;
+            let matchPaket = true;
+
+            if (selectedNpsn) {
+                let rowNpsn = String(row.npsn || '').trim();
+                if (rowNpsn !== selectedNpsn) matchNpsn = false;
+            }
+
+            if (selectedPaketMenu) {
+                let rowMenu = String(row.nama_menu || '').trim();
+                // Jika di tabel laporan, kita cek relasi paket_id ke paket_pekerjaan_sd
+                if (!rowMenu && row.paket_id) {
+                    let matchedPaket = paketPekerjaanList.find(p => String(p.paket_id || p.id_paket || '').trim() === String(row.paket_id).trim());
+                    if (matchedPaket) rowMenu = String(matchedPaket.nama_menu || '').trim();
+                }
+                if (rowMenu !== selectedPaketMenu) matchPaket = false;
+            }
+
+            return matchNpsn && matchPaket;
+        });
+
+        renderTable(currentHeaders, currentData, currentActiveSheet);
+        if (currentActiveSheet === 'kurva_s') {
+            renderKurvaSChart();
         }
     }
         
@@ -657,6 +771,19 @@
                 scales: { y: { beginAtZero: true, max: 100 } }
             }
         });
+    }
+
+    // Fungsi Ekspor Grafik Menjadi Gambar JPEG
+    function eksporGrafikJPEG() {
+        if (!chartKurvaSInstance) {
+            alert("Grafik belum dimuat.");
+            return;
+        }
+        let imageURL = chartKurvaSInstance.toBase64Image();
+        let link = document.createElement('a');
+        link.href = imageURL;
+        link.download = `Kurva-S-Progres-${currentUser.username}.jpeg`;
+        link.click();
     }
 
     function renderTable(headers, data, sheetName) {
