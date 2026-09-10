@@ -386,81 +386,77 @@
         dropdown.classList.toggle('hidden');
     }
 
-function loadNotifikasi(penerima) {
-    let container = document.getElementById('notifListContainer');
-    fetch(`${WEB_APP_URL}?action=getNotifikasi&penerima=${encodeURIComponent(penerima)}`)
-        .then(res => res.json())
-        .then(response => {
-            if (response.status === 'success') {
-                let listNotif = response.data || [];
-                let badge = document.getElementById('notifBadge');
-                
-                // Menghitung jumlah notifikasi yang belum dibaca untuk badge
-                let unreadCount = listNotif.filter(n => n.status !== 'Terbaca').length;
+    function loadNotifikasi(penerima) {
+        let container = document.getElementById('notifListContainer');
+        fetch(`${WEB_APP_URL}?action=getNotifikasi&penerima=${encodeURIComponent(penerima)}`)
+            .then(res => res.json())
+            .then(response => {
+                if (response.status === 'success') {
+                    let listNotif = response.data || [];
+                    let badge = document.getElementById('notifBadge');
+                    
+                    let unreadCount = listNotif.filter(n => n.status !== 'Terbaca').length;
 
-                if (listNotif.length > 0) {
-                    if (unreadCount > 0) {
-                        badge.innerText = unreadCount;
-                        badge.classList.remove('hidden');
+                    if (listNotif.length > 0) {
+                        if (unreadCount > 0) {
+                            badge.innerText = unreadCount;
+                            badge.classList.remove('hidden');
+                        } else {
+                            badge.classList.add('hidden');
+                        }
+
+                        container.innerHTML = "";
+                        listNotif.reverse().forEach(n => {
+                            let div = document.createElement('div');
+                            div.className = "p-3 hover:bg-blue-800/40 transition-colors flex flex-col justify-between border-b border-blue-800/30";
+                            
+                            div.innerHTML = `
+                                <div>
+                                    <p class="text-blue-100 font-medium mb-1">${n.pesan}</p>
+                                    <div class="flex items-center justify-between mt-1">
+                                        <span class="text-[9px] text-amber-300 font-semibold"><i class="fa-regular fa-clock mr-1"></i>${n.waktu || '-'}</span>
+                                        <span id="status-notif-${n.id}" class="text-[9px] px-2 py-0.5 rounded font-bold ${n.status === 'Terbaca' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'}">
+                                            ${n.status || 'Belum Dibaca'}
+                                        </span>
+                                    </div>
+                                </div>
+                                ${n.id && n.status !== 'Terbaca' ? `<button onclick="tandaiSudahDibaca('${n.id}')" class="mt-2 self-end px-2 py-1 bg-amber-500 hover:bg-amber-400 text-blue-950 font-bold rounded text-[10px] cursor-pointer"><i class="fa-solid fa-check mr-1"></i> Tandai Dibaca</button>` : ''}
+                            `;
+                            container.appendChild(div);
+                        });
                     } else {
                         badge.classList.add('hidden');
+                        container.innerHTML = `<div class="p-4 text-center text-blue-300">Tidak ada notifikasi baru.</div>`;
                     }
-
-                    container.innerHTML = "";
-                    listNotif.reverse().forEach(n => {
-                        let div = document.createElement('div');
-                        div.className = "p-3 hover:bg-blue-800/40 transition-colors flex flex-col justify-between border-b border-blue-800/30";
-                        
-                        div.innerHTML = `
-                            <div>
-                                <p class="text-blue-100 font-medium mb-1">${n.pesan}</p>
-                                <div class="flex items-center justify-between mt-1">
-                                    <span class="text-[9px] text-amber-300 font-semibold"><i class="fa-regular fa-clock mr-1"></i>${n.waktu || '-'}</span>
-                                    <span id="status-notif-${n.id}" class="text-[9px] px-2 py-0.5 rounded font-bold ${n.status === 'Terbaca' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'}">
-                                        ${n.status || 'Belum Dibaca'}
-                                    </span>
-                                </div>
-                            </div>
-                            ${n.id && n.status !== 'Terbaca' ? `<button onclick="tandaiSudahDibaca('${n.id}')" class="mt-2 self-end px-2 py-1 bg-amber-500 hover:bg-amber-400 text-blue-950 font-bold rounded text-[10px] cursor-pointer"><i class="fa-solid fa-check mr-1"></i> Tandai Dibaca</button>` : ''}
-                        `;
-                        container.appendChild(div);
-                    });
-                } else {
-                    badge.classList.add('hidden');
-                    container.innerHTML = `<div class="p-4 text-center text-blue-300">Tidak ada notifikasi baru.</div>`;
                 }
-            }
-        })
-        .catch(error => {
-            console.error("Gagal memuat notifikasi", error);
-            container.innerHTML = `<div class="p-4 text-center text-red-400">Gagal memuat notifikasi.</div>`;
-        });
-}
-
-async function tandaiSudahDibaca(notifId) {
-    try {
-        // Mengirim request ke server/database untuk mengubah status menjadi 'Terbaca'
-        let res = await fetch(`${WEB_APP_URL}?action=updateNotifikasi&id=${notifId}&status=Terbaca`, {
-            method: 'POST'
-        });
-        let result = await res.json();
-        
-        if (result.status === 'success') {
-            // Mengubah tampilan elemen HTML secara langsung tanpa perlu reload halaman
-            let badgeStatus = document.getElementById(`status-notif-${notifId}`);
-            if (badgeStatus) {
-                badgeStatus.innerText = "Terbaca";
-                badgeStatus.className = "text-[9px] px-2 py-0.5 rounded font-bold bg-green-100 text-green-800"; // Ubah warna jadi hijau
-            }
-            
-            // Perbarui ulang daftar notifikasi & badge hitung
-            let targetPenerima = (currentUser && currentUser.role === 'DINAS') ? 'DINAS' : (currentUser ? currentUser.username : '');
-            loadNotifikasi(targetPenerima);
-        }
-    } catch (e) {
-        console.error("Gagal memperbarui status notifikasi:", e);
+            })
+            .catch(error => {
+                console.error("Gagal memuat notifikasi", error);
+                container.innerHTML = `<div class="p-4 text-center text-red-400">Gagal memuat notifikasi.</div>`;
+            });
     }
-} 
+
+    async function tandaiSudahDibaca(notifId) {
+        try {
+            let res = await fetch(`${WEB_APP_URL}?action=updateNotifikasi&id=${notifId}&status=Terbaca`, {
+                method: 'POST'
+            });
+            let result = await res.json();
+            
+            if (result.status === 'success') {
+                let badgeStatus = document.getElementById(`status-notif-${notifId}`);
+                if (badgeStatus) {
+                    badgeStatus.innerText = "Terbaca";
+                    badgeStatus.className = "text-[9px] px-2 py-0.5 rounded font-bold bg-green-100 text-green-800";
+                }
+                
+                let targetPenerima = (currentUser && currentUser.role === 'DINAS') ? 'DINAS' : (currentUser ? currentUser.username : '');
+                loadNotifikasi(targetPenerima);
+            }
+        } catch (e) {
+            console.error("Gagal memperbarui status notifikasi:", e);
+        }
+    } 
 
     document.getElementById('regNpsn').addEventListener('blur', function() {
         let npsn = this.value.trim();
@@ -1125,7 +1121,7 @@ async function tandaiSudahDibaca(notifId) {
         });
     }
 
-async function cetakLaporanResmi(paketId, npsn) {
+    async function cetakLaporanResmi(paketId, npsn) {
         const paket = paketPekerjaanList.find(p => String(p.paket_id || p.id_paket || '').trim() === String(paketId).trim());
         if (!paket) {
             alert("Data paket pekerjaan tidak ditemukan.");
@@ -1352,7 +1348,6 @@ async function cetakLaporanResmi(paketId, npsn) {
 
         document.getElementById('formRowIndex').value = rowData ? rowData._rowIndex : "";
         
-        // Integrasi teks judul & tombol berdasarkan rowData (Tambah / Edit)
         if (!rowData) {
             modalTitle.innerText = "Tambah Paket Pekerjaan Baru";
             btnSave.innerText = "Tambah Paket";
@@ -1766,7 +1761,7 @@ async function cetakLaporanResmi(paketId, npsn) {
             let tglMulai = new Date(mulaiInput.value);
             let lamaHari = parseInt(lamaInput.value) || 0;
             if (!isNaN(tglMulai.getTime())) {
-                tglMulai.setDate(tglMulai.getDate() + lamaHari);
+                tglMulai.setDate(tglMulat.getDate() + lamaHari);
                 let yyyy = tglMulai.getFullYear();
                 let mm = String(tglMulai.getMonth() + 1).padStart(2, '0');
                 let dd = String(tglMulai.getDate()).padStart(2, '0');
