@@ -733,15 +733,11 @@ function renderKurvaSChart() {
 
         // Pemetaan eksplisit untuk realisasi fisik dengan berbagai variasi penamaan umum
         let realisasiData = currentData.map(d => {
-            let val = 0;
-            for (let key in d) {
-                let cleanKey = key.toLowerCase().replace(/[\s_]/g, '');
-                if (cleanKey.includes('realisasi') && (cleanKey.includes('fisik') || cleanKey === 'realisasi')) {
-                    val = d[key];
-                    break;
-                }
-            }
-            return Number(String(val).replace('%','').trim()) || 0;
+            // Ambil langsung dari kolom realisasi_fisik, berikan fallback 0 jika kosong/null
+            let val = d.realisasi_fisik !== undefined && d.realisasi_fisik !== null ? d.realisasi_fisik : 0;
+            
+            // Bersihkan jika ada simbol '%' atau spasi, lalu ubah jadi angka desimal
+            return Number(String(val).replace('%', '').trim()) || 0;
         });
 
         console.log("Hasil mapping realisasiData:", realisasiData);
