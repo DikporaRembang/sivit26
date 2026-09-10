@@ -1404,6 +1404,7 @@
                 div.appendChild(manualFallbackContainer);
             } 
             else if (currentActiveSheet === 'paket_pekerjaan_sd') {
+                // Validasi batas maksimal input paket (diubah menjadi maksimal 1 paket revitalisasi untuk sekolah)
                 if (!rowData && currentUser.role === 'SEKOLAH') {
                     let existingPaket = paketPekerjaanList.filter(p => String(p.npsn || '').trim() === String(currentUser.username).trim());
                     if (existingPaket.length >= 1) {
@@ -1430,7 +1431,7 @@
                     input = document.createElement('select');
                     input.name = h;
                     input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-                    
+        
                     let defOpt = document.createElement('option');
                     defOpt.value = "";
                     defOpt.innerText = "-- Pilih Menu Pekerjaan --";
@@ -1441,9 +1442,9 @@
                         let opt = document.createElement('option');
                         opt.value = mName;
                         opt.innerText = mName;
-                        if (rowData && rowData[h] === mName) opt.selected = true;
+                        if (rowData && String(rowData[h] || '').trim() === String(mName).trim()) opt.selected = true;
                         input.appendChild(opt);
-                    });
+                        });
                 } else if (h.toLowerCase() === 'pagu') {
                     let rawVal = rowData && rowData[h] !== undefined ? rowData[h] : "";
                     let initialNum = rawVal !== "" ? Number(rawVal) : "";
@@ -1489,7 +1490,7 @@
                     input.name = h;
                     input.readOnly = true;
                     input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-300 cursor-not-allowed font-bold";
-                    
+        
                     let autoVal = "";
                     if (currentUser[h]) {
                         autoVal = currentUser[h];
