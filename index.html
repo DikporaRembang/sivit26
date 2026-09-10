@@ -712,15 +712,39 @@
         let ctx = document.getElementById('chartKurvaS').getContext('2d');
         if (chartKurvaSInstance) chartKurvaSInstance.destroy();
 
-        let labels = currentData.map(d => d.minggu_ke || d.tanggal_lapor || 'Minggu');
-        let targetData = currentData.map(d => Number(String(d.target_kurva_s || 0).replace('%','')) || 0);
-        let realisasiData = currentData.map(d => Number(String(d.realisasi_fisik || 0).replace('%','')) || 0);
+        // Helper untuk mengambil nilai properti secara fleksibel (mengatasi spasi/huruf kapital pada header sheet)
+        function getVal(obj, keys) {
+            for (let k of keys) {
+                for (let prop in obj) {
+                    if (prop.toLowerCase().replace(/[\s_]/g, '') === k.toLowerCase().replace(/[\s_]/g, '')) {
+                        if (obj[prop] !== undefined && obj[prop] !== "") return obj[prop];
+                    }
+                }
+            }
+            return null;
+        }
+
+        // Mengambil label minggu atau tanggal lapor
+        let labels = currentData.map(d => getVal(d, ['minggu_ke', 'minggu', 'tanggal_lapor', 'periode']) || 'Minggu');
         
+        // Mengambil data target fisik
+        let targetData = currentData.map(d => {
+            let val = getVal(d, ['target_kurva_s', 'target', 'target_fisik']) || 0;
+            return Number(String(val).replace('%','')) || 0;
+        });
+
+        // Mengambil data realisasi fisik (diatasi agar terbaca walau spasi/kapital berbeda)
+        let realisasiData = currentData.map(d => {
+            let val = getVal(d, ['realisasi_fisik', 'realisasi', 'progres_fisik']) || 0;
+            return Number(String(val).replace('%','')) || 0;
+        });
+        
+        // Menghitung persentase penggunaan anggaran terhadap pagu
         let anggaranPersenData = currentData.map(d => {
-            let pId = String(d.paket_id || '').trim();
+            let pId = String(getVal(d, ['paket_id', 'id_paket']) || '').trim();
             let matchedPaket = paketPekerjaanList.find(p => String(p.paket_id || p.id_paket || '').trim() === pId);
-            let paguPekerjaan = matchedPaket ? (Number(matchedPaket.pagu) || 0) : 0;
-            let penggunaan = Number(d.penggunaan_anggaran) || 0;
+            let paguPekerjaan = matchedPaket ? (Number(getVal(matchedPaket, ['pagu', 'pagu_anggaran'])) || 0) : 0;
+            let penggunaan = Number(getVal(d, ['penggunaan_anggaran', 'anggaran'])) || 0;
             
             if (paguPekerjaan > 0) {
                 return Number(((penggunaan / paguPekerjaan) * 100).toFixed(2));
@@ -735,7 +759,7 @@
                 datasets: [
                     {
                         label: 'Target Kurva S (%)',
-                        data: targetData.length ? targetData : [10, 30, 60, 100],
+                        data: targetData,
                         borderColor: 'rgb(59, 130, 246)',
                         backgroundColor: 'rgba(59, 130, 246, 0.1)',
                         tension: 0.3,
@@ -743,7 +767,7 @@
                     },
                     {
                         label: 'Realisasi Fisik (%)',
-                        data: realisasiData.length ? realisasiData : [5, 25, 55, 90],
+                        data: realisasiData,
                         borderColor: 'rgb(245, 158, 11)',
                         backgroundColor: 'rgba(245, 158, 11, 0.1)',
                         tension: 0.3,
@@ -751,7 +775,7 @@
                     },
                     {
                         label: 'Penggunaan Anggaran (%)',
-                        data: anggaranPersenData.length ? anggaranPersenData : [0, 20, 50, 85],
+                        data: anggaranPersenData,
                         borderColor: 'rgb(16, 185, 129)',
                         backgroundColor: 'rgba(16, 185, 129, 0.1)',
                         tension: 0.3,
