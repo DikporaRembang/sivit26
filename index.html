@@ -1305,11 +1305,20 @@
 
         let modal = document.getElementById('dataModal');
         let container = document.getElementById('formFieldsContainer');
-        let titleEl = document.getElementById('modalTitle');
+        let modalTitle = document.getElementById('modalTitle');
+        let btnSave = document.getElementById('btnSaveModal');
         container.innerHTML = "";
 
         document.getElementById('formRowIndex').value = rowData ? rowData._rowIndex : "";
-        titleEl.innerText = rowData ? "Edit Data " + currentActiveSheet : "Tambah Data " + currentActiveSheet;
+        
+        // Integrasi teks judul & tombol berdasarkan rowData (Tambah / Edit)
+        if (!rowData) {
+            modalTitle.innerText = "Tambah Paket Pekerjaan Baru";
+            btnSave.innerText = "Tambah Paket";
+        } else {
+            modalTitle.innerText = "Edit Paket Pekerjaan";
+            btnSave.innerText = "Simpan Perubahan";
+        }
 
         currentHeaders.forEach(h => {
             if (h === '_rowIndex') return;
