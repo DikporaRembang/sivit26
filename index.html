@@ -1610,149 +1610,154 @@
                 
 // ... (lanjutan kondisi sheet lainnya jika ada) 
             else if (currentActiveSheet === 'laporan_progres') {
-                if (h.toLowerCase() === 'id') {
+                let lowerH = h.toLowerCase();
+
+                if (lowerH === 'npsn') {
                     input = document.createElement('input');
                     input.type = "text";
                     input.name = h;
                     input.readOnly = true;
                     input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-400 cursor-not-allowed font-bold";
-                    input.value = rowData && rowData[h] ? rowData[h] : "LAP-" + currentUser.username + "-" + Math.floor(Date.now() / 1000);
-                } else if (h.toLowerCase() === 'paket_id') {
+                    input.value = rowData && rowData[h] ? rowData[h] : currentUser.username;
+                } 
+                else if (lowerH === 'paket_id') {
+                    // Dropdown paket_id berdasarkan paket yang sudah diinput oleh sekolah ini
                     input = document.createElement('select');
                     input.name = h;
-                    input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-                    
+                    input.className = "w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-blue-500";
+        
                     let defaultOpt = document.createElement('option');
                     defaultOpt.value = "";
-                    defaultOpt.innerText = "-- Pilih Paket Pekerjaan --";
+                    defaultOpt.textContent = "-- Pilih Paket Pekerjaan --";
                     input.appendChild(defaultOpt);
 
-                    paketPekerjaanList.forEach(p => {
-                        if (String(p.npsn) === String(currentUser.username)) {
-                            let pId = p['paket_id'];
-                            let pName = p['nama_menu'];
-                            let opt = document.createElement('option');
-                            opt.value = pId;
-                            opt.innerText = `${pId} - ${pName}`;
-                            if (rowData && rowData[h] === pId) opt.selected = true;
-                            input.appendChild(opt);
+                    let myPakets = typeof paketPekerjaanList !== 'undefined' ? paketPekerjaanList.filter(p => String(p.npsn || '').trim() === String(currentUser.username).trim()) : [];
+        
+                    myPakets.forEach(p => {
+                        let pId = p.paket_id || p.id;
+                        let pMenu = p.nama_menu || '';
+                        let opt = document.createElement('option');
+                        opt.value = pId;
+                        opt.textContent = `${pId} - ${pMenu}`;
+                        if (rowData && String(rowData[h]) === String(pId)) {
+                            opt.selected = true;
                         }
+                        input.appendChild(opt);
                     });
-                } else if (h.toLowerCase() === 'minggu_ke') {
+                }
+                else if (lowerH === 'rentang_minggu' || lowerH === 'minggu_ke') {
+                    // Dropdown Rentang Minggu dengan validasi agar tidak bisa dipilih ulang jika sudah ada pada Paket ID yang sama
                     input = document.createElement('select');
                     input.name = h;
-                    input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-                    
-                    let defOpt = document.createElement('option');
-                    defOpt.value = "";
-                    defOpt.innerText = "-- Pilih Rentang Minggu --";
-                    input.appendChild(defOpt);
+                    input.className = "w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-blue-500";
+        
+                    let defaultOpt = document.createElement('option');
+                    defaultOpt.value = "";
+                    defaultOpt.textContent = "-- Pilih Rentang Minggu --";
+                    input.appendChild(defaultOpt);
 
-                    let baseDate = new Date(2026, 0, 5);
-                    for (let w = 1; w <= 24; w++) {
-                        let startD = new Date(baseDate);
-                        startD.setDate(baseDate.getDate() + (w - 1) * 7);
-                        let endD = new Date(baseDate);
-                        endD.setDate(baseDate.getDate() + w * 7 - 1);
-
-                        let fmtStart = `${String(startD.getDate()).padStart(2, '0')}/${String(startD.getMonth() + 1).padStart(2, '0')}/${startD.getFullYear()}`;
-                        let fmtEnd = `${String(endD.getDate()).padStart(2, '0')}/${String(endD.getMonth() + 1).padStart(2, '0')}/${endD.getFullYear()}`;
-                        
-                        let labelMinggu = `Minggu ke-${w} ${fmtStart} s/d ${fmtEnd}`;
-                        let opt = document.createElement('option');
-                        opt.value = labelMinggu;
-                        opt.innerText = labelMinggu;
-                        if (rowData && rowData[h] === labelMinggu) opt.selected = true;
-                        input.appendChild(opt);
+                    // Daftar rentang minggu standar (bisa disesuaikan jika menggunakan list terpisah)
+                    let daftarMinggu = [];
+                    for (let i = 1; i <= 26; i++) {
+                        daftarMinggu.push(`Minggu ke-${i}`);
                     }
-                } else if (h.toLowerCase() === 'tanggal_lapor') {
-                    input = document.createElement('input');
-                    input.type = "date";
-                    input.name = h;
-                    input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-                    input.value = convertToInputDate(rowData && rowData[h] ? rowData[h] : new Date().toISOString().split('T')[0]);
-                } else if (h.toLowerCase() === 'target_kurva_s' || h.toLowerCase() === 'realisasi_fisik') {
+
+                    // Ambil minggu yang sudah diinput oleh sekolah ini pada paket tertentu (jika data progres sudah ada)
+                    input.addEventListener('change', function() {
+                        // Validasi dinamis saat rentang minggu dipilih
+                        cekRentangMingguEksis(this.value);
+                    });
+
+                    daftarMinggu.forEach(mStr => {
+                        let opt = document.createElement('option');
+                        opt.value = mStr;
+                        opt.textContent = mStr;
+                        if (rowData && String(rowData[h]) === mStr) {
+                            opt.selected = true;
+                        }
+                        input.appendChild(opt);
+                    });
+                }
+                else if (lowerH === 'target_kurva_s' || lowerH === 'realisasi_fisik') {
                     input = document.createElement('input');
                     input.type = "number";
                     input.step = "0.01";
-                    input.max = "100";
                     input.min = "0";
+                    input.max = "100";
                     input.name = h;
-                    input.placeholder = "0 - 100";
-                    input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-                    input.value = rowData && rowData[h] !== undefined ? String(rowData[h]).replace('%', '') : "";
-                } else if (h.toLowerCase() === 'tanggal_upload') {
-                    input = document.createElement('input');
-                    input.type = "text";
-                    input.name = h;
-                    input.readOnly = true;
-                    input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-300 cursor-not-allowed";
-                    let now = new Date();
-                    input.value = rowData && rowData[h] ? rowData[h] : `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
-                } else if (h.toLowerCase() === 'lokasi_koordinat') {
-                    input = document.createElement('input');
-                    input.type = "text";
-                    input.name = h;
-                    input.readOnly = true;
-                    input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-300 cursor-not-allowed";
-                    input.value = rowData && rowData[h] ? rowData[h] : "Otomatis dari metadata foto...";
-                } else if (h.toLowerCase() === 'penggunaan_anggaran') {
-                    input = document.createElement('input');
-                    input.type = "number";
-                    input.name = h;
-                    input.placeholder = "Nominal anggaran";
-                    input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-                    input.value = rowData && rowData[h] !== undefined ? Number(rowData[h]) : "";
-                } else if (h.toLowerCase() === 'status_verifikasi') {
-                    input = document.createElement('input');
-                    input.type = "text";
-                    input.name = h;
-                    input.readOnly = true;
-                    input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-300 cursor-not-allowed font-bold";
-                    input.value = rowData && rowData[h] ? rowData[h] : "DIAJUKAN";
-                } else if (h.toLowerCase() === 'user_id') {
-                    input = document.createElement('input');
-                    input.type = "text";
-                    input.name = h;
-                    input.readOnly = true;
-                    input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-blue-300 cursor-not-allowed";
-                    input.value = currentUser.nama_pengguna;
-                } else {
-                    input = document.createElement('input');
-                    input.type = "text";
-                    input.name = h;
-                    input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-                    input.value = rowData ? (rowData[h] !== undefined ? rowData[h] : "") : "";
+                    input.className = "w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-blue-500";
+                    input.placeholder = "Nilai 0 s.d 100";
+                    input.value = rowData && rowData[h] !== undefined ? rowData[h] : "";
                 }
-            } 
-            else if (isUserSchoolEditing) {
-                input = document.createElement('input');
-                input.type = "text";
-                input.name = h;
-                input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-                input.value = rowData ? (rowData[h] !== undefined ? rowData[h] : "") : "";
-                if (h.toLowerCase() === 'username' || h.toLowerCase() === 'id' || h.toLowerCase() === 'role' || h.toLowerCase() === 'status') {
-                    input.readOnly = true;
-                    input.className += " opacity-60 cursor-not-allowed";
+                else if (lowerH === 'penggunaan_anggaran') {
+                    input = document.createElement('input');
+                    input.type = "text";
+                    input.name = h;
+                    input.className = "w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-blue-500";
+                    input.placeholder = "Contoh: 15.000.000";
+        
+                    let initialVal = rowData && rowData[h] !== undefined ? rowData[h] : "";
+                    input.value = initialVal !== "" ? formatRupiah(String(initialVal)) : "";
+
+                    input.addEventListener('input', function() {
+                        let cleanVal = this.value.replace(/[^0-9]/g, '');
+                        this.value = formatRupiah(cleanVal);
+                    });
                 }
-            } else {
-                input = document.createElement('input');
-                input.type = "text";
-                input.name = h;
-                input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-                input.value = rowData ? (rowData[h] !== undefined ? rowData[h] : "") : "";
+                else if (lowerH === 'catatan_pekerjaan') {
+                    input = document.createElement('textarea');
+                    input.name = h;
+                    input.className = "w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-blue-500";
+                    input.value = rowData && rowData[h] ? rowData[h] : "Tidak ada kendala";
+                }
+                else if (lowerH === 'catatan_dinas') {
+                    input = document.createElement('input');
+                    input.type = "text";
+                    input.name = h;
+                    input.readOnly = true; // SEKOLAH tidak bisa mengisi
+                    input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-400 cursor-not-allowed font-bold";
+                    input.value = rowData && rowData[h] ? rowData[h] : "Tunggu diverifikasi";
+                }
+                else if (lowerH === 'lokasi_koordinat') {
+                    input = document.createElement('input');
+                    input.type = "text";
+                    input.name = h;
+                    input.className = "w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-blue-500";
+                    input.placeholder = "Contoh: -6.7156, 111.3452 (Decimal Degrees)";
+                    input.value = rowData && rowData[h] ? rowData[h] : "";
+                }
+                else if (lowerH === 'tanggal_foto_exif') {
+                    input = document.createElement('input');
+                    input.type = "text";
+                    input.name = h;
+                    input.readOnly = true; // Terisi otomatis dari metadata foto
+                    input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-400 cursor-not-allowed font-bold";
+                    input.value = rowData && rowData[h] ? rowData[h] : "Tidak ada tanggal";
+                }
+                else if (lowerH === 'foto_dokumentasi' || lowerH.includes('foto')) {
+                    // Input file untuk foto dokumentasi yang mendukung pembacaan EXIF (Tanggal & Koordinat GPS)
+                    let wrapper = document.createElement('div');
+                    wrapper.className = "space-y-2";
+
+                    input = document.createElement('input');
+                    input.type = "file";
+                    input.accept = "image/*";
+                    input.name = h;
+                    input.className = "w-full text-xs text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer";
+
+                    // Tambahan event listener untuk membaca EXIF tanggal dan koordinat dari file foto yang diunggah
+                    input.addEventListener('change', function(e) {
+                        let file = e.target.files[0];
+                        if (file) {
+                            bacaMetadataFotoEXIF(file);
+                        }
+                    });
+
+                    wrapper.appendChild(input);
+                    input = wrapper;
+                }
             }
-
-            if (input && !div.contains(input)) {
-                div.appendChild(input);
-            }
-            container.appendChild(div);
-        });
-
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-    }
-
+            
     function hitungTanggalSelesai() {
         let mulaiInput = document.getElementById('inputTanggalMulai');
         let lamaInput = document.getElementById('inputLamaHari');
@@ -1785,8 +1790,8 @@
 
         let inputs = form.querySelectorAll('input, select, textarea');
         inputs.forEach(inp => {
-            if (inp.name && inp.name !== 'formRowIndex') {
-                if (inp.id === 'inputPaguFormatted') return; 
+                        if (inp.name && inp.name !== 'formRowIndex') {
+                            if (inp.id === 'inputPaguFormatted') return; 
                 formDataObj[inp.name] = inp.value;
             }
         });
