@@ -1806,7 +1806,7 @@
             let tglMulai = new Date(mulaiInput.value);
             let lamaHari = parseInt(lamaInput.value) || 0;
             if (!isNaN(tglMulai.getTime())) {
-                tglMulai.setDate(tglMulat.getDate() + lamaHari);
+                tglMulai.setDate(tglMulai.getDate() + lamaHari);
                 let yyyy = tglMulai.getFullYear();
                 let mm = String(tglMulai.getMonth() + 1).padStart(2, '0');
                 let dd = String(tglMulai.getDate()).padStart(2, '0');
