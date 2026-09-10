@@ -1516,24 +1516,67 @@
                 } 
                 else if (lowerH === 'pagu') {
                     input = document.createElement('input');
-                    input.type = "number";
+                    input.type = "text"; // Menggunakan text agar pemisah ribuan (.) dapat ditampilkan
                     input.name = h;
                     input.className = "w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-blue-500";
-                    input.placeholder = "Masukkan jumlah pagu anggaran";
-                    input.value = rowData && rowData[h] !== undefined ? rowData[h] : "";
-                }
-                else if (lowerH === 'tanggal_mulai') {
-                    input = document.createElement('input');
-                    input.type = "text"; // Menggunakan text agar format dd-mm-yyyy bebas diketik/ditampilkan
-                    input.name = h;
-                    input.placeholder = "dd-mm-yyyy (Contoh: 25-12-2026)";
-                    input.className = "w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-blue-500";
-                    input.value = rowData && rowData[h] ? rowData[h] : "";
+                    input.placeholder = "Contoh: 50.000.000";
+        
+                    let initialPagu = rowData && rowData[h] !== undefined ? rowData[h] : "";
+                    input.value = initialPagu !== "" ? formatRupiah(String(initialPagu)) : "";
 
-                    // Event listener saat tanggal mulai diketik/berubah untuk menghitung tgl_selesai otomatis
+                    // Event listener untuk otomatis memformat angka ribuan saat diketik
                     input.addEventListener('input', function() {
-                        hitungTglSelesaiFormatID();
+                        let cleanVal = this.value.replace(/[^0-9]/g, '');
+                        this.value = formatRupiah(cleanVal);
                     });
+                }
+                else if (lowerH === 'tanggal_mulai' || lowerH === 'tgl_selesai') {
+                    let isSelesai = (lowerH === 'tgl_selesai');
+
+                    // Wrapper agar input date (kalender di kanan) dan nilai tersembunyi berformat dd-mm-yyyy bisa disandingkan
+                    let wrapper = document.createElement('div');
+                    wrapper.className = "relative flex items-center";
+
+                    let hiddenInput = document.createElement('input');
+                    hiddenInput.type = "hidden";
+                    hiddenInput.name = h;
+                    let initialVal = rowData && rowData[h] ? rowData[h] : "";
+                    hiddenInput.value = initialVal;
+
+                    let datePicker = document.createElement('input');
+                    datePicker.type = "date";
+                    datePicker.id = lowerH + "_picker";
+                    datePicker.className = "w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-blue-500" + (isSelesai ? " bg-blue-950/60 text-amber-400 cursor-not-allowed font-bold" : "");
+                    if (isSelesai) datePicker.readOnly = true;
+
+                    // Konversi awal dari format dd-mm-yyyy ke yyyy-mm-dd agar terbaca oleh kalender visual
+                    if (initialVal && initialVal.split('-').length === 3) {
+                        let parts = initialVal.split('-');
+                        if (parts[0].length === 2) {
+                            datePicker.value = `${parts[2]}-${parts[1]}-${parts[0]}`;
+                        } else {
+                            datePicker.value = initialVal;
+                        }
+                    }
+
+                    if (!isSelesai) {
+                        datePicker.addEventListener('change', function() {
+                                let val = this.value; // Format dari kalender: yyyy-mm-dd
+                            if (val) {
+                                let parts = val.split('-');
+                                let formatted = `${parts[2]}-${parts[1]}-${parts[0]}`; // Ubah ke dd-mm-yyyy
+                                hiddenInput.value = formatted;
+                                hitungTglSelesaiFormatID();
+                            } else {
+                                hiddenInput.value = "";
+                                hitungTglSelesaiFormatID();
+                            }
+                        });
+                    }
+
+                    wrapper.appendChild(datePicker);
+                    wrapper.appendChild(hiddenInput);
+                    input = wrapper;
                 }
                 else if (lowerH === 'lama_hari') {
                     input = document.createElement('input');
@@ -1543,19 +1586,9 @@
                     input.placeholder = "Contoh: 90";
                     input.value = rowData && rowData[h] !== undefined ? rowData[h] : "";
 
-                    // Event listener saat lama hari diubah
                     input.addEventListener('input', function() {
                         hitungTglSelesaiFormatID();
                     });
-                }
-                else if (lowerH === 'tgl_selesai') {
-                    input = document.createElement('input');
-                    input.type = "text"; // Text karena format dd-mm-yyyy dan bersifat readOnly
-                    input.name = h;
-                    input.readOnly = true; 
-                    input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-400 cursor-not-allowed font-bold";
-                    input.placeholder = "Otomatis terisi (dd-mm-yyyy)";
-                    input.value = rowData && rowData[h] ? rowData[h] : "";
                 }
                 else if (lowerH === 'perencana') {
                     input = document.createElement('input');
@@ -1574,6 +1607,7 @@
                     input.value = rowData && rowData[h] ? rowData[h] : (currentUser.pengawas || currentUser.nama_pengawas || "-");
                 }
             }
+                
 // ... (lanjutan kondisi sheet lainnya jika ada) 
             else if (currentActiveSheet === 'laporan_progres') {
                 if (h.toLowerCase() === 'id') {
