@@ -301,13 +301,13 @@
     
 <!-- ================= SCRIPT UTAMA ================= -->
 <script>
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx-h49CW4S8aKIbN6Et9Jy862BkJ_cLYo6m8RyDWDnRGsLIWNnHtl1HAl0ZHNvJ0cDt8A/exec";
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx-h49CW4S8aKIbN6Et9Jy862BkJ_cLYo6m8RyDWDnRGsLIWNnHtl1HAl0ZHNvJ0cDt8A/exec";[cite: 15]
         
     let currentUser = null;
     let currentActiveSheet = '';
     let currentHeaders = [];
     let currentData = [];
-    let originalServerData = []; // Menyimpan data murni sebelum filter lokal dinas
+    let originalServerData = []; 
     let paketPekerjaanList = [];
     let menuPekerjaanList = [];
     let usersList = [];
@@ -362,7 +362,7 @@
 
     function loadNotifikasi(penerima) {
         let container = document.getElementById('notifListContainer');
-        fetch(`${WEB_APP_URL}?action=getNotifikasi&penerima=${encodeURIComponent(penerima)}`)
+        fetch(`${WEB_APP_URL}?action=getNotifikasi&penerima=${encodeURIComponent(penerima)}`)[cite: 15]
             .then(res => res.json())
             .then(response => {
                 if(response.status === 'success') {
@@ -398,7 +398,7 @@
     document.getElementById('regNpsn').addEventListener('blur', function() {
         let npsn = this.value.trim();
         if (!npsn) return;
-        fetch(`${WEB_APP_URL}?action=checkNpsn&npsn=${npsn}`)
+        fetch(`${WEB_APP_URL}?action=checkNpsn&npsn=${npsn}`)[cite: 15]
             .then(res => res.json())
             .then(res => {
                 if (res.status === 'success') {
@@ -417,7 +417,7 @@
         let p = document.getElementById('loginPass').value;
 
         try {
-            let res = await fetch(`${WEB_APP_URL}?action=login&username=${encodeURIComponent(u)}&password=${encodeURIComponent(p)}`);
+            let res = await fetch(`${WEB_APP_URL}?action=login&username=${encodeURIComponent(u)}&password=${encodeURIComponent(p)}`);[cite: 15]
             let data = await res.json();
             if (data.status === 'success') {
                 currentUser = data.data;
@@ -443,7 +443,7 @@
         }
 
         try {
-            let res = await fetch(WEB_APP_URL, {
+            let res = await fetch(WEB_APP_URL, {[cite: 15]
                 method: 'POST',
                 body: JSON.stringify({ action: 'register', npsn: npsn, nama_lengkap: nama, password: pass })
             });
@@ -475,19 +475,18 @@
 
     async function loadReferenceTables() {
         try {
-            let resMenu = await fetch(`${WEB_APP_URL}?action=getRef&type=menu_pekerjaan`);
+            let resMenu = await fetch(`${WEB_APP_URL}?action=getRef&type=menu_pekerjaan`);[cite: 15]
             let dataMenu = await resMenu.json();
             menuPekerjaanList = dataMenu.data || [];
 
-            let resUsers = await fetch(`${WEB_APP_URL}?action=getRef&type=users`);
+            let resUsers = await fetch(`${WEB_APP_URL}?action=getRef&type=users`);[cite: 15]
             let dataUsers = await resUsers.json();
             usersList = dataUsers.data || [];
 
-            let resPaket = await fetch(`${WEB_APP_URL}?action=getData&sheet=paket_pekerjaan_sd&role=DINAS&npsn=`);
+            let resPaket = await fetch(`${WEB_APP_URL}?action=getData&sheet=paket_pekerjaan_sd&role=DINAS&npsn=`);[cite: 15]
             let dataPaket = await resPaket.json();
             paketPekerjaanList = dataPaket.data || [];
 
-            // Populate Dropdown Filter Dinas jika Dinas aktif
             populateDinasFilterOptions();
         } catch (e) {
             console.error("Gagal memuat tabel referensi:", e);
@@ -501,7 +500,6 @@
         let selectPaket = document.getElementById('selectDinasPaket');
         if (!selectNpsn || !selectPaket) return;
 
-        // Simpan nilai pilihan saat ini jika ada
         let currentNpsnVal = selectNpsn.value;
         let currentPaketVal = selectPaket.value;
 
@@ -564,7 +562,7 @@
                 { name: 'Paket Pekerjaan SD', sheet: 'paket_pekerjaan_sd', icon: 'fa-boxes-packing' },
                 { name: 'Verifikasi Sekolah', sheet: 'sekolah_pending', icon: 'fa-user-check' },
                 { name: 'Laporan Progres', sheet: 'laporan_progres', icon: 'fa-chart-line' },
-                { name: 'Kurva S & Grafik', sheet: 'kurva_s', icon: 'fa-chart-area' }, // Dinas juga bisa akses Kurva S terpusat
+                { name: 'Kurva S & Grafik', sheet: 'kurva_s', icon: 'fa-chart-area' },
                 { name: 'Data Sekolah', sheet: 'sekolah', icon: 'fa-school' },
                 { name: 'Manajemen User', sheet: 'users', icon: 'fa-users-gear' }
             ];
@@ -572,7 +570,7 @@
             menus = [
                 { name: 'Paket Pekerjaan Saya', sheet: 'paket_pekerjaan_sd', icon: 'fa-box' },
                 { name: 'Laporan Progres Fisik', sheet: 'laporan_progres', icon: 'fa-clipboard-list' },
-                { name: 'Kurva S & Grafik', sheet: 'kurva_s', icon: 'fa-chart-area' }, // Akses langsung di dashboard sekolah
+                { name: 'Kurva S & Grafik', sheet: 'kurva_s', icon: 'fa-chart-area' },
                 { name: 'Profil & Tim Teknis', sheet: 'users', icon: 'fa-user-gear' }
             ];
         }
@@ -603,7 +601,6 @@
         let filterDinasEl = document.getElementById('filterDinasContainer');
         let kurvaEl = document.getElementById('kurvaSContainer');
 
-        // Tampilkan filter Dinas hanya di menu tabel utama / laporan / kurva S jika role DINAS
         if (currentUser.role === 'DINAS' && (sheetName === 'paket_pekerjaan_sd' || sheetName === 'laporan_progres' || sheetName === 'kurva_s')) {
             filterDinasEl.classList.remove('hidden');
             populateDinasFilterOptions();
@@ -643,7 +640,7 @@
 
         try {
             let targetSheet = sheetName === 'kurva_s' ? 'laporan_progres' : sheetName;
-            let res = await fetch(`${WEB_APP_URL}?action=getData&sheet=${targetSheet}&role=${currentUser.role}&npsn=${encodeURIComponent(currentUser.username)}`);
+            let res = await fetch(`${WEB_APP_URL}?action=getData&sheet=${targetSheet}&role=${currentUser.role}&npsn=${encodeURIComponent(currentUser.username)}`);[cite: 15]
             let result = await res.json();
 
             if (result.status === 'success') {
@@ -679,7 +676,6 @@
         }
     }
 
-    // Fungsi Filter Dinas Berdasarkan NPSN & Menu Paket Pekerjaan
     function filterDataDinasAndPaket() {
         if (!currentUser || currentUser.role !== 'DINAS') return;
 
@@ -697,7 +693,6 @@
 
             if (selectedPaketMenu) {
                 let rowMenu = String(row.nama_menu || '').trim();
-                // Jika di tabel laporan, kita cek relasi paket_id ke paket_pekerjaan_sd
                 if (!rowMenu && row.paket_id) {
                     let matchedPaket = paketPekerjaanList.find(p => String(p.paket_id || p.id_paket || '').trim() === String(row.paket_id).trim());
                     if (matchedPaket) rowMenu = String(matchedPaket.nama_menu || '').trim();
@@ -773,7 +768,6 @@
         });
     }
 
-    // Fungsi Ekspor Grafik Menjadi Gambar JPEG
     function eksporGrafikJPEG() {
         if (!chartKurvaSInstance) {
             alert("Grafik belum dimuat.");
@@ -956,7 +950,7 @@
     async function verifyReg(npsn, status) {
         if(!confirm(`Ubah status pendaftaran sekolah menjadi ${status}?`)) return;
         try {
-            const res = await fetch(WEB_APP_URL, {
+            const res = await fetch(WEB_APP_URL, {[cite: 15]
                 method: 'POST',
                 body: JSON.stringify({ action: 'verifyRegister', npsn: npsn, status: status })
             });
@@ -993,7 +987,7 @@
         let catatanDinas = document.getElementById('verif-catatan').value;
 
         try {
-            let res = await fetch(WEB_APP_URL, {
+            let res = await fetch(WEB_APP_URL, {[cite: 15]
                 method: 'POST',
                 body: JSON.stringify({
                     action: 'verifikasiLaporan',
@@ -1429,7 +1423,7 @@
         let tbody = document.getElementById('riwayatTableBody');
         tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-blue-300">Memuat riwayat pagu...</td></tr>`;
 
-        fetch(`${WEB_APP_URL}?action=getData&sheet=riwayat_pagu&role=DINAS&npsn=`)
+        fetch(`${WEB_APP_URL}?action=getData&sheet=riwayat_pagu&role=DINAS&npsn=`)[cite: 15]
         .then(res => res.json())
         .then(res => {
             let filtered = (res.data || []).filter(item => String(item.npsn).trim() === String(npsn).trim() && String(item.paket_id).trim() === String(paketId).trim());
@@ -1510,7 +1504,7 @@
         btnSave.classList.add('opacity-50', 'cursor-not-allowed');
 
         try {
-            let res = await fetch(WEB_APP_URL, {
+            let res = await fetch(WEB_APP_URL, {[cite: 15]
                 method: "POST",
                 body: JSON.stringify(payload)
             });
@@ -1536,7 +1530,7 @@
     function deleteRowData(rowIndex) {
         if(!confirm("Yakin ingin menghapus baris data ini?")) return;
 
-        fetch(WEB_APP_URL, {
+        fetch(WEB_APP_URL, {[cite: 15]
             method: "POST",
             body: JSON.stringify({ action: "deleteData", sheet: currentActiveSheet, rowIndex: Number(rowIndex) })
         })
