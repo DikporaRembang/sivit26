@@ -102,7 +102,6 @@
                     <i class="fa-solid fa-bell text-sm"></i>
                     <span id="notifBadge" class="absolute -top-1 -right-1 bg-red-600 text-white font-bold text-[9px] px-1.5 py-0.2 rounded-full hidden">0</span>
                 </button>
-                <!-- Panel Dropdown Notifikasi -->
                 <div id="notifDropdown" class="absolute right-0 mt-2 w-72 sm:w-80 bg-blue-900 border border-amber-400/40 rounded-xl shadow-2xl hidden z-50 text-white">
                     <div class="p-3 border-b border-blue-800 flex justify-between items-center">
                         <span class="font-bold text-xs text-amber-400"><i class="fa-solid fa-bell mr-1"></i> Notifikasi Sistem</span>
@@ -301,7 +300,7 @@
     
 <!-- ================= SCRIPT UTAMA ================= -->
 <script>
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwMFNdJu09IsRWUQ664TAKWmbBbRUs0XEK4Q63-8uCkm5x_nHf8lTQVdwsPnb7o333gfg/exec";
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxcSyTGURgVMczodNP0LMlgsO1VFoXC1fUHq0XYT-fC5nQfkEfeSTiQmS68y_6eC2mHMw/exec";
         
     let currentUser = null;
     let currentActiveSheet = '';
@@ -362,7 +361,7 @@
 
     function loadNotifikasi(penerima) {
         let container = document.getElementById('notifListContainer');
-        fetch(`${WEB_APP_URL}?action=getNotifikasi&penerima=${encodeURIComponent(penerima)}`)[cite: 15]
+        fetch(`${WEB_APP_URL}?action=getNotifikasi&penerima=${encodeURIComponent(penerima)}`)
             .then(res => res.json())
             .then(response => {
                 if(response.status === 'success') {
@@ -398,7 +397,7 @@
     document.getElementById('regNpsn').addEventListener('blur', function() {
         let npsn = this.value.trim();
         if (!npsn) return;
-        fetch(`${WEB_APP_URL}?action=checkNpsn&npsn=${npsn}`)[cite: 15]
+        fetch(`${WEB_APP_URL}?action=checkNpsn&npsn=${npsn}`)
             .then(res => res.json())
             .then(res => {
                 if (res.status === 'success') {
@@ -417,7 +416,7 @@
         let p = document.getElementById('loginPass').value;
 
         try {
-            let res = await fetch(`${WEB_APP_URL}?action=login&username=${encodeURIComponent(u)}&password=${encodeURIComponent(p)}`);[cite: 15]
+            let res = await fetch(`${WEB_APP_URL}?action=login&username=${encodeURIComponent(u)}&password=${encodeURIComponent(p)}`);
             let data = await res.json();
             if (data.status === 'success') {
                 currentUser = data.data;
@@ -443,7 +442,7 @@
         }
 
         try {
-            let res = await fetch(WEB_APP_URL, {[cite: 15]
+            let res = await fetch(WEB_APP_URL, {
                 method: 'POST',
                 body: JSON.stringify({ action: 'register', npsn: npsn, nama_lengkap: nama, password: pass })
             });
@@ -475,15 +474,15 @@
 
     async function loadReferenceTables() {
         try {
-            let resMenu = await fetch(`${WEB_APP_URL}?action=getRef&type=menu_pekerjaan`);[cite: 15]
+            let resMenu = await fetch(`${WEB_APP_URL}?action=getRef&type=menu_pekerjaan`);
             let dataMenu = await resMenu.json();
             menuPekerjaanList = dataMenu.data || [];
 
-            let resUsers = await fetch(`${WEB_APP_URL}?action=getRef&type=users`);[cite: 15]
+            let resUsers = await fetch(`${WEB_APP_URL}?action=getRef&type=users`);
             let dataUsers = await resUsers.json();
             usersList = dataUsers.data || [];
 
-            let resPaket = await fetch(`${WEB_APP_URL}?action=getData&sheet=paket_pekerjaan_sd&role=DINAS&npsn=`);[cite: 15]
+            let resPaket = await fetch(`${WEB_APP_URL}?action=getData&sheet=paket_pekerjaan_sd&role=DINAS&npsn=`);
             let dataPaket = await resPaket.json();
             paketPekerjaanList = dataPaket.data || [];
 
@@ -640,7 +639,7 @@
 
         try {
             let targetSheet = sheetName === 'kurva_s' ? 'laporan_progres' : sheetName;
-            let res = await fetch(`${WEB_APP_URL}?action=getData&sheet=${targetSheet}&role=${currentUser.role}&npsn=${encodeURIComponent(currentUser.username)}`);[cite: 15]
+            let res = await fetch(`${WEB_APP_URL}?action=getData&sheet=${targetSheet}&role=${currentUser.role}&npsn=${encodeURIComponent(currentUser.username)}`);
             let result = await res.json();
 
             if (result.status === 'success') {
@@ -950,7 +949,7 @@
     async function verifyReg(npsn, status) {
         if(!confirm(`Ubah status pendaftaran sekolah menjadi ${status}?`)) return;
         try {
-            const res = await fetch(WEB_APP_URL, {[cite: 15]
+            const res = await fetch(WEB_APP_URL, {
                 method: 'POST',
                 body: JSON.stringify({ action: 'verifyRegister', npsn: npsn, status: status })
             });
@@ -987,7 +986,7 @@
         let catatanDinas = document.getElementById('verif-catatan').value;
 
         try {
-            let res = await fetch(WEB_APP_URL, {[cite: 15]
+            let res = await fetch(WEB_APP_URL, {
                 method: 'POST',
                 body: JSON.stringify({
                     action: 'verifikasiLaporan',
@@ -1369,16 +1368,13 @@
                 input = document.createElement('input');
                 input.type = "text";
                 input.name = h;
+                input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
                 input.value = rowData ? (rowData[h] !== undefined ? rowData[h] : "") : "";
-                
-                if (h.toLowerCase() === 'username' || h.toLowerCase() === 'npsn' || h.toLowerCase() === 'role' || h.toLowerCase() === 'nama_pengguna') {
+                if (h.toLowerCase() === 'username' || h.toLowerCase() === 'id' || h.toLowerCase() === 'role' || h.toLowerCase() === 'status') {
                     input.readOnly = true;
-                    input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-blue-300 cursor-not-allowed";
-                } else {
-                    input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
+                    input.className += " opacity-60 cursor-not-allowed";
                 }
-            }
-            else {
+            } else {
                 input = document.createElement('input');
                 input.type = "text";
                 input.name = h;
@@ -1386,7 +1382,7 @@
                 input.value = rowData ? (rowData[h] !== undefined ? rowData[h] : "") : "";
             }
 
-            if (!div.contains(input)) {
+            if (input && !div.contains(input)) {
                 div.appendChild(input);
             }
             container.appendChild(div);
@@ -1397,15 +1393,20 @@
     }
 
     function hitungTanggalSelesai() {
-        let tglMulaiEl = document.getElementById('inputTanggalMulai');
-        let lamaHariEl = document.getElementById('inputLamaHari');
-        let tglSelesaiEl = document.getElementById('inputTanggalSelesai');
+        let mulaiInput = document.getElementById('inputTanggalMulai');
+        let lamaInput = document.getElementById('inputLamaHari');
+        let selesaiInput = document.getElementById('inputTanggalSelesai');
 
-        if (tglMulaiEl && lamaHariEl && tglSelesaiEl && tglMulaiEl.value) {
-            let startDate = new Date(tglMulaiEl.value);
-            let days = parseInt(lamaHariEl.value) || 0;
-            startDate.setDate(startDate.getDate() + days);
-            tglSelesaiEl.value = startDate.toISOString().split('T')[0];
+        if (mulaiInput && lamaInput && selesaiInput && mulaiInput.value) {
+            let tglMulai = new Date(mulaiInput.value);
+            let lamaHari = parseInt(lamaInput.value) || 0;
+            if (!isNaN(tglMulai.getTime())) {
+                tglMulai.setDate(tglMulai.getDate() + lamaHari);
+                let yyyy = tglMulai.getFullYear();
+                let mm = String(tglMulai.getMonth() + 1).padStart(2, '0');
+                let dd = String(tglMulai.getDate()).padStart(2, '0');
+                selesaiInput.value = `${yyyy}-${mm}-${dd}`;
+            }
         }
     }
 
@@ -1415,133 +1416,125 @@
         modal.classList.remove('flex');
     }
 
-    function bukaRiwayatPagu(npsn, paketId) {
+    async function handleFormSubmit(e) {
+        e.preventDefault();
+        let form = e.target;
+        let rowIndex = document.getElementById('formRowIndex').value;
+        let formDataObj = {};
+
+        let inputs = form.querySelectorAll('input, select, textarea');
+        inputs.forEach(inp => {
+            if (inp.name && inp.name !== 'formRowIndex') {
+                if (inp.id === 'inputPaguFormatted') return; 
+                formDataObj[inp.name] = inp.value;
+            }
+        });
+
+        let btnSave = document.getElementById('btnSaveModal');
+        btnSave.innerText = "Menyimpan...";
+        btnSave.disabled = true;
+
+        try {
+            let res = await fetch(WEB_APP_URL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'saveData',
+                    sheet: currentActiveSheet,
+                    role: currentUser.role,
+                    rowIndex: rowIndex ? Number(rowIndex) : null,
+                    formData: formDataObj
+                })
+            });
+            let result = await res.json();
+            alert(result.pesan);
+            if (result.status === 'success') {
+                closeModal();
+                loadTableData(currentActiveSheet);
+            }
+        } catch (err) {
+            alert('Gagal menyimpan data ke server.');
+        } finally {
+            btnSave.innerText = "Simpan Data";
+            btnSave.disabled = false;
+        }
+    }
+
+    async function deleteRowData(rowIndex) {
+        if (!confirm("Apakah Anda yakin ingin menghapus baris data ini?")) return;
+
+        try {
+            let res = await fetch(WEB_APP_URL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'deleteData',
+                    sheet: currentActiveSheet,
+                    rowIndex: rowIndex
+                })
+            });
+            let result = await res.json();
+            alert(result.pesan);
+            if (result.status === 'success') {
+                loadTableData(currentActiveSheet);
+            }
+        } catch (err) {
+            alert('Gagal menghapus data.');
+        }
+    }
+
+    async function bukaRiwayatPagu(npsn, paketId) {
         let modal = document.getElementById('modalRiwayatPagu');
+        let tbody = document.getElementById('riwayatTableBody');
+        let infoNamaSekolah = document.getElementById('infoNamaSekolah');
+        let infoNamaMenu = document.getElementById('infoNamaMenu');
+
+        tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-blue-300">Memuat riwayat perubahan pagu...</td></tr>`;
         modal.classList.remove('hidden');
         modal.classList.add('flex');
 
-        let tbody = document.getElementById('riwayatTableBody');
-        tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-blue-300">Memuat riwayat pagu...</td></tr>`;
+        try {
+            let res = await fetch(`${WEB_APP_URL}?action=getData&sheet=riwayat_pagu&role=${currentUser.role}&npsn=${encodeURIComponent(npsn)}`);
+            let result = await res.json();
 
-        fetch(`${WEB_APP_URL}?action=getData&sheet=riwayat_pagu&role=DINAS&npsn=`)[cite: 15]
-        .then(res => res.json())
-        .then(res => {
-            let filtered = (res.data || []).filter(item => String(item.npsn).trim() === String(npsn).trim() && String(item.paket_id).trim() === String(paketId).trim());
-            tbody.innerHTML = "";
-            
-            if (filtered.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" class="text-center text-blue-300 py-4">Belum ada riwayat perubahan pagu.</td></tr>';
-                document.getElementById('infoNamaSekolah').innerText = "NPSN: " + npsn;
-                document.getElementById('infoNamaMenu').innerText = "Paket ID: " + paketId;
-                return;
-            }
-            
-            document.getElementById('infoNamaSekolah').innerText = "NPSN: " + npsn;
-            document.getElementById('infoNamaMenu').innerText = "Paket ID: " + paketId;
-            
-            filtered.forEach(function(item, index) {
-                let paguLama = Number(item.pagu_lama) || 0;
-                let paguBaru = Number(item.pagu_baru) || 0;
-                let selisih = paguBaru - paguLama;
-                let badgeSelisih = "";
+            if (result.status === 'success') {
+                let riwayatList = (result.data || []).filter(item => String(item.paket_id || '').trim() === String(paketId).trim());
                 
-                if (selisih > 0) {
-                    badgeSelisih = `<span class="text-emerald-400 font-bold">+ Rp ${selisih.toLocaleString('id-ID')} (Naik)</span>`;
-                } else if (selisih < 0) {
-                    badgeSelisih = `<span class="text-red-400 font-bold">- Rp ${Math.abs(selisih).toLocaleString('id-ID')} (Turun)</span>`;
-                } else {
-                    badgeSelisih = `<span class="text-blue-300">Tetap</span>`;
+                infoNamaSekolah.innerText = `NPSN: ${npsn}`;
+                infoNamaMenu.innerText = `Paket ID: ${paketId}`;
+
+                tbody.innerHTML = "";
+                if (riwayatList.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-blue-300">Belum ada riwayat perubahan pagu untuk paket ini.</td></tr>`;
+                    return;
                 }
-                
-                let row = `<tr class="hover:bg-blue-900/40">
-                    <td class="text-center p-2.5">${index + 1}</td>
-                    <td class="p-2.5"><small>${item.time_stamp || '-'}</small></td>
-                    <td class="text-right p-2.5">Rp ${paguLama.toLocaleString('id-ID')}</td>
-                    <td class="text-right p-2.5">Rp ${paguBaru.toLocaleString('id-ID')}</td>
-                    <td class="text-center p-2.5">${badgeSelisih}</td>
-                    <td class="p-2.5">${item.alasan_perubahan || '-'}</td>
-                </tr>`;
-                tbody.innerHTML += row;
-            });
-        })
-        .catch(err => {
-            tbody.innerHTML = `<tr><td colspan="6" class="text-center text-red-400 py-3">Gagal memuat data riwayat.</td></tr>`;
-        });
+
+                riwayatList.forEach((r, idx) => {
+                    let tr = document.createElement('tr');
+                    let selisih = Number(r.pagu_baru || 0) - Number(r.pagu_lama || 0);
+                    let selisihStr = (selisih >= 0 ? "+ " : "- ") + "Rp " + Math.abs(selisih).toLocaleString('id-ID');
+                    let warnaSelisih = selisih > 0 ? "text-emerald-400" : (selisih < 0 ? "text-red-400" : "text-slate-300");
+
+                    tr.innerHTML = `
+                        <td class="p-2.5 text-center font-bold">${idx + 1}</td>
+                        <td class="p-2.5">${r.timestamp || '-'}</td>
+                        <td class="p-2.5 text-right">Rp ${Number(r.pagu_lama || 0).toLocaleString('id-ID')}</td>
+                        <td class="p-2.5 text-right font-bold text-amber-300">Rp ${Number(r.pagu_baru || 0).toLocaleString('id-ID')}</td>
+                        <td class="p-2.5 text-center font-bold ${warnaSelisih}">${selisihStr}</td>
+                        <td class="p-2.5">${r.keterangan || '-'}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } else {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-red-400">Gagal memuat riwayat pagu.</td></tr>`;
+            }
+        } catch (e) {
+            tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-red-400">Kesalahan jaringan.</td></tr>`;
+        }
     }
 
     function closeRiwayatModal() {
         let modal = document.getElementById('modalRiwayatPagu');
         modal.classList.add('hidden');
         modal.classList.remove('flex');
-    }
-
-    async function handleFormSubmit(event) {
-        event.preventDefault();
-
-        let btnSave = document.getElementById('btnSaveModal');
-        if (btnSave.disabled) return;
-
-        let formInputs = document.querySelectorAll('#dynamicForm [name]');
-        let formData = {};
-        formInputs.forEach(input => {
-            formData[input.name] = input.value;
-        });
-
-        let rowIndex = document.getElementById('formRowIndex').value;
-
-        let payload = {
-            action: "saveData",
-            sheet: currentActiveSheet,
-            formData: formData,
-            rowIndex: rowIndex ? Number(rowIndex) : null,
-            role: currentUser.role,
-            role_npsn: currentUser.username
-        };
-
-        btnSave.disabled = true;
-        let originalText = btnSave.innerText;
-        btnSave.innerText = "Menyimpan...";
-        btnSave.classList.add('opacity-50', 'cursor-not-allowed');
-
-        try {
-            let res = await fetch(WEB_APP_URL, {[cite: 15]
-                method: "POST",
-                body: JSON.stringify(payload)
-            });
-            let data = await res.json();
-            
-            btnSave.disabled = false;
-            btnSave.innerText = originalText;
-            btnSave.classList.remove('opacity-50', 'cursor-not-allowed');
-
-            alert(data.pesan);
-            if(data.status === 'success') {
-                closeModal();
-                loadTableData(currentActiveSheet);
-            }
-        } catch (err) {
-            btnSave.disabled = false;
-            btnSave.innerText = originalText;
-            btnSave.classList.remove('opacity-50', 'cursor-not-allowed');
-            alert("Kesalahan jaringan saat menyimpan data.");
-        }
-    }
-        
-    function deleteRowData(rowIndex) {
-        if(!confirm("Yakin ingin menghapus baris data ini?")) return;
-
-        fetch(WEB_APP_URL, {[cite: 15]
-            method: "POST",
-            body: JSON.stringify({ action: "deleteData", sheet: currentActiveSheet, rowIndex: Number(rowIndex) })
-        })
-        .then(res => res.json())
-        .then(res => {
-            alert(res.pesan);
-            if(res.status === 'success') {
-                loadTableData(currentActiveSheet);
-            }
-        })
-        .catch(err => alert("Gagal menghapus data."));
     }
 </script>
 </body>
