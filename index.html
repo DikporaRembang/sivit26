@@ -11,6 +11,10 @@
     <script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
     <!-- Chart.js untuk Kurva S & Grafik Progres -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
         #tableBody td {
             color: #000000 !important;
@@ -171,6 +175,16 @@
                 </div>
             </div>
 
+            <!-- ================= KONTAINER PETA GIS ================= -->
+            <div id="gisMapContainer" class="hidden mb-6 p-4 bg-slate-50 rounded-xl border border-slate-200">
+                <div class="flex justify-between items-center mb-3">
+                    <h4 class="font-bold text-sm text-slate-800"><i class="fa-solid fa-map-location-dot text-blue-900 mr-2"></i> Peta Persebaran Lokasi Revitalisasi SD Kabupaten Rembang</h4>
+                    <span class="text-xs text-slate-500 font-medium">Titik koordinat bersumber dari metadata EXIF foto / data sekolah</span>
+                </div>
+                <div id="map" style="height: 450px; width: 100%;" class="rounded-lg shadow-inner z-10"></div>
+            </div>
+            <!-- ======================================================= -->
+
             <!-- ================= FILTER DINAS ================= -->
             <div id="filterDinasContainer" class="hidden mb-6 p-4 bg-blue-950 rounded-xl border border-amber-500/40 text-white shadow-md">
                 <h4 class="font-bold text-sm text-amber-400 mb-3"><i class="fa-solid fa-filter mr-2"></i> Filter Rekapitulasi Dinas (Berdasarkan NPSN & Paket Pekerjaan)</h4>
@@ -312,7 +326,7 @@
     
 <!-- ================= SCRIPT UTAMA ================= -->
 <script>
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxcSyTGURgVMczodNP0LMlgsO1VFoXC1fUHq0XYT-fC5nQfkEfeSTiQmS68y_6eC2mHMw/exec";
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzgTm-o0RX_NZr74sT5u-EImC0fRfy2cJ3pPpo-w5OxGx9fzNQsTF2fapDJWwGNQMOp/exec";
         
     let currentUser = null;
     let currentActiveSheet = '';
@@ -323,6 +337,7 @@
     let menuPekerjaanList = [];
     let usersList = [];
     let chartKurvaSInstance = null;
+    let leafletMap = null; // Instance Peta Leaflet GIS
 
     function convertToInputDate(val) {
         if (!val) return new Date().toISOString().split('T')[0];
@@ -572,6 +587,7 @@
             menus = [
                 { name: 'Paket Pekerjaan SD', sheet: 'paket_pekerjaan_sd', icon: 'fa-boxes-packing' },
                 { name: 'Verifikasi Sekolah', sheet: 'sekolah_pending', icon: 'fa-user-check' },
+                { name: 'Peta Persebaran (GIS)', sheet: 'peta_gis', icon: 'fa-map-location-dot' },
                 { name: 'Laporan Progres', sheet: 'laporan_progres', icon: 'fa-chart-line' },
                 { name: 'Kurva S & Grafik', sheet: 'kurva_s', icon: 'fa-chart-area' },
                 { name: 'Data Sekolah', sheet: 'sekolah', icon: 'fa-school' },
@@ -580,6 +596,7 @@
         } else {
             menus = [
                 { name: 'Paket Pekerjaan Saya', sheet: 'paket_pekerjaan_sd', icon: 'fa-box' },
+                { name: 'Peta Persebaran (GIS)', sheet: 'peta_gis', icon: 'fa-map-location-dot' },
                 { name: 'Laporan Progres Fisik', sheet: 'laporan_progres', icon: 'fa-clipboard-list' },
                 { name: 'Kurva S & Grafik', sheet: 'kurva_s', icon: 'fa-chart-area' },
                 { name: 'Profil & Tim Teknis', sheet: 'users', icon: 'fa-user-gear' }
@@ -602,6 +619,7 @@
             if (sheetName === 'paket_pekerjaan_sd') displayTitle = currentUser.role === 'DINAS' ? 'Data Paket Pekerjaan SD' : 'Paket Pekerjaan Saya';
             else if (sheetName === 'laporan_progres') displayTitle = currentUser.role === 'DINAS' ? 'Laporan Progres' : 'Laporan Progres Fisik';
             else if (sheetName === 'kurva_s') displayTitle = 'Kurva S & Grafik';
+            else if (sheetName === 'peta_gis') displayTitle = 'Peta Persebaran Lokasi Revitalisasi (GIS)';
             else if (sheetName === 'users') displayTitle = currentUser.role === 'DINAS' ? 'Manajemen User' : 'Profil & Tim Teknis';
             else displayTitle = sheetName;
         }
@@ -611,7 +629,10 @@
         
         let filterDinasEl = document.getElementById('filterDinasContainer');
         let kurvaEl = document.getElementById('kurvaSContainer');
+        let mapEl = document.getElementById('gisMapContainer');
+        let printableAreaEl = document.getElementById('printableArea');
 
+        // Pengaturan Tampilan Berdasarkan Menu Aktif
         if (currentUser.role === 'DINAS' && (sheetName === 'paket_pekerjaan_sd' || sheetName === 'laporan_progres' || sheetName === 'kurva_s')) {
             filterDinasEl.classList.remove('hidden');
             populateDinasFilterOptions();
@@ -621,10 +642,21 @@
 
         if (sheetName === 'kurva_s') {
             kurvaEl.classList.remove('hidden');
+            printableAreaEl.style.display = 'block';
             await loadReferenceTables();
             renderKurvaSChart();
         } else {
             kurvaEl.classList.add('hidden');
+        }
+
+        if (sheetName === 'peta_gis') {
+            mapEl.classList.remove('hidden');
+            printableAreaEl.style.display = 'none'; // Sembunyikan tabel standar jika sedang buka peta
+            await initLeafletMap();
+            return; // Keluar fungsi agar tidak fetch tabel data reguler
+        } else {
+            mapEl.classList.add('hidden');
+            printableAreaEl.style.display = 'block';
         }
 
         let headEl = document.getElementById('tableHead');
@@ -687,6 +719,65 @@
         }
     }
 
+    // FUNGSI INISIALISASI PETA GIS LEAFLET
+    async function initLeafletMap() {
+        if (!leafletMap) {
+            // Titik tengah Kabupaten Rembang (-6.706, 111.345)
+            leafletMap = L.map('map').setView([-6.706, 111.345], 11);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(leafletMap);
+        } else {
+            leafletMap.invalidateSize();
+        }
+
+        // Ambil data laporan progres / koordinat dari server
+        try {
+            let res = await fetch(`${WEB_APP_URL}?action=getData&sheet=laporan_progres&role=DINAS&npsn=`);
+            let result = await res.json();
+            if (result.status === 'success') {
+                let listLaporan = result.data || [];
+                
+                // Bersihkan marker lama jika ada
+                leafletMap.eachLayer((layer) => {
+                    if (layer instanceof L.Marker) {
+                        leafletMap.removeLayer(layer);
+                    }
+                });
+
+                let markersCount = 0;
+                listLaporan.forEach(item => {
+                    let koordinatStr = item.lokasi_koordinat || '';
+                    if (koordinatStr && koordinatStr.includes(',')) {
+                        let parts = koordinatStr.split(',');
+                        let lat = parseFloat(parts[0].trim());
+                        let lon = parseFloat(parts[1].trim());
+
+                        if (!isNaN(lat) && !isNaN(lon)) {
+                            markersCount++;
+                            let marker = L.marker([lat, lon]).addTo(leafletMap);
+                            marker.bindPopup(`
+                                <div class="text-xs space-y-1">
+                                    <p class="font-bold text-blue-900">NPSN: ${item.npsn || '-'}</p>
+                                    <p><strong>Minggu:</strong> ${item.minggu_ke || '-'}</p>
+                                    <p><strong>Realisasi Fisik:</strong> ${item.realisasi_fisik || 0}%</p>
+                                    <p><strong>Status:</strong> ${item.status_verifikasi || 'DIAJUKAN'}</p>
+                                </div>
+                            `);
+                        }
+                    }
+                });
+
+                if (markersCount === 0) {
+                    alert("Belum ada data koordinat GPS valid yang ditemukan dari laporan progres sekolah.");
+                }
+            }
+        } catch (e) {
+            console.error("Gagal memuat titik koordinat peta:", e);
+        }
+    }
+
     function filterDataDinasAndPaket() {
         if (!currentUser || currentUser.role !== 'DINAS') return;
 
@@ -724,12 +815,10 @@
         let ctx = document.getElementById('chartKurvaS').getContext('2d');
         if (chartKurvaSInstance) chartKurvaSInstance.destroy();
 
-        // 1. Ambil informasi dari baris data pertama
         let firstRow = currentData.length > 0 ? currentData[0] : {};
         let currentNpsn = firstRow.npsn || currentUser.username || '-';
         let currentMenu = firstRow.nama_menu || firstRow.menu || 'Pekerjaan Revitalisasi';
 
-        // 2. Cari Nama Sekolah berdasarkan NPSN
         let namaSekolah = "Sekolah Tidak Ditemukan";
         if (typeof usersList !== 'undefined' && Array.isArray(usersList)) {
             let foundSekolah = usersList.find(s => String(s.username || s.npsn || '').trim() === String(currentNpsn).trim());
@@ -742,7 +831,6 @@
             namaSekolah = firstRow.nama_sekolah;
         }
 
-        // 3. Masukkan teks ke elemen informasi di atas grafik
         let infoEl = document.getElementById('infoSekolahMenu');
         if (infoEl) {
             infoEl.innerHTML = `<strong>Nama Sekolah:</strong> ${namaSekolah} (NPSN: ${currentNpsn}) &bull; <strong>Menu:</strong> ${currentMenu}`;
@@ -836,7 +924,7 @@
 
         let showActionColumn = true;
         if (sheetName === 'sekolah' && currentUser.role === 'SEKOLAH') showActionColumn = false;
-        if (sheetName === 'kurva_s') showActionColumn = false;
+        if (sheetName === 'kurva_s' || sheetName === 'peta_gis') showActionColumn = false;
 
         let trHead = document.createElement('tr');
         let thNo = document.createElement('th');
@@ -926,7 +1014,6 @@
                     tdAct.appendChild(btnReject);
                 } else {
                     if (sheetName === 'paket_pekerjaan_sd') {
-                        // TOMBOL CETAK PDF RESMI
                         let btnCetakPDF = document.createElement('button');
                         btnCetakPDF.className = "px-2.5 py-1 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-[11px] font-bold border border-emerald-600 mr-1 cursor-pointer shadow-sm";
                         btnCetakPDF.innerHTML = `<i class="fa-solid fa-print mr-1"></i> Cetak PDF`;
@@ -1002,16 +1089,13 @@
         });
     }
 
-    // FUNGSI CETAK LAPORAN RESMI BER-KOP KABUPATEN REMBANG
     async function cetakLaporanResmi(paketId, npsn) {
-        // Cari data paket
         const paket = paketPekerjaanList.find(p => String(p.paket_id || p.id_paket || '').trim() === String(paketId).trim());
         if (!paket) {
             alert("Data paket pekerjaan tidak ditemukan.");
             return;
         }
 
-        // Cari identitas sekolah
         let namaSekolah = "Sekolah Tidak Ditemukan";
         let kecamatanSekolah = "-";
         let alamatSekolah = "-";
@@ -1030,7 +1114,6 @@
             }
         }
 
-        // Ambil riwayat progres terkait paket ini dari server/state
         let progresList = [];
         try {
             let res = await fetch(`${WEB_APP_URL}?action=getData&sheet=laporan_progres&role=DINAS&npsn=${encodeURIComponent(targetNpsn)}`);
@@ -1056,7 +1139,6 @@
                 </style>
             </head>
             <body class="p-8 bg-white text-gray-900 font-sans">
-                <!-- KOP SURAT PEMERINTAH KABUPATEN REMBANG -->
                 <div class="text-center border-b-4 border-double border-gray-800 pb-4 mb-6">
                     <h2 class="text-sm font-bold uppercase tracking-wider">PEMERINTAH KABUPATEN REMBANG</h2>
                     <h1 class="text-base font-extrabold uppercase tracking-wide">DINAS PENDIDIKAN, PEMUDA DAN OLAHRAGA</h1>
@@ -1065,11 +1147,10 @@
                 </div>
 
                 <div class="text-center mb-6">
-                    <h3 class="font-bold text-sm uppercase underline">LAPORAN PEMANTAUAN & PROGRESIF PEKERJAAN REITALISASI</h3>
+                    <h3 class="font-bold text-sm uppercase underline">LAPORAN PEMANTAUAN & PROGRESIF PEKERJAAN REVITALISASI</h3>
                     <p class="text-xs text-gray-600">ID Paket: ${paket.paket_id || '-'}</p>
                 </div>
                 
-                <!-- DETAIL SEKOLAH & PAKET -->
                 <div class="mb-6 grid grid-cols-2 gap-4 text-xs bg-gray-50 p-4 rounded-lg border border-gray-200">
                     <div>
                         <table class="w-full">
@@ -1089,7 +1170,6 @@
                     </div>
                 </div>
 
-                <!-- TABEL RIWAYAT PROGRES -->
                 <div class="mb-8">
                     <h3 class="font-bold text-xs uppercase text-blue-900 border-b border-gray-300 pb-1 mb-2">II. Riwayat Progres Perkembangan Fisik & Kurva S</h3>
                     <table class="w-full border-collapse border border-gray-400 text-xs text-left">
@@ -1118,7 +1198,6 @@
                     </table>
                 </div>
 
-                <!-- TANDA TANGAN / LEMBAR PENGESAHAN -->
                 <div class="flex justify-between mt-12 text-xs text-center page-break-inside-avoid">
                     <div class="w-1/3">
                         <p class="font-medium">Mengetahui,</p>
@@ -1134,7 +1213,6 @@
                     </div>
                 </div>
 
-                <!-- TOMBOL CETAK DI BROWSER -->
                 <div class="mt-8 text-center no-print">
                     <button onclick="window.print()" class="bg-blue-700 text-white px-6 py-2.5 rounded-lg shadow-lg font-bold hover:bg-blue-800 transition cursor-pointer text-xs">
                         <i class="fa-solid fa-print mr-2"></i> Cetak / Simpan ke PDF Sekarang
