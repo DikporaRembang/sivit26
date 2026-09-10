@@ -326,7 +326,7 @@
     
 <!-- ================= SCRIPT UTAMA ================= -->
 <script>
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwLrgKEk2EiGIBBdFOF2CzUipsHxQVi2eV9btUMF2TtqttZ1YiM1dlpC4CB4QxraSoSfw/exec";
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx7tUESBxKKgYRw01A6vRU95DMZsDflEQwhDc60aPj0LykCXDe0Rb852DlQGLs6HIvmRA/exec";
         
     let currentUser = null;
     let currentActiveSheet = '';
@@ -1435,14 +1435,11 @@
                 div.appendChild(manualFallbackContainer);
             } 
             else if (currentActiveSheet === 'paket_pekerjaan_sd') {
-                // =========================================================================
-                // BAGIAN PENGKONDISIAN OPENMODALFORM UNTUK SHEET 'paket_pekerjaan_sd'
-                // =========================================================================
                 if (!rowData && currentUser.role === 'SEKOLAH') {
                     let existingPaket = paketPekerjaanList.filter(p => String(p.npsn || '').trim() === String(currentUser.username).trim());
                     if (existingPaket.length >= 1) {
                         alert("Batas Maksimal: Sekolah Anda hanya diizinkan menginput 1 Nama Menu Pekerjaan revitalisasi.");
-                        return; // Batalkan pembukaan modal
+                        return; 
                     }
                 }
 
