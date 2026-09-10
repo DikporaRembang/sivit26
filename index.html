@@ -708,43 +708,49 @@
         }
     }
         
-    function renderKurvaSChart() {
+function renderKurvaSChart() {
         let ctx = document.getElementById('chartKurvaS').getContext('2d');
         if (chartKurvaSInstance) chartKurvaSInstance.destroy();
 
-        // Helper untuk mengambil nilai properti secara fleksibel (mengatasi spasi/huruf kapital pada header sheet)
-        function getVal(obj, keys) {
-            for (let k of keys) {
-                for (let prop in obj) {
-                    if (prop.toLowerCase().replace(/[\s_]/g, '') === k.toLowerCase().replace(/[\s_]/g, '')) {
-                        if (obj[prop] !== undefined && obj[prop] !== "") return obj[prop];
-                    }
-                }
-            }
-            return null;
+        // Debugging: Cek data mentah pertama yang masuk ke fungsi ini
+        console.log("--- DEBUGGING KURVA S ---");
+        console.log("Isi currentData:", currentData);
+        if (currentData.length > 0) {
+            console.log("Keys dari baris pertama data:", Object.keys(currentData[0]));
+            console.log("Nilai mentah realisasi_fisik di baris pertama:", 
+                currentData[0].realisasi_fisik, 
+                currentData[0]['Realisasi Fisik'], 
+                currentData[0]['realisasi_fisik']
+            );
         }
 
-        // Mengambil label minggu atau tanggal lapor
-        let labels = currentData.map(d => getVal(d, ['minggu_ke', 'minggu', 'tanggal_lapor', 'periode']) || 'Minggu');
+        let labels = currentData.map(d => d.minggu_ke || d.minggu || d.tanggal_lapor || 'Minggu');
         
-        // Mengambil data target fisik
         let targetData = currentData.map(d => {
-            let val = getVal(d, ['target_kurva_s', 'target', 'target_fisik']) || 0;
+            let val = d.target_kurva_s !== undefined ? d.target_kurva_s : (d.target || 0);
             return Number(String(val).replace('%','')) || 0;
         });
 
-        // Mengambil data realisasi fisik (diatasi agar terbaca walau spasi/kapital berbeda)
+        // Pemetaan eksplisit untuk realisasi fisik dengan berbagai variasi penamaan umum
         let realisasiData = currentData.map(d => {
-            let val = getVal(d, ['realisasi_fisik', 'realisasi', 'progres_fisik']) || 0;
-            return Number(String(val).replace('%','')) || 0;
+            let val = 0;
+            for (let key in d) {
+                let cleanKey = key.toLowerCase().replace(/[\s_]/g, '');
+                if (cleanKey.includes('realisasi') && (cleanKey.includes('fisik') || cleanKey === 'realisasi')) {
+                    val = d[key];
+                    break;
+                }
+            }
+            return Number(String(val).replace('%','').trim()) || 0;
         });
-        
-        // Menghitung persentase penggunaan anggaran terhadap pagu
+
+        console.log("Hasil mapping realisasiData:", realisasiData);
+
         let anggaranPersenData = currentData.map(d => {
-            let pId = String(getVal(d, ['paket_id', 'id_paket']) || '').trim();
+            let pId = String(d.paket_id || d.id_paket || '').trim();
             let matchedPaket = paketPekerjaanList.find(p => String(p.paket_id || p.id_paket || '').trim() === pId);
-            let paguPekerjaan = matchedPaket ? (Number(getVal(matchedPaket, ['pagu', 'pagu_anggaran'])) || 0) : 0;
-            let penggunaan = Number(getVal(d, ['penggunaan_anggaran', 'anggaran'])) || 0;
+            let paguPekerjaan = matchedPaket ? (Number(matchedPaket.pagu || matchedPaket.pagu_anggaran) || 0) : 0;
+            let penggunaan = Number(d.penggunaan_anggaran || d.anggaran || 0);
             
             if (paguPekerjaan > 0) {
                 return Number(((penggunaan / paguPekerjaan) * 100).toFixed(2));
