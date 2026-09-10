@@ -337,7 +337,7 @@
     let menuPekerjaanList = [];
     let usersList = [];
     let chartKurvaSInstance = null;
-    let leafletMap = null; // Instance Peta Leaflet GIS
+    let leafletMap = null;
 
     function convertToInputDate(val) {
         if (!val) return new Date().toISOString().split('T')[0];
@@ -425,20 +425,12 @@
     }
 
     function eksekusiDanHapusNotifikasi(idNotifikasi) {
-        // 1. Lakukan proses utama eksekusi (misal: verifikasi laporan, update data, dll)
-        // ... proses eksekusi Anda di sini ...
-
-        // 2. Kirim permintaan ke backend untuk menghapus notifikasi yang sudah dieksekusi
         fetch(`${WEB_APP_URL}?action=hapusNotifikasi&id=${idNotifikasi}`)
             .then(response => response.json())
             .then(result => {
                 if (result.status === "success") {
-                    console.log("Notifikasi berhasil dibersihkan.");
-                    // Muat ulang komponen daftar notifikasi di UI agar langsung hilang
                     let targetPenerima = (currentUser && currentUser.role === 'DINAS') ? 'DINAS' : (currentUser ? currentUser.username : '');
                     loadNotifikasi(targetPenerima); 
-                } else {
-                    console.warn("Gagal menghapus notifikasi: " + result.message);
                 }
             })
             .catch(error => console.error("Error:", error));
@@ -655,7 +647,6 @@
         let mapEl = document.getElementById('gisMapContainer');
         let printableAreaEl = document.getElementById('printableArea');
 
-        // Pengaturan Tampilan Berdasarkan Menu Aktif
         if (currentUser.role === 'DINAS' && (sheetName === 'paket_pekerjaan_sd' || sheetName === 'laporan_progres' || sheetName === 'kurva_s')) {
             filterDinasEl.classList.remove('hidden');
             populateDinasFilterOptions();
@@ -674,9 +665,9 @@
 
         if (sheetName === 'peta_gis') {
             mapEl.classList.remove('hidden');
-            printableAreaEl.style.display = 'none'; // Sembunyikan tabel standar jika sedang buka peta
+            printableAreaEl.style.display = 'none';
             await initLeafletMap();
-            return; // Keluar fungsi agar tidak fetch tabel data reguler
+            return;
         } else {
             mapEl.classList.add('hidden');
             printableAreaEl.style.display = 'block';
@@ -742,10 +733,8 @@
         }
     }
 
-    // FUNGSI INISIALISASI PETA GIS LEAFLET
     async function initLeafletMap() {
         if (!leafletMap) {
-            // Titik tengah Kabupaten Rembang (-6.706, 111.345)
             leafletMap = L.map('map').setView([-6.706, 111.345], 11);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 maxZoom: 19,
@@ -755,14 +744,12 @@
             leafletMap.invalidateSize();
         }
 
-        // Ambil data laporan progres / koordinat dari server
         try {
             let res = await fetch(`${WEB_APP_URL}?action=getData&sheet=laporan_progres&role=DINAS&npsn=`);
             let result = await res.json();
             if (result.status === 'success') {
                 let listLaporan = result.data || [];
                 
-                // Bersihkan marker lama jika ada
                 leafletMap.eachLayer((layer) => {
                     if (layer instanceof L.Marker) {
                         leafletMap.removeLayer(layer);
@@ -1448,6 +1435,17 @@
                 div.appendChild(manualFallbackContainer);
             } 
             else if (currentActiveSheet === 'paket_pekerjaan_sd') {
+                // =========================================================================
+                // BAGIAN PENGKONDISIAN OPENMODALFORM UNTUK SHEET 'paket_pekerjaan_sd'
+                // =========================================================================
+                if (!rowData && currentUser.role === 'SEKOLAH') {
+                    let existingPaket = paketPekerjaanList.filter(p => String(p.npsn || '').trim() === String(currentUser.username).trim());
+                    if (existingPaket.length >= 1) {
+                        alert("Batas Maksimal: Sekolah Anda hanya diizinkan menginput 1 Nama Menu Pekerjaan revitalisasi.");
+                        return; // Batalkan pembukaan modal
+                    }
+                }
+
                 if (h.toLowerCase() === 'paket_id') {
                     input = document.createElement('input');
                     input.type = "text";
@@ -1500,6 +1498,15 @@
                     hiddenRealInput.name = h;
                     hiddenRealInput.value = initialNum;
 
+                    if (currentUser.role === 'SEKOLAH') {
+                        let currentNamaMenuVal = rowData ? rowData['nama_menu'] : "";
+                        if (!currentNamaMenuVal) {
+                            input.disabled = true;
+                            input.placeholder = "Pilih Nama Menu terlebih dahulu untuk mengisi Pagu";
+                            input.className += " opacity-50 cursor-not-allowed";
+                        }
+                    }
+
                     input.oninput = function() {
                         let cleanStr = this.value.replace(/[^0-9]/g, '');
                         let num = cleanStr ? parseInt(cleanStr, 10) : 0;
@@ -1510,6 +1517,22 @@
                     wrapper.appendChild(input);
                     wrapper.appendChild(hiddenRealInput);
                     div.appendChild(wrapper);
+                } else if (h.toLowerCase() === 'perencana' || h.toLowerCase() === 'pengawas') {
+                    input = document.createElement('input');
+                    input.type = "text";
+                    input.name = h;
+                    input.readOnly = true;
+                    input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-300 cursor-not-allowed font-bold";
+                    
+                    let autoVal = "";
+                    if (currentUser[h]) {
+                        autoVal = currentUser[h];
+                    } else if (currentUser.sekolah && currentUser.sekolah[h]) {
+                        autoVal = currentUser.sekolah[h];
+                    } else if (rowData && rowData[h]) {
+                        autoVal = rowData[h];
+                    }
+                    input.value = autoVal;
                 } else if (h.toLowerCase() === 'tanggal_mulai') {
                     input = document.createElement('input');
                     input.type = "date";
@@ -1535,12 +1558,6 @@
                     input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-blue-300 cursor-not-allowed";
                     input.value = convertToInputDate(rowData && rowData[h] ? rowData[h] : "");
                     setTimeout(hitungTanggalSelesai, 200);
-                } else if (h.toLowerCase() === 'perencana' || h.toLowerCase() === 'pengawas') {
-                    input = document.createElement('input');
-                    input.type = "text";
-                    input.name = h;
-                    input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-                    input.value = rowData && rowData[h] !== undefined ? rowData[h] : (currentUser[h] || "");
                 } else {
                     input = document.createElement('input');
                     input.type = "text";
@@ -1795,40 +1812,43 @@
         try {
             let res = await fetch(`${WEB_APP_URL}?action=getData&sheet=riwayat_pagu&role=${currentUser.role}&npsn=${encodeURIComponent(npsn)}`);
             let result = await res.json();
-
             if (result.status === 'success') {
-                let riwayatList = (result.data || []).filter(item => String(item.paket_id || '').trim() === String(paketId).trim());
+                let dataRiwayat = (result.data || []).filter(r => String(r.paket_id || '').trim() === String(paketId).trim());
                 
-                infoNamaSekolah.innerText = `NPSN: ${npsn}`;
-                infoNamaMenu.innerText = `Paket ID: ${paketId}`;
+                let foundUser = usersList.find(u => String(u.username || u.npsn || '').trim() === String(npsn).trim());
+                infoNamaSekolah.innerText = foundUser ? `${npsn} - ${foundUser.nama_pengguna || foundUser.nama_sekolah}` : `NPSN: ${npsn}`;
+
+                let foundPaket = paketPekerjaanList.find(p => String(p.paket_id || '').trim() === String(paketId).trim());
+                infoNamaMenu.innerText = foundPaket ? `Menu Pekerjaan: ${foundPaket.nama_menu} (ID: ${paketId})` : `ID Paket: ${paketId}`;
 
                 tbody.innerHTML = "";
-                if (riwayatList.length === 0) {
+                if (dataRiwayat.length === 0) {
                     tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-blue-300">Belum ada riwayat perubahan pagu untuk paket ini.</td></tr>`;
                     return;
                 }
 
-                riwayatList.forEach((r, idx) => {
+                dataRiwayat.forEach((r, idx) => {
                     let tr = document.createElement('tr');
+                    tr.className = "hover:bg-blue-800/30";
                     let selisih = Number(r.pagu_baru || 0) - Number(r.pagu_lama || 0);
-                    let selisihStr = (selisih >= 0 ? "+ " : "- ") + "Rp " + Math.abs(selisih).toLocaleString('id-ID');
-                    let warnaSelisih = selisih > 0 ? "text-emerald-400" : (selisih < 0 ? "text-red-400" : "text-slate-300");
+                    let selisihStr = (selisih > 0 ? "+" : "") + "Rp " + selisih.toLocaleString('id-ID');
+                    let selisihColor = selisih > 0 ? "text-emerald-400" : (selisih < 0 ? "text-red-400" : "text-slate-300");
 
                     tr.innerHTML = `
-                        <td class="p-2.5 text-center font-bold">${idx + 1}</td>
-                        <td class="p-2.5">${r.timestamp || '-'}</td>
+                        <td class="p-2.5 text-center">${idx + 1}</td>
+                        <td class="p-2.5">${r.tanggal || r.timestamp || '-'}</td>
                         <td class="p-2.5 text-right">Rp ${Number(r.pagu_lama || 0).toLocaleString('id-ID')}</td>
                         <td class="p-2.5 text-right font-bold text-amber-300">Rp ${Number(r.pagu_baru || 0).toLocaleString('id-ID')}</td>
-                        <td class="p-2.5 text-center font-bold ${warnaSelisih}">${selisihStr}</td>
+                        <td class="p-2.5 text-center font-semibold ${selisihColor}">${selisihStr}</td>
                         <td class="p-2.5">${r.keterangan || '-'}</td>
                     `;
                     tbody.appendChild(tr);
                 });
             } else {
-                tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-red-400">Gagal memuat riwayat pagu.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-red-400">Gagal memuat data riwayat.</td></tr>`;
             }
         } catch (e) {
-            tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-red-400">Kesalahan jaringan.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-red-400">Terjadi kesalahan koneksi.</td></tr>`;
         }
     }
 
