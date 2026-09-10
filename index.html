@@ -851,6 +851,13 @@
         link.click();
     }
 
+    function parseRupiah(val) {
+        if (!val) return 0;
+        if (typeof val === 'number') return val;
+        let clean = String(val).replace(/[^0-9.-]+/g, "");
+        return parseFloat(clean) || 0;
+    }
+
     function renderTable(headers, data, sheetName) {
         let headEl = document.getElementById('tableHead');
         let bodyEl = document.getElementById('tableBody');
