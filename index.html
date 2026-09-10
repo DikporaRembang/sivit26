@@ -87,7 +87,7 @@
         <div class="mt-6 pt-5 border-t border-blue-800/80 flex flex-col items-center text-center">
             <img src="logopendidikan.png" alt="Logo Kemendikdasmen RI" class="w-10 h-10 object-contain mb-2 drop-shadow-md" onerror="this.style.display='none'">
             <p class="text-[10px] text-blue-200/90 leading-relaxed font-normal animate-pulse">
-                Sekolah nyaman, siswa berprestasi.
+                Revitalisasi Satuan Pendidikan Sekolah Dasar (SD) adalah program strategis Kementerian Pendidikan Dasar dan Menengah (Kemendikdasmen).
             </p>
         </div>
     </div>
@@ -141,7 +141,7 @@
                 <img src="logorembang.png" alt="Logo Kabupaten" class="w-10 h-10 object-contain drop-shadow-sm" onerror="this.style.display='none'">
                 <div class="leading-tight">
                     <p class="font-bold text-amber-400 text-[10px]">SIVIT26 Kab. Rembang</p>
-                    <p class="mt-0.5 text-[10px] text-slate-300 font-medium">Seksi Kelembagaan & Sarpras SD Kab. Rembang (2026)</p>
+                    <p class="mt-0.5 text-[10px] text-slate-300 font-medium">Seksi Kelembagaan & Sarpras</p>
                 </div>
             </div>
         </aside>
@@ -326,7 +326,7 @@
     
 <!-- ================= SCRIPT UTAMA ================= -->
 <script>
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzqcN1Mmh_GnDpl91PBtR1D8TRPYD5JdB1jeU2RJh6mkO-cJPojlHAaycN2gY1YuEOXvg/exec";
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx7tUESBxKKgYRw01A6vRU95DMZsDflEQwhDc60aPj0LykCXDe0Rb852DlQGLs6HIvmRA/exec";
         
     let currentUser = null;
     let currentActiveSheet = '';
@@ -391,36 +391,24 @@
         fetch(`${WEB_APP_URL}?action=getNotifikasi&penerima=${encodeURIComponent(penerima)}`)
             .then(res => res.json())
             .then(response => {
-                if (response.status === 'success') {
+                if(response.status === 'success') {
                     let listNotif = response.data || [];
                     let badge = document.getElementById('notifBadge');
                     
-                    let unreadCount = listNotif.filter(n => n.status !== 'Terbaca').length;
-
                     if (listNotif.length > 0) {
-                        if (unreadCount > 0) {
-                            badge.innerText = unreadCount;
-                            badge.classList.remove('hidden');
-                        } else {
-                            badge.classList.add('hidden');
-                        }
-
+                        badge.innerText = listNotif.length;
+                        badge.classList.remove('hidden');
+                        
                         container.innerHTML = "";
                         listNotif.reverse().forEach(n => {
                             let div = document.createElement('div');
-                            div.className = "p-3 hover:bg-blue-800/40 transition-colors flex flex-col justify-between border-b border-blue-800/30";
-                            
+                            div.className = "p-3 hover:bg-blue-800/40 transition-colors flex flex-col justify-between";
                             div.innerHTML = `
                                 <div>
                                     <p class="text-blue-100 font-medium mb-1">${n.pesan}</p>
-                                    <div class="flex items-center justify-between mt-1">
-                                        <span class="text-[9px] text-amber-300 font-semibold"><i class="fa-regular fa-clock mr-1"></i>${n.waktu || '-'}</span>
-                                        <span id="status-notif-${n.id}" class="text-[9px] px-2 py-0.5 rounded font-bold ${n.status === 'Terbaca' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'}">
-                                            ${n.status || 'Belum Dibaca'}
-                                        </span>
-                                    </div>
+                                    <span class="text-[9px] text-amber-300 font-semibold"><i class="fa-regular fa-clock mr-1"></i>${n.waktu || '-'}</span>
                                 </div>
-                                ${n.id && n.status !== 'Terbaca' ? `<button onclick="tandaiSudahDibaca('${n.id}')" class="mt-2 self-end px-2 py-1 bg-amber-500 hover:bg-amber-400 text-blue-950 font-bold rounded text-[10px] cursor-pointer"><i class="fa-solid fa-check mr-1"></i> Tandai Dibaca</button>` : ''}
+                                ${n.id ? `<button onclick="eksekusiDanHapusNotifikasi('${n.id}')" class="mt-2 self-end px-2 py-1 bg-amber-500 hover:bg-amber-400 text-blue-950 font-bold rounded text-[10px] cursor-pointer"><i class="fa-solid fa-check mr-1"></i> Selesai / Eksekusi</button>` : ''}
                             `;
                             container.appendChild(div);
                         });
@@ -436,28 +424,18 @@
             });
     }
 
-    async function tandaiSudahDibaca(notifId) {
-        try {
-            let res = await fetch(`${WEB_APP_URL}?action=updateNotifikasi&id=${notifId}&status=Terbaca`, {
-                method: 'POST'
-            });
-            let result = await res.json();
-            
-            if (result.status === 'success') {
-                let badgeStatus = document.getElementById(`status-notif-${notifId}`);
-                if (badgeStatus) {
-                    badgeStatus.innerText = "Terbaca";
-                    badgeStatus.className = "text-[9px] px-2 py-0.5 rounded font-bold bg-green-100 text-green-800";
+    function eksekusiDanHapusNotifikasi(idNotifikasi) {
+        fetch(`${WEB_APP_URL}?action=hapusNotifikasi&id=${idNotifikasi}`)
+            .then(response => response.json())
+            .then(result => {
+                if (result.status === "success") {
+                    let targetPenerima = (currentUser && currentUser.role === 'DINAS') ? 'DINAS' : (currentUser ? currentUser.username : '');
+                    loadNotifikasi(targetPenerima); 
                 }
-                
-                let targetPenerima = (currentUser && currentUser.role === 'DINAS') ? 'DINAS' : (currentUser ? currentUser.username : '');
-                loadNotifikasi(targetPenerima);
-            }
-        } catch (e) {
-            console.error("Gagal memperbarui status notifikasi:", e);
-        }
-    } 
-
+            })
+            .catch(error => console.error("Error:", error));
+    }
+        
     document.getElementById('regNpsn').addEventListener('blur', function() {
         let npsn = this.value.trim();
         if (!npsn) return;
@@ -705,16 +683,10 @@
 
         if (currentUser.role === 'SEKOLAH' && sheetName === 'paket_pekerjaan_sd') {
             let btnAdd = document.createElement('button');
-            btnAdd.id = "btnTambahPaket";
             btnAdd.className = "bg-amber-500 hover:bg-amber-400 text-blue-950 font-bold px-3.5 py-1.5 rounded-xl text-xs shadow-xs flex items-center space-x-1.5 cursor-pointer";
             btnAdd.innerHTML = `<i class="fa-solid fa-plus"></i><span>Tambah Paket</span>`;
             btnAdd.onclick = () => openModalForm();
             actionBtnContainer.appendChild(btnAdd);
-
-            let infoKuota = document.createElement('span');
-            infoKuota.id = "infoKuotaPaket";
-            infoKuota.className = "text-xs font-bold text-amber-300 ml-2";
-            actionBtnContainer.appendChild(infoKuota);
         } else if (currentUser.role === 'SEKOLAH' && sheetName === 'laporan_progres') {
             let btnAdd = document.createElement('button');
             btnAdd.className = "bg-amber-500 hover:bg-amber-400 text-blue-950 font-bold px-3.5 py-1.5 rounded-xl text-xs shadow-xs flex items-center space-x-1.5 cursor-pointer";
@@ -1125,14 +1097,9 @@
             }
             bodyEl.appendChild(tr);
         });
-
-        // Panggil inisialisasiFormPaket setelah tabel paket_pekerjaan_sd dimuat (jika role sekolah)
-        if (currentUser && currentUser.role === 'SEKOLAH' && sheetName === 'paket_pekerjaan_sd') {
-            inialisasiFormPaket(currentUser.username);
-        }
     }
 
-    async function cetakLaporanResmi(paketId, npsn) {
+async function cetakLaporanResmi(paketId, npsn) {
         const paket = paketPekerjaanList.find(p => String(p.paket_id || p.id_paket || '').trim() === String(paketId).trim());
         if (!paket) {
             alert("Data paket pekerjaan tidak ditemukan.");
@@ -1359,6 +1326,7 @@
 
         document.getElementById('formRowIndex').value = rowData ? rowData._rowIndex : "";
         
+        // Integrasi teks judul & tombol berdasarkan rowData (Tambah / Edit)
         if (!rowData) {
             modalTitle.innerText = "Tambah Paket Pekerjaan Baru";
             btnSave.innerText = "Tambah Paket";
@@ -1491,6 +1459,14 @@
                 div.appendChild(manualFallbackContainer);
             } 
             else if (currentActiveSheet === 'paket_pekerjaan_sd') {
+                if (!rowData && currentUser.role === 'SEKOLAH') {
+                    let existingPaket = paketPekerjaanList.filter(p => String(p.npsn || '').trim() === String(currentUser.username).trim());
+                    if (existingPaket.length >= 1) {
+                        alert("Batas Maksimal: Sekolah Anda hanya diizinkan menginput 1 Nama Menu Pekerjaan revitalisasi.");
+                        return; 
+                    }
+                }
+
                 if (h.toLowerCase() === 'paket_id') {
                     input = document.createElement('input');
                     input.type = "text";
@@ -1507,7 +1483,6 @@
                     input.value = currentUser.username;
                 } else if (h.toLowerCase() === 'nama_menu') {
                     input = document.createElement('select');
-                    input.id = "nama_menu";
                     input.name = h;
                     input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
                     
@@ -1604,16 +1579,6 @@
                     input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-blue-300 cursor-not-allowed";
                     input.value = convertToInputDate(rowData && rowData[h] ? rowData[h] : "");
                     setTimeout(hitungTanggalSelesai, 200);
-
-                    // Buat tombol menggunakan JavaScript agar tidak error
-                    const btnHitung = document.createElement('button');
-                    btnHitung.type = "button";
-                    btnHitung.innerText = "Hitung Tanggal";
-                    btnHitung.className = "mt-2 px-3 py-1 bg-amber-500 text-blue-950 font-bold rounded-lg text-xs cursor-pointer";
-                    btnHitung.setAttribute("onclick", "hitungTanggalSelesai()");
-                    
-                    // Masukkan tombol ke dalam wadah pembungkus (misal variabel div atau form group)
-                    // div.appendChild(btnHitung);
                 } else {
                     input = document.createElement('input');
                     input.type = "text";
@@ -1621,6 +1586,7 @@
                     input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
                     input.value = rowData ? (rowData[h] !== undefined ? rowData[h] : "") : "";
                 }
+            } 
             else if (currentActiveSheet === 'laporan_progres') {
                 if (h.toLowerCase() === 'id') {
                     input = document.createElement('input');
@@ -1763,47 +1729,6 @@
 
         modal.classList.remove('hidden');
         modal.classList.add('flex');
-
-        // Jika form paket pekerjaan dibuka untuk sekolah, panggil inisialisasiFormPaket
-        if (currentUser && currentUser.role === 'SEKOLAH' && currentActiveSheet === 'paket_pekerjaan_sd') {
-            inialisasiFormPaket(currentUser.username);
-        }
-    }
-
-    function inisialisasiFormPaket(npsn) {
-        google.script.run.withSuccessHandler(function(result) {
-            var selectElement = document.getElementById("nama_menu");
-            if (!selectElement) return;
-            var menuSudahDipilih = result.menuSudahDipilih;
-            
-            // Loop pada dropdown menu untuk memblokir opsi yang sudah dipilih sekolah ini
-            for (var i = 0; i < selectElement.options.length; i++) {
-                var optValue = selectElement.options[i].value;
-                if (!optValue) continue;
-                
-                if (menuSudahDipilih.includes(optValue)) {
-                    selectElement.options[i].disabled = true;
-                    selectElement.options[i].text = selectElement.options[i].text.replace(" (Sudah Dipilih)", "") + " (Sudah Dipilih)";
-                } else {
-                    selectElement.options[i].disabled = false;
-                }
-            }
-            
-            // Jika sisa kuota habis (semua menu di tabel menu_pekerjaan sudah dipilih)
-            var btnTambah = document.getElementById("btnTambahPaket");
-            var infoKuota = document.getElementById("infoKuotaPaket");
-            if (btnTambah && infoKuota) {
-                if (result.sisaKuota <= 0) {
-                    btnTambah.disabled = true;
-                    btnTambah.classList.add("opacity-50", "cursor-not-allowed");
-                    infoKuota.innerText = "Anda telah menggunakan seluruh kuota menu dari tabel menu_pekerjaan.";
-                } else {
-                    btnTambah.disabled = false;
-                    btnTambah.classList.remove("opacity-50", "cursor-not-allowed");
-                    infoKuota.innerText = "Sisa kuota menu tersedia: " + result.sisaKuota;
-                }
-            }
-        }).getStatusKuotaSekolah(npsn);
     }
 
     function hitungTanggalSelesai() {
