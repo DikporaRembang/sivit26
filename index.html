@@ -1099,7 +1099,7 @@
         });
     }
 
-    async function cetakLaporanResmi(paketId, npsn) {
+async function cetakLaporanResmi(paketId, npsn) {
         const paket = paketPekerjaanList.find(p => String(p.paket_id || p.id_paket || '').trim() === String(paketId).trim());
         if (!paket) {
             alert("Data paket pekerjaan tidak ditemukan.");
@@ -1135,6 +1135,17 @@
             console.error("Gagal mengambil data progres untuk cetak:", e);
         }
 
+        // PERBAIKAN: Mengambil nilai pagu dari berbagai kemungkinan nama kolom/properti data
+        let rawPagu = paket.pagu !== undefined ? paket.pagu : (paket.pagu_anggaran !== undefined ? paket.pagu_anggaran : paket.nilai_pagu);
+        let numericPagu = 0;
+        if (typeof rawPagu === 'number') {
+            numericPagu = rawPagu;
+        } else if (typeof rawPagu === 'string') {
+            // Membersihkan string dari karakter selain angka (misal "Rp 50.000.000" menjadi "50000000")
+            let cleaned = rawPagu.replace(/[^0-9.-]+/g,"");
+            numericPagu = parseFloat(cleaned) || 0;
+        }
+
         const printWindow = window.open('', '_blank');
         printWindow.document.write(`
             <html>
@@ -1149,16 +1160,22 @@
                 </style>
             </head>
             <body class="p-8 bg-white text-gray-900 font-sans">
-                <div class="text-center border-b-4 border-double border-gray-800 pb-4 mb-6">
-                    <h2 class="text-sm font-bold uppercase tracking-wider">PEMERINTAH KABUPATEN REMBANG</h2>
-                    <h1 class="text-base font-extrabold uppercase tracking-wide">DINAS PENDIDIKAN, PEMUDA DAN OLAHRAGA</h1>
-                    <p class="text-xs font-medium">Seksi Kelembagaan, Sarana dan Prasarana Bidang SD</p>
-                    <p class="text-[10px] text-gray-600 mt-0.5">Sistem Informasi Pemantauan Revitalisasi SD (SIVIT26 Tahun 2026)</p>
+                <!-- KOP SURAT DENGAN LOGO DI KANAN -->
+                <div class="flex items-center justify-between border-b-4 border-double border-gray-800 pb-4 mb-6">
+                    <div class="text-center w-full">
+                        <h2 class="text-sm font-bold uppercase tracking-wider">PEMERINTAH KABUPATEN REMBANG</h2>
+                        <h1 class="text-base font-extrabold uppercase tracking-wide">DINAS PENDIDIKAN, PEMUDA DAN OLAHRAGA</h1>
+                        <p class="text-xs font-medium">Seksi Kelembagaan, Sarana dan Prasarana Bidang SD</p>
+                        <p class="text-[10px] text-gray-600 mt-0.5">Sistem Informasi Pemantauan Revitalisasi SD (SIVIT26 Tahun 2026)</p>
+                    </div>
+                    <div class="flex-shrink-0 ml-4">
+                        <img src="logorembang.png" alt="Logo Rembang" class="w-16 h-16 object-contain">
+                    </div>
                 </div>
 
                 <div class="text-center mb-6">
                     <h3 class="font-bold text-sm uppercase underline">LAPORAN PEMANTAUAN & PROGRESIF PEKERJAAN REVITALISASI</h3>
-                    <p class="text-xs text-gray-600">ID Paket: ${paket.paket_id || '-'}</p>
+                    <p class="text-xs text-gray-600">ID Paket: ${paket.paket_id || paket.id_paket || '-'}</p>
                 </div>
                 
                 <div class="mb-6 grid grid-cols-2 gap-4 text-xs bg-gray-50 p-4 rounded-lg border border-gray-200">
@@ -1172,8 +1189,8 @@
                     </div>
                     <div>
                         <table class="w-full">
-                            <tr><td class="font-semibold py-0.5 w-1/3">Jenis Pekerjaan:</td><td>${paket.nama_menu || '-'}</td></tr>
-                            <tr><td class="font-semibold py-0.5">Pagu Anggaran:</td><td>Rp ${Number(paket.pagu || 0).toLocaleString('id-ID')}</td></tr>
+                            <tr><td class="font-semibold py-0.5 w-1/3">Jenis Pekerjaan:</td><td>${paket.nama_menu || paket.jenis_pekerjaan || '-'}</td></tr>
+                            <tr><td class="font-semibold py-0.5">Pagu Anggaran:</td><td>Rp ${numericPagu.toLocaleString('id-ID')}</td></tr>
                             <tr><td class="font-semibold py-0.5">Jangka Waktu:</td><td>${paket.tanggal_mulai || '-'} s.d. ${paket.tgl_selesai || '-'} (${paket.lama_hari || 0} Hari)</td></tr>
                             <tr><td class="font-semibold py-0.5">Tim Teknis:</td><td>P: ${paket.perencana || '-'} | O: ${paket.pengawas || '-'}</td></tr>
                         </table>
