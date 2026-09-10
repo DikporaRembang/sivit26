@@ -774,12 +774,16 @@
         let labels = currentData.map(d => d.minggu_ke || d.minggu || d.tanggal_lapor || 'Minggu');
         
         let targetData = currentData.map(d => {
-            let val = d.target_kurva_s !== undefined ? d.target_kurva_s : (d.target || 0);
-            return Number(String(val).replace('%','')) || 0;
+            let val = d.target_kurva_s !== undefined && d.target_kurva_s !== null ? d.target_kurva_s : 
+                      (d['Target Kurva S'] !== undefined ? d['Target Kurva S'] : 
+                      (d['target'] !== undefined ? d['target'] : 0));
+            return Number(String(val).replace('%', '').trim()) || 0;
         });
 
         let realisasiData = currentData.map(d => {
-            let val = d.realisasi_fisik !== undefined && d.realisasi_fisik !== null ? d.realisasi_fisik : 0;
+            let val = d.realisasi_fisik !== undefined && d.realisasi_fisik !== null ? d.realisasi_fisik : 
+                      (d['Realisasi Fisik'] !== undefined ? d['Realisasi Fisik'] : 
+                      (d['realisasi fisik'] !== undefined ? d['realisasi fisik'] : 0));
             return Number(String(val).replace('%', '').trim()) || 0;
         });
 
