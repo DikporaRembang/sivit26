@@ -276,7 +276,7 @@
     
 <!-- ================= SCRIPT UTAMA ================= -->
 <script>
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzI5iKUlu2klAzyr6EP4L22-I9XV-f8ON54TLG9ElmIK-83qy2dq495jW6qe0uHa-NsxQ/exec";
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycby7QZhtxVSX3UqWzeaFw6ISawKROQYCZX0acwsBPTmH6ObrKFAEWklx0JpQxRRQZfJ7Vg/exec";
         
     let currentUser = null;
     let currentActiveSheet = '';
@@ -539,7 +539,7 @@
         let kurvaEl = document.getElementById('kurvaSContainer');
         if (sheetName === 'kurva_s') {
             kurvaEl.classList.remove('hidden');
-            await loadReferenceTables(); // Pastikan paketPekerjaanList ter-update
+            await loadReferenceTables();
             renderKurvaSChart();
         } else {
             kurvaEl.classList.add('hidden');
@@ -608,7 +608,6 @@
         let targetData = currentData.map(d => Number(String(d.target_kurva_s || 0).replace('%','')) || 0);
         let realisasiData = currentData.map(d => Number(String(d.realisasi_fisik || 0).replace('%','')) || 0);
         
-        // Menghitung persentase penggunaan anggaran berdasarkan pagu terakhir di paket_pekerjaan_sd
         let anggaranPersenData = currentData.map(d => {
             let pId = String(d.paket_id || '').trim();
             let matchedPaket = paketPekerjaanList.find(p => String(p.paket_id || p.id_paket || '').trim() === pId);
