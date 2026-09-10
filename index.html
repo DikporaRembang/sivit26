@@ -1468,25 +1468,26 @@
                     hiddenRealInput.name = h;
                     hiddenRealInput.value = initialNum;
 
-                    if (currentUser.role === 'SEKOLAH') {
-                        let currentNamaMenuVal = rowData ? rowData['nama_menu'] : "";
-                        if (!currentNamaMenuVal) {
-                            input.disabled = true;
-                            input.placeholder = "Pilih Nama Menu terlebih dahulu untuk mengisi Pagu";
-                            input.className += " opacity-50 cursor-not-allowed";
+                if (currentUser.role === 'SEKOLAH') {
+                    let inputNamaMenu = document.getElementById('nama_menu').value.trim(); // Sesuaikan dengan ID field nama_menu Anda
+                    let currentNpsn = String(currentUser.username).trim();
+
+                    // Cek apakah data ini adalah data baru (bukan sedang edit data yang sudah ada)
+                    let isEditing = document.getElementById('id_data') && document.getElementById('id_data').value; 
+
+                    if (!isEditing) {
+                        let existingMenu = paketPekerjaanList.find(p => 
+                            String(p.npsn || '').trim() === currentNpsn && 
+                            String(p.nama_menu || '').trim().toLowerCase() === inputNamaMenu.toLowerCase()
+                        );
+
+                        if (existingMenu) {
+                            alert("Nama menu pekerjaan tersebut sudah pernah diinput. Sekolah Anda hanya berhak mengedit/mengganti pagu untuk nama menu yang sama.");
+                            return;
                         }
                     }
-
-                    input.oninput = function() {
-                        let cleanStr = this.value.replace(/[^0-9]/g, '');
-                        let num = cleanStr ? parseInt(cleanStr, 10) : 0;
-                        hiddenRealInput.value = num;
-                        this.value = num > 0 ? num.toLocaleString('id-ID') : "";
-                    };
-
-                    wrapper.appendChild(input);
-                    wrapper.appendChild(hiddenRealInput);
-                    div.appendChild(wrapper);
+                }                
+                
                 } else if (h.toLowerCase() === 'perencana' || h.toLowerCase() === 'pengawas') {
                     input = document.createElement('input');
                     input.type = "text";
