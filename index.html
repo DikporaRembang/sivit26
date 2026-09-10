@@ -1419,16 +1419,9 @@
                 div.appendChild(metaInfo);
                 div.appendChild(manualFallbackContainer);
             } 
-            else if (currentActiveSheet === 'paket_pekerjaan_sd') {
-                // Validasi batas maksimal input paket (diubah menjadi maksimal 1 paket revitalisasi untuk sekolah)
-                if (!rowData && currentUser.role === 'SEKOLAH') {
-                    let existingPaket = paketPekerjaanList.filter(p => String(p.npsn || '').trim() === String(currentUser.username).trim());
-                    if (existingPaket.length >= 1) {
-                        alert("Batas Maksimal: Sekolah Anda hanya diizinkan menginput 1 Nama Menu Pekerjaan revitalisasi.");
-                        return; 
-                    }
-                }
+            // ... (bagian awal fungsi openModalForm sebelum pengecekan sheet)
 
+            if (currentActiveSheet === 'paket_pekerjaan_sd') {
                 if (h.toLowerCase() === 'paket_id') {
                     input = document.createElement('input');
                     input.type = "text";
@@ -1441,115 +1434,55 @@
                     input.type = "text";
                     input.name = h;
                     input.readOnly = true;
-                    input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-blue-300 cursor-not-allowed";
-                    input.value = currentUser.username;
+                    input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-400 cursor-not-allowed font-bold";
+                    input.value = rowData && rowData[h] ? rowData[h] : currentUser.username;
                 } else if (h.toLowerCase() === 'nama_menu') {
+                    // Membuat Dropdown pilihan menu_pekerjaan sekaligus menerapkan validasi unik per menu
                     input = document.createElement('select');
                     input.name = h;
-                    input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
+                    input.className = "w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-blue-500";
         
-                    let defOpt = document.createElement('option');
-                    defOpt.value = "";
-                    defOpt.innerText = "-- Pilih Menu Pekerjaan --";
-                    input.appendChild(defOpt);
+                    let defaultOpt = document.createElement('option');
+                    defaultOpt.value = "";
+                    defaultOpt.textContent = "-- Pilih Nama Menu Pekerjaan --";
+                    input.appendChild(defaultOpt);
 
-                    menuPekerjaanList.forEach(m => {
-                        let mName = m.nama_menu || Object.values(m)[1];
-                        let opt = document.createElement('option');
-                        opt.value = mName;
-                        opt.innerText = mName;
-                        if (rowData && String(rowData[h] || '').trim() === String(mName).trim()) opt.selected = true;
-                        input.appendChild(opt);
-                        });
-                } else if (h.toLowerCase() === 'pagu') {
-                    let rawVal = rowData && rowData[h] !== undefined ? rowData[h] : "";
-                    let initialNum = rawVal !== "" ? Number(rawVal) : "";
+                    // Ambil daftar menu yang sudah pernah diinput oleh SEKOLAH ini (kecuali jika sedang dalam mode edit baris itu sendiri)
+                    let existingMenusForThisSchool = paketPekerjaanList
+                        .filter(p => String(p.npsn || '').trim() === String(currentUser.username).trim())
+                        .filter(p => !rowData || String(p.paket_id) !== String(rowData.paket_id))
+                        .map(p => String(p.nama_menu || '').trim().toLowerCase());
 
-                    let wrapper = document.createElement('div');
-                    wrapper.className = "relative";
-
-                    input = document.createElement('input');
-                    input.type = "text";
-                    input.id = "inputPaguFormatted";
-                    input.placeholder = "Masukkan nominal pagu";
-                    input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-                    input.value = initialNum !== "" ? initialNum.toLocaleString('id-ID') : "";
-
-                    let hiddenRealInput = document.createElement('input');
-                    hiddenRealInput.type = "hidden";
-                    hiddenRealInput.id = "inputPaguReal";
-                    hiddenRealInput.name = h;
-                    hiddenRealInput.value = initialNum;
-
-                if (currentUser.role === 'SEKOLAH') {
-                    let inputNamaMenu = document.getElementById('nama_menu').value.trim(); // Sesuaikan dengan ID field nama_menu Anda
-                    let currentNpsn = String(currentUser.username).trim();
-
-                    // Cek apakah data ini adalah data baru (bukan sedang edit data yang sudah ada)
-                    let isEditing = document.getElementById('id_data') && document.getElementById('id_data').value; 
-
-                    if (!isEditing) {
-                        let existingMenu = paketPekerjaanList.find(p => 
-                            String(p.npsn || '').trim() === currentNpsn && 
-                            String(p.nama_menu || '').trim().toLowerCase() === inputNamaMenu.toLowerCase()
-                        );
-
-                        if (existingMenu) {
-                            alert("Nama menu pekerjaan tersebut sudah pernah diinput. Sekolah Anda hanya berhak mengedit/mengganti pagu untuk nama menu yang sama.");
-                            return;
-                        }
-                    }
-                }                
+                    // Masukkan opsi dari data referensi menu_pekerjaan
+                    if (typeof menuPekerjaanList !== 'undefined') {
+                        menuPekerjaanList.forEach(m => {
+                            let menuName = m.nama_menu || m.name || m; // Menyesuaikan struktur data referensi menu
+                            let menuNameStr = String(menuName).trim();
                 
-                } else if (h.toLowerCase() === 'perencana' || h.toLowerCase() === 'pengawas') {
-                    input = document.createElement('input');
-                    input.type = "text";
-                    input.name = h;
-                    input.readOnly = true;
-                    input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-300 cursor-not-allowed font-bold";
-        
-                    let autoVal = "";
-                    if (currentUser[h]) {
-                        autoVal = currentUser[h];
-                    } else if (currentUser.sekolah && currentUser.sekolah[h]) {
-                        autoVal = currentUser.sekolah[h];
-                    } else if (rowData && rowData[h]) {
-                        autoVal = rowData[h];
+                            // Cek apakah menu ini sudah pernah dipilih/diinput oleh sekolah ini
+                            let isAlreadyInputted = existingMenusForThisSchool.includes(menuNameStr.toLowerCase());
+
+                            let opt = document.createElement('option');
+                            opt.value = menuNameStr;
+                
+                            if (isAlreadyInputted) {
+                                // Jika sudah pernah diinput, jadikan disabled dan beri keterangan
+                                opt.textContent = menuNameStr + " (Sudah Pernah Diinput)";
+                                opt.disabled = true;
+                                opt.className = "text-gray-500 bg-gray-900";
+                            } else {
+                                opt.textContent = menuNameStr;
+                            }
+
+                            if (rowData && String(rowData[h]).trim().toLowerCase() === menuNameStr.toLowerCase()) {
+                                opt.selected = true;
+                            }
+                            input.appendChild(opt);
+                        });
                     }
-                    input.value = autoVal;
-                } else if (h.toLowerCase() === 'tanggal_mulai') {
-                    input = document.createElement('input');
-                    input.type = "date";
-                    input.name = h;
-                    input.id = "inputTanggalMulai";
-                    input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-                    input.value = convertToInputDate(rowData && rowData[h] ? rowData[h] : new Date().toISOString().split('T')[0]);
-                    input.onchange = hitungTanggalSelesai;
-                } else if (h.toLowerCase() === 'lama_hari') {
-                    input = document.createElement('input');
-                    input.type = "number";
-                    input.name = h;
-                    input.id = "inputLamaHari";
-                    input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-                    input.value = rowData && rowData[h] ? rowData[h] : "90";
-                    input.oninput = hitungTanggalSelesai;
-                } else if (h.toLowerCase() === 'tgl_selesai') {
-                    input = document.createElement('input');
-                    input.type = "date";
-                    input.name = h;
-                    input.id = "inputTanggalSelesai";
-                    input.readOnly = true;
-                    input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-blue-300 cursor-not-allowed";
-                    input.value = convertToInputDate(rowData && rowData[h] ? rowData[h] : "");
-                    setTimeout(hitungTanggalSelesai, 200);
-                } else {
-                    input = document.createElement('input');
-                    input.type = "text";
-                    input.name = h;
-                    input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-                    input.value = rowData ? (rowData[h] !== undefined ? rowData[h] : "") : "";
                 }
             } 
+// ... (lanjutan kondisi sheet lainnya jika ada) 
             else if (currentActiveSheet === 'laporan_progres') {
                 if (h.toLowerCase() === 'id') {
                     input = document.createElement('input');
