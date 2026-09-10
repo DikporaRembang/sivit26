@@ -1421,23 +1421,26 @@
             } 
             // ... (bagian awal fungsi openModalForm sebelum pengecekan sheet)
 
-            if (currentActiveSheet === 'paket_pekerjaan_sd') {
-                if (h.toLowerCase() === 'paket_id') {
+            else if (currentActiveSheet === 'paket_pekerjaan_sd') {
+                let lowerH = h.toLowerCase();
+
+                if (lowerH === 'paket_id') {
                     input = document.createElement('input');
                     input.type = "text";
                     input.name = h;
                     input.readOnly = true;
                     input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-400 cursor-not-allowed font-bold";
                     input.value = rowData && rowData[h] ? rowData[h] : "PKT-" + currentUser.username + "-" + Math.floor(Date.now() / 1000);
-                } else if (h.toLowerCase() === 'npsn') {
+                } 
+                else if (lowerH === 'npsn') {
                     input = document.createElement('input');
                     input.type = "text";
                     input.name = h;
                     input.readOnly = true;
                     input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-400 cursor-not-allowed font-bold";
                     input.value = rowData && rowData[h] ? rowData[h] : currentUser.username;
-                } else if (h.toLowerCase() === 'nama_menu') {
-                    // Membuat Dropdown pilihan menu_pekerjaan sekaligus menerapkan validasi unik per menu
+                } 
+                else if (lowerH === 'nama_menu') {
                     input = document.createElement('select');
                     input.name = h;
                     input.className = "w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-blue-500";
@@ -1447,26 +1450,21 @@
                     defaultOpt.textContent = "-- Pilih Nama Menu Pekerjaan --";
                     input.appendChild(defaultOpt);
 
-                    // Ambil daftar menu yang sudah pernah diinput oleh SEKOLAH ini (kecuali jika sedang dalam mode edit baris itu sendiri)
                     let existingMenusForThisSchool = paketPekerjaanList
                         .filter(p => String(p.npsn || '').trim() === String(currentUser.username).trim())
                         .filter(p => !rowData || String(p.paket_id) !== String(rowData.paket_id))
                         .map(p => String(p.nama_menu || '').trim().toLowerCase());
 
-                    // Masukkan opsi dari data referensi menu_pekerjaan
                     if (typeof menuPekerjaanList !== 'undefined') {
                         menuPekerjaanList.forEach(m => {
-                            let menuName = m.nama_menu || m.name || m; // Menyesuaikan struktur data referensi menu
+                            let menuName = m.nama_menu || m.name || m;
                             let menuNameStr = String(menuName).trim();
-                
-                            // Cek apakah menu ini sudah pernah dipilih/diinput oleh sekolah ini
                             let isAlreadyInputted = existingMenusForThisSchool.includes(menuNameStr.toLowerCase());
 
                             let opt = document.createElement('option');
                             opt.value = menuNameStr;
                 
                             if (isAlreadyInputted) {
-                                // Jika sudah pernah diinput, jadikan disabled dan beri keterangan
                                 opt.textContent = menuNameStr + " (Sudah Pernah Diinput)";
                                 opt.disabled = true;
                                 opt.className = "text-gray-500 bg-gray-900";
@@ -1480,8 +1478,67 @@
                             input.appendChild(opt);
                         });
                     }
+                } 
+                else if (lowerH === 'pagu') {
+                    input = document.createElement('input');
+                    input.type = "number";
+                    input.name = h;
+                    input.className = "w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-blue-500";
+                    input.placeholder = "Masukkan jumlah pagu anggaran";
+                    input.value = rowData && rowData[h] !== undefined ? rowData[h] : "";
                 }
-            } 
+                else if (lowerH === 'tanggal_mulai') {
+                    input = document.createElement('input');
+                    input.type = "text"; // Menggunakan text agar format dd-mm-yyyy bebas diketik/ditampilkan
+                    input.name = h;
+                    input.placeholder = "dd-mm-yyyy (Contoh: 25-12-2026)";
+                    input.className = "w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-blue-500";
+                    input.value = rowData && rowData[h] ? rowData[h] : "";
+
+                    // Event listener saat tanggal mulai diketik/berubah untuk menghitung tgl_selesai otomatis
+                    input.addEventListener('input', function() {
+                        hitungTglSelesaiFormatID();
+                    });
+                }
+                else if (lowerH === 'lama_hari') {
+                    input = document.createElement('input');
+                    input.type = "number";
+                    input.name = h;
+                    input.className = "w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-blue-500";
+                    input.placeholder = "Contoh: 90";
+                    input.value = rowData && rowData[h] !== undefined ? rowData[h] : "";
+
+                    // Event listener saat lama hari diubah
+                    input.addEventListener('input', function() {
+                        hitungTglSelesaiFormatID();
+                    });
+                }
+                else if (lowerH === 'tgl_selesai') {
+                    input = document.createElement('input');
+                    input.type = "text"; // Text karena format dd-mm-yyyy dan bersifat readOnly
+                    input.name = h;
+                    input.readOnly = true; 
+                    input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-400 cursor-not-allowed font-bold";
+                    input.placeholder = "Otomatis terisi (dd-mm-yyyy)";
+                    input.value = rowData && rowData[h] ? rowData[h] : "";
+                }
+                else if (lowerH === 'perencana') {
+                    input = document.createElement('input');
+                    input.type = "text";
+                    input.name = h;
+                    input.readOnly = true; 
+                    input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-400 cursor-not-allowed font-bold";
+                    input.value = rowData && rowData[h] ? rowData[h] : (currentUser.perencana || currentUser.nama_perencana || "-");
+                }
+                else if (lowerH === 'pengawas') {
+                    input = document.createElement('input');
+                    input.type = "text";
+                    input.name = h;
+                    input.readOnly = true; 
+                    input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-400 cursor-not-allowed font-bold";
+                    input.value = rowData && rowData[h] ? rowData[h] : (currentUser.pengawas || currentUser.nama_pengawas || "-");
+                }
+            }
 // ... (lanjutan kondisi sheet lainnya jika ada) 
             else if (currentActiveSheet === 'laporan_progres') {
                 if (h.toLowerCase() === 'id') {
