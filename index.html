@@ -627,167 +627,55 @@
         });
     }
 
-    async function loadTableData(sheetName, title) {
-        currentActiveSheet = sheetName;
-        let displayTitle = title;
-        if (!displayTitle) {
-            if (sheetName === 'paket_pekerjaan_sd') displayTitle = currentUser.role === 'DINAS' ? 'Data Paket Pekerjaan SD' : 'Paket Pekerjaan Saya';
-            else if (sheetName === 'laporan_progres') displayTitle = currentUser.role === 'DINAS' ? 'Laporan Progres' : 'Laporan Progres Fisik';
-            else if (sheetName === 'kurva_s') displayTitle = 'Kurva S & Grafik';
-            else if (sheetName === 'peta_gis') displayTitle = 'Peta Persebaran Lokasi Revitalisasi (GIS)';
-            else if (sheetName === 'users') displayTitle = currentUser.role === 'DINAS' ? 'Manajemen User' : 'Profil & Tim Teknis';
-            else displayTitle = sheetName;
-        }
-
-        document.getElementById('contentTitle').innerText = displayTitle;
-        document.getElementById('contentSubtitle').innerText = "Memuat data dari server...";
+    async function loadTableData(sheetName, titleText) {
+            currentActiveSheet = sheetName;
+            if(titleText) {
+                let titleEl = document.getElementById('mainContentTitle');
+                if(titleEl) titleEl.innerText = titleText;
+            }
         
-        let filterDinasEl = document.getElementById('filterDinasContainer');
-        let kurvaEl = document.getElementById('kurvaSContainer');
-        let mapEl = document.getElementById('gisMapContainer');
-        let printableAreaEl = document.getElementById('printableArea');
+            let container = document.getElementById('tableContentContainer');
+            container.innerHTML = `<div class="p-8 text-center text-blue-300"><i class="fa-solid fa-spinner fa-spin text-2xl"></i><p class="mt-2 text-xs">Memuat data...</p></div>`;
 
-        if (currentUser.role === 'DINAS' && (sheetName === 'paket_pekerjaan_sd' || sheetName === 'laporan_progres' || sheetName === 'kurva_s')) {
-            filterDinasEl.classList.remove('hidden');
-            populateDinasFilterOptions();
-        } else {
-            filterDinasEl.classList.add('hidden');
-        }
-
-        if (sheetName === 'kurva_s') {
-            kurvaEl.classList.remove('hidden');
-            printableAreaEl.style.display = 'block';
-            await loadReferenceTables();
-            renderKurvaSChart();
-        } else {
-            kurvaEl.classList.add('hidden');
-        }
-
-        if (sheetName === 'peta_gis') {
-            mapEl.classList.remove('hidden');
-            printableAreaEl.style.display = 'none';
-            await initLeafletMap();
-            return;
-        } else {
-            mapEl.classList.add('hidden');
-            printableAreaEl.style.display = 'block';
-        }
-
-        let headEl = document.getElementById('tableHead');
-        let bodyEl = document.getElementById('tableBody');
-        headEl.innerHTML = "";
-        bodyEl.innerHTML = `<tr><td colspan="10" class="text-center p-4 text-slate-500 text-xs">Sedang memuat data...</td></tr>`;
-
-        let actionBtnContainer = document.getElementById('actionButtonContainer');
-        actionBtnContainer.innerHTML = "";
-
-        if (currentUser.role === 'SEKOLAH' && sheetName === 'paket_pekerjaan_sd') {
-            let btnAdd = document.createElement('button');
-            btnAdd.className = "bg-amber-500 hover:bg-amber-400 text-blue-950 font-bold px-3.5 py-1.5 rounded-xl text-xs shadow-xs flex items-center space-x-1.5 cursor-pointer";
-            btnAdd.innerHTML = `<i class="fa-solid fa-plus"></i><span>Tambah Paket</span>`;
-            btnAdd.onclick = () => openModalForm();
-            actionBtnContainer.appendChild(btnAdd);
-        } else if (currentUser.role === 'SEKOLAH' && sheetName === 'laporan_progres') {
-            let btnAdd = document.createElement('button');
-            btnAdd.className = "bg-amber-500 hover:bg-amber-400 text-blue-950 font-bold px-3.5 py-1.5 rounded-xl text-xs shadow-xs flex items-center space-x-1.5 cursor-pointer";
-            btnAdd.innerHTML = `<i class="fa-solid fa-plus"></i><span>Tambah Laporan</span>`;
-            btnAdd.onclick = () => openModalForm();
-            actionBtnContainer.appendChild(btnAdd);
-        }
-
-        try {
-            let targetSheet = sheetName === 'kurva_s' ? 'laporan_progres' : sheetName;
-            let res = await fetch(`${WEB_APP_URL}?action=getData&sheet=${targetSheet}&role=${currentUser.role}&npsn=${encodeURIComponent(currentUser.username)}`);
-            let result = await res.json();
-
-            if (result.status === 'success') {
-                currentHeaders = result.header || [];
-                originalServerData = result.data || [];
-                currentData = [...originalServerData];
-
-                if (targetSheet === 'users') {
-                    usersList = currentData;
-                }
-
-                if (currentUser.role === 'SEKOLAH' && sheetName === 'users') {
-                    currentData = currentData.filter(d => {
-                        let npsnVal = String(d.username || d.npsn || '').trim();
-                        return npsnVal === String(currentUser.username).trim();
-                    });
-                }
-
-                if (targetSheet === 'paket_pekerjaan_sd') {
-                    paketPekerjaanList = currentData;
-                    populateDinasFilterOptions();
-                }
-
-                renderTable(currentHeaders, currentData, sheetName);
-                if (sheetName === 'kurva_s') {
-                    renderKurvaSChart();
-                }
-            } else {
-                bodyEl.innerHTML = `<tr><td colspan="10" class="text-center p-4 text-red-500 text-xs">${result.message || 'Gagal memuat data'}</td></tr>`;
-            }
-        } catch (err) {
-            bodyEl.innerHTML = `<tr><td colspan="10" class="text-center p-4 text-red-500 text-xs">Kesalahan jaringan saat mengambil data.</td></tr>`;
-        }
-    }
-
-    async function initLeafletMap() {
-        if (!leafletMap) {
-            leafletMap = L.map('map').setView([-6.706, 111.345], 11);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                maxZoom: 19,
-                attribution: '&copy; OpenStreetMap contributors'
-            }).addTo(leafletMap);
-        } else {
-            leafletMap.invalidateSize();
-        }
-
-        try {
-            let res = await fetch(`${WEB_APP_URL}?action=getData&sheet=laporan_progres&role=DINAS&npsn=`);
-            let result = await res.json();
-            if (result.status === 'success') {
-                let listLaporan = result.data || [];
+            try {
+                let res = await fetch(`${WEB_APP_URL}?action=getData&sheet=${sheetName}&role=${currentUser.role}&username=${encodeURIComponent(currentUser.username)}&npsn=${encodeURIComponent(currentUser.npsn || '')}`);
+                let result = await res.json();
+            
+                if (result.status === 'success') {
+                    currentHeaders = result.header || result.headers || [];
+                    let rawData = result.data || [];
                 
-                leafletMap.eachLayer((layer) => {
-                    if (layer instanceof L.Marker) {
-                        leafletMap.removeLayer(layer);
-                    }
-                });
-
-                let markersCount = 0;
-                listLaporan.forEach(item => {
-                    let koordinatStr = item.lokasi_koordinat || '';
-                    if (koordinatStr && koordinatStr.includes(',')) {
-                        let parts = koordinatStr.split(',');
-                        let lat = parseFloat(parts[0].trim());
-                        let lon = parseFloat(parts[1].trim());
-
-                        if (!isNaN(lat) && !isNaN(lon)) {
-                            markersCount++;
-                            let marker = L.marker([lat, lon]).addTo(leafletMap);
-                            marker.bindPopup(`
-                                <div class="text-xs space-y-1">
-                                    <p class="font-bold text-blue-900">NPSN: ${item.npsn || '-'}</p>
-                                    <p><strong>Minggu:</strong> ${item.minggu_ke || '-'}</p>
-                                    <p><strong>Realisasi Fisik:</strong> ${item.realisasi_fisik || 0}%</p>
-                                    <p><strong>Status:</strong> ${item.status_verifikasi || 'DIAJUKAN'}</p>
-                                </div>
-                            `);
-                        }
-                    }
-                });
-
-                if (markersCount === 0) {
-                    alert("Belum ada data koordinat GPS valid yang ditemukan dari laporan progres sekolah.");
+                    renderTable(rawData);
+                } else {
+                    container.innerHTML = `<div class="p-8 text-center text-red-400 text-xs">Gagal memuat data: ${result.message || result.pesan}</div>`;
                 }
+            } catch (err) {
+                container.innerHTML = `<div class="p-8 text-center text-red-400 text-xs">Terjadi kesalahan koneksi ke server.</div>`;
             }
-        } catch (e) {
-            console.error("Gagal memuat titik koordinat peta:", e);
         }
-    }
 
+    function initLeafletMap(lat, lon, popupText) {
+            setTimeout(() => {
+                let mapContainer = document.getElementById('leafletMapContainer');
+                if (!mapContainer) return;
+            
+                if (window.leafletMapInstance) {
+                    window.leafletMapInstance.remove();
+                    window.leafletMapInstance = null;
+                }
+
+                let map = L.map('leafletMapContainer').setView([lat, lon], 15);
+                window.leafletMapInstance = map;
+
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; OpenStreetMap contributors'
+                }).addTo(map);
+
+                L.marker([lat, lon]).addTo(map)
+                    .bindPopup(popupText)
+                    .openPopup();
+            }, 300);
+        }
     function filterDataDinasAndPaket() {
         if (!currentUser || currentUser.role !== 'DINAS') return;
 
