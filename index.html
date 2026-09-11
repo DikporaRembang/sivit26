@@ -1099,7 +1099,7 @@
         });
     }
 
-async function cetakLaporanResmi(paketId, npsn) {
+    async function cetakLaporanResmi(paketId, npsn) {
         const paket = paketPekerjaanList.find(p => String(p.paket_id || p.id_paket || '').trim() === String(paketId).trim());
         if (!paket) {
             alert("Data paket pekerjaan tidak ditemukan.");
@@ -1460,7 +1460,7 @@ async function cetakLaporanResmi(paketId, npsn) {
             } 
             else if (currentActiveSheet === 'paket_pekerjaan_sd') {
                 if (!rowData && currentUser.role === 'SEKOLAH') {
-                    // Ambil nilai nama menu (pastikan ID elemen di form HTML Anda benar, misal: 'nama_menu')
+                    // Ambil nilai nama menu
                     let inputEl = document.getElementById('nama_menu');
                     let inputNamaMenu = inputEl ? inputEl.value.trim().toLowerCase() : '';
                     
@@ -1784,11 +1784,8 @@ async function cetakLaporanResmi(paketId, npsn) {
             }
         });
 
-        // ==========================================
-        // TAMBAHAN SKRIP VALIDASI DUPLIKASI NAMA MENU
-        // ==========================================
         if (currentActiveSheet === 'paket_pekerjaan_sd' && currentUser.role === 'SEKOLAH') {
-            let isNewData = !rowIndex; // True jika data baru, False jika sedang edit
+            let isNewData = !rowIndex;
 
             if (isNewData) {
                 let inputNamaMenu = String(
@@ -1800,13 +1797,11 @@ async function cetakLaporanResmi(paketId, npsn) {
                     formDataObj['nama_menu'] = inputNamaMenu;
                 }
             
-                // Validasi jika kosong
                 if (!inputNamaMenu) {
                     alert("Nama Menu Pekerjaan wajib diisi!");
                     return; 
                 }
 
-                // Validasi duplikasi berdasarkan NPSN dan Nama Menu
                 let isDuplicate = paketPekerjaanList.some(p => 
                     String(p.npsn || '').trim() === String(currentUser.username).trim() &&
                     String(p.nama_menu || '').trim().toLowerCase() === inputNamaMenu
@@ -1819,9 +1814,6 @@ async function cetakLaporanResmi(paketId, npsn) {
             }
         }
 
-        // ==========================================
-        // PROSES KIRIM DATA KE SERVER & LOADING STATE
-        // ==========================================
         let btnSave = document.getElementById('btnSaveModal');
         if (btnSave) {
             btnSave.innerText = "Menyimpan...";
@@ -1940,5 +1932,6 @@ async function cetakLaporanResmi(paketId, npsn) {
         modal.classList.add('hidden');
         modal.classList.remove('flex');
     }
+</script>
 </body>
 </html>
