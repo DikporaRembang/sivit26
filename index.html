@@ -1770,7 +1770,8 @@ async function cetakLaporanResmi(paketId, npsn) {
     }
 
     async function handleFormSubmit(e) {
-        e.preventDefault();
+        if (e) e.preventDefault();
+        
         let form = e.target;
         let rowIndex = document.getElementById('formRowIndex').value;
         let formDataObj = {};
@@ -1817,32 +1818,45 @@ async function cetakLaporanResmi(paketId, npsn) {
                 }
             }
         }
-        // ==========================================
 
+        // ==========================================
+        // PROSES KIRIM DATA KE SERVER & LOADING STATE
+        // ==========================================
         let btnSave = document.getElementById('btnSaveModal');
-        btnSave.innerText = "Menyimpan...";
-        btnSave.disabled = true;
+        if (btnSave) {
+            btnSave.innerText = "Menyimpan...";
+            btnSave.disabled = true;
+        }
 
         try {
+            let payload = {
+                action: rowIndex ? 'updateData' : 'addData',
+                sheet: currentActiveSheet,
+                role: currentUser.role,
+                npsn: currentUser.username,
+                rowIndex: rowIndex,
+                data: formDataObj
+            };
+
             let res = await fetch(WEB_APP_URL, {
                 method: 'POST',
-                body: JSON.stringify({
-                    action: 'saveData',
-                    sheetName: currentActiveSheet,
-                    rowIndex: rowIndex,
-                    data: formDataObj
-                })
-            });            let result = await res.json();
+                body: JSON.stringify(payload)
+            });
+            let result = await res.json();
             alert(result.pesan);
+
             if (result.status === 'success') {
                 closeModal();
                 loadTableData(currentActiveSheet);
             }
         } catch (err) {
+            console.error(err);
             alert('Gagal menyimpan data ke server.');
         } finally {
-            btnSave.innerText = "Simpan Data";
-            btnSave.disabled = false;
+            if (btnSave) {
+                btnSave.innerText = "Simpan Data";
+                btnSave.disabled = false;
+            }
         }
     }
 
@@ -1926,6 +1940,5 @@ async function cetakLaporanResmi(paketId, npsn) {
         modal.classList.add('hidden');
         modal.classList.remove('flex');
     }
-</script>
 </body>
 </html>
