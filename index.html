@@ -28,6 +28,47 @@
 </head>
 <body class="bg-gradient-to-br from-blue-950 via-blue-900 to-slate-900 min-h-screen text-white font-sans antialiased flex flex-col justify-between">
 
+    <!-- (Isi konten HTML aplikasi Anda di sini) -->
+
+    <!-- --- PENEMPATAN SCRIPT TAMBAHAN (EXIF & RENTANG MINGGU) --- -->
+    <script>
+        // Fungsionalitas Tambahan untuk Perbaikan Error Frontend
+        function bacaMetadataFotoEXIF(file) {
+            if (typeof EXIF === 'undefined') {
+                console.warn("Library EXIF.js belum dimuat.");
+                return;
+            }
+            EXIF.getData(file, function() {
+                let dateTime = EXIF.getTag(this, "DateTimeOriginal") || EXIF.getTag(this, "DateTime") || null;
+                let lat = EXIF.getTag(this, "GPSLatitude");
+                let latRef = EXIF.getTag(this, "GPSLatitudeRef");
+                let lon = EXIF.getTag(this, "GPSLongitude");
+                let lonRef = EXIF.getTag(this, "GPSLongitudeRef");
+
+                let gpsStr = "";
+                if (lat && lon) {
+                    let latitude = lat[0] + lat[1]/60 + lat[2]/3600;
+                    let longitude = lon[0] + lon[1]/60 + lon[2]/3600;
+                    if (latRef === "S") latitude = -latitude;
+                    if (lonRef === "W") longitude = -longitude;
+                    gpsStr = `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
+                }
+                let lokasiField = document.querySelector('input[name="lokasi_koordinat"]');
+                if (lokasiField && gpsStr) {
+                    lokasiField.value = gpsStr;
+                }
+            });
+        }
+
+        function cekRentangMingguEksis(mingguVal) {
+            // Fungsi validasi untuk memeriksa rentang minggu laporan progres
+            console.log("Memeriksa rentang minggu:", mingguVal);
+            // Tambahkan logika tambahan di sini jika diperlukan oleh form Anda
+        }
+    </script>
+</body>
+</html>
+
 <!-- ================= AUTH CONTAINER ================= -->
 <div id="authContainer" class="flex-1 flex flex-col items-center justify-center p-4">
     <div class="max-w-md w-full bg-blue-900/40 backdrop-blur-md rounded-2xl shadow-2xl p-8 border border-amber-400/30">
