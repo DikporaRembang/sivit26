@@ -48,11 +48,11 @@
 
         <form id="formLogin" onsubmit="handleLogin(event)" class="space-y-4">
             <div>
-                <label class="block text-xs font-semibold uppercase tracking-wider text-blue-200 mb-1">NPSN / Username</label>
+                <label for="loginUser" class="block text-xs font-semibold uppercase tracking-wider text-blue-200 mb-1">NPSN / Username</label>
                 <input type="text" id="loginUser" required placeholder="Masukkan NPSN..." class="w-full px-3.5 py-2.5 border border-blue-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400 text-sm bg-blue-950/50 text-white">
             </div>
             <div>
-                <label class="block text-xs font-semibold uppercase tracking-wider text-blue-200 mb-1">Password</label>
+                <label for="loginPass" class="block text-xs font-semibold uppercase tracking-wider text-blue-200 mb-1">Password</label>
                 <div class="relative">
                     <input type="password" id="loginPass" required class="w-full px-3.5 py-2.5 pr-10 border border-blue-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400 text-sm bg-blue-950/50 text-white">
                     <button type="button" onclick="togglePasswordVisibility('loginPass', 'eyeIconLogin')" class="absolute inset-y-0 right-0 px-3.5 flex items-center text-blue-300 hover:text-white focus:outline-none cursor-pointer">
@@ -65,15 +65,15 @@
 
         <form id="formRegister" onsubmit="handleRegister(event)" class="space-y-4 hidden">
             <div>
-                <label class="block text-xs font-semibold uppercase tracking-wider text-blue-200 mb-1">NPSN Sekolah (ID Utama)</label>
+                <label for="regNpsn" class="block text-xs font-semibold uppercase tracking-wider text-blue-200 mb-1">NPSN Sekolah (ID Utama)</label>
                 <input type="text" id="regNpsn" required placeholder="Masukkan NPSN resmi..." class="w-full px-3.5 py-2.5 border border-blue-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400 text-sm bg-blue-950/50 text-white">
             </div>
             <div>
-                <label class="block text-xs font-semibold uppercase tracking-wider text-blue-200 mb-1">Nama Sekolah (Autofill)</label>
+                <label for="regNamaSekolah" class="block text-xs font-semibold uppercase tracking-wider text-blue-200 mb-1">Nama Sekolah (Autofill)</label>
                 <input type="text" id="regNamaSekolah" readonly placeholder="Otomatis dari database dinas..." class="w-full px-3.5 py-2.5 bg-blue-950/30 border border-blue-800 rounded-xl text-blue-300 text-sm cursor-not-allowed">
             </div>
             <div>
-                <label class="block text-xs font-semibold uppercase tracking-wider text-blue-200 mb-1">Password Akun</label>
+                <label for="regPass" class="block text-xs font-semibold uppercase tracking-wider text-blue-200 mb-1">Password Akun</label>
                 <div class="relative">
                     <input type="password" id="regPass" required class="w-full px-3.5 py-2.5 pr-10 border border-blue-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400 text-sm bg-blue-950/50 text-white">
                     <button type="button" onclick="togglePasswordVisibility('regPass', 'eyeIconReg')" class="absolute inset-y-0 right-0 px-3.5 flex items-center text-blue-300 hover:text-white focus:outline-none cursor-pointer">
@@ -190,6 +190,75 @@
                 <h4 class="font-bold text-sm text-amber-400 mb-3"><i class="fa-solid fa-filter mr-2"></i> Filter Rekapitulasi Dinas (Berdasarkan NPSN & Paket Pekerjaan)</h4>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                     <div>
+                        <label for="selectDinasNpsn" class="block font-bold text-blue-200 mb-1">Pilih Sekolah (NPSN):</label>
+                        <select id="selectDinasNpsn" onchange="filterDataDinasAndPaket()" class="w-full px-3 py-2 bg-blue-900 border border-blue-700 rounded-lg text-white font-semibold">
+                            <option value="">-- Semua Sekolah (Semua NPSN) --</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="selectDinasPaket" class="block font-bold text-blue-200 mb-1">Nama Menu Pekerjaan (Paket):</label>
+                        <select id="selectDinasPaket" onchange="filterDataDinasAndPaket()" class="w-full px-3 py-2 bg-blue-900 border border-blue-700 rounded-lg text-white font-semibold">
+                            <option value="">-- Semua Menu Pekerjaan --</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div id="printableArea" class="bg-white rounded-xl border border-slate-300 shadow-xs p-6 text-slate-900">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-200">
+                    <div>
+                        <h3 class="text-base font-bold text-slate-900 tracking-tight" id="contentTitle">Pilih Menu</h3>
+                        <p class="text-xs text-slate-600 font-semibold" id="contentSubtitle">Kelola dan pantau data pekerjaan.</p>
+                    </div>
+                    <div id="actionButtonContainer" class="flex items-center space-x-2"></div>
+                </div>
+
+                <!-- Kurva S & Grafik Container dengan Tombol Ekspor JPEG -->
+                <div id="kurvaSContainer" class="hidden mb-6 p-4 bg-slate-50 rounded-xl border border-slate-200">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3 gap-2">
+                        <h4 class="font-bold text-sm text-slate-800"><i class="fa-solid fa-chart-line text-blue-900 mr-2"></i> Grafik Kurva S (Progres Fisik, Target, & Anggaran %)</h4>
+                        <button onclick="eksporGrafikJPEG()" class="bg-blue-900 hover:bg-blue-800 text-amber-400 font-bold px-3 py-1.5 rounded-lg text-xs shadow-sm flex items-center space-x-1.5 cursor-pointer border border-amber-400/40 transition-all">
+                            <i class="fa-solid fa-file-image"></i><span>Ekspor Grafik ke JPEG</span>
+                        </button>
+                    </div>
+                    
+                    <!-- HEADER KETERANGAN GRAFIK -->
+                    <div id="kurvaSHeader" class="text-center mb-3">
+                        <h5 class="fw-bold m-0" style="font-size: 16px; font-weight: bold;">GRAFIK PERKEMBANGAN REVITALISASI SD KABUPATEN REMBANG 2026</h5>
+                        <p id="infoSekolahMenu" class="text-muted m-0" style="font-size: 13px; color: #555;"></p>
+                    </div>
+
+                    <!-- KONTAINER KANVAS DENGAN TINGGI TETAP -->
+                    <div style="position: relative; height: 350px; width: 100%;">
+                        <canvas id="chartKurvaS"></canvas>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead id="tableHead" class="bg-blue-950 text-white uppercase tracking-wider border-b-2 border-amber-400 font-extrabold"></thead>
+                        <tbody id="tableBody" class="divide-y divide-slate-200 text-slate-900 font-semibold"></tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+            <!-- ================= KONTAINER PETA GIS ================= -->
+            <div id="gisMapContainer" class="hidden mb-6 p-4 bg-slate-50 rounded-xl border border-slate-200">
+                <div class="flex justify-between items-center mb-3">
+                    <h4 class="font-bold text-sm text-slate-800"><i class="fa-solid fa-map-location-dot text-blue-900 mr-2"></i> Peta Persebaran Lokasi Revitalisasi SD Kabupaten Rembang</h4>
+                    <span class="text-xs text-slate-500 font-medium">Titik koordinat bersumber dari metadata EXIF foto / data sekolah</span>
+                </div>
+                <div id="map" style="height: 450px; width: 100%;" class="rounded-lg shadow-inner z-10"></div>
+            </div>
+            <!-- ======================================================= -->
+
+            <!-- ================= FILTER DINAS ================= -->
+            <div id="filterDinasContainer" class="hidden mb-6 p-4 bg-blue-950 rounded-xl border border-amber-500/40 text-white shadow-md">
+                <h4 class="font-bold text-sm text-amber-400 mb-3"><i class="fa-solid fa-filter mr-2"></i> Filter Rekapitulasi Dinas (Berdasarkan NPSN & Paket Pekerjaan)</h4>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                    <div>
                         <label class="block font-bold text-blue-200 mb-1">Pilih Sekolah (NPSN):</label>
                         <select id="selectDinasNpsn" onchange="filterDataDinasAndPaket()" class="w-full px-3 py-2 bg-blue-900 border border-blue-700 rounded-lg text-white font-semibold">
                             <option value="">-- Semua Sekolah (Semua NPSN) --</option>
@@ -273,7 +342,7 @@
         <form onsubmit="submitVerifikasiLaporan(event)" class="space-y-4">
             <input type="hidden" id="verif-id-laporan">
             <div>
-                <label class="block text-xs font-semibold uppercase tracking-wider text-blue-200 mb-1">Status Verifikasi (oleh DINAS)</label>
+                <label for="verif-status" class="block text-xs font-semibold uppercase tracking-wider text-blue-200 mb-1">Status Verifikasi (oleh DINAS)</label>
                 <select id="verif-status" required class="w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none">
                     <option value="DISETUJUI">DISETUJUI (APPROVED)</option>
                     <option value="DITOLAK">DITOLAK (REJECTED)</option>
@@ -281,7 +350,7 @@
                 </select>
             </div>
             <div>
-                <label class="block text-xs font-semibold uppercase tracking-wider text-blue-200 mb-1">Catatan Dinas</label>
+                <label for="verif-catatan" class="block text-xs font-semibold uppercase tracking-wider text-blue-200 mb-1">Catatan Dinas</label>
                 <textarea id="verif-catatan" rows="3" placeholder="Tuliskan catatan verifikasi dari Dinas..." class="w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none"></textarea>
             </div>
             <div class="flex justify-end space-x-2 pt-3 border-t border-blue-800">
@@ -530,10 +599,59 @@
 
             populateDinasFilterOptions();
         } catch (e) {
-            console.error("Gagal memuat tabel referensi:", e);
+            console.error("Gagal memuat tabel referensi", e);
         }
-    }
+            alert("Batas Maksimal Pengajuan: Sekolah Anda hanya diizinkan untuk mengajukan 1 (satu) data paket pekerjaan revitalisasi saja.");
+                    closeModalForm();
+                    return;
+                }
+            }
 
+            if (h === 'npsn' && currentUser.role === 'SEKOLAH') {
+                input = document.createElement('input');
+                input.type = 'text';
+                input.name = h;
+                input.value = currentUser.username;
+                input.readOnly = true;
+                input.className = 'w-full bg-blue-900/40 border border-blue-800 rounded px-3 py-2 text-xs text-blue-300 cursor-not-allowed focus:outline-none';
+                div.appendChild(input);
+                container.appendChild(div);
+                return;
+            }
+
+            if (h === 'dinas' || h === 'dinas_pendidikan') {
+                input = document.createElement('select');
+                ['Dinas Pendidikan', 'Dikpora Kab. Rembang'].forEach(optText => {
+                    let opt = document.createElement('option');
+                    opt.value = optText;
+                    opt.innerText = optText;
+                    if (rowData && String(rowData[h]) === optText) opt.selected = true;
+                    input.appendChild(opt);
+                });
+            } else if (h.toLowerCase().includes('keterangan') || h.toLowerCase().includes('alamat') || h.toLowerCase().includes('uraian') || h.toLowerCase().includes('spesifikasi')) {
+                input = document.createElement('textarea');
+                input.rows = 3;
+                input.value = rowData && rowData[h] !== undefined ? rowData[h] : '';
+            } else {
+                input = document.createElement('input');
+                input.type = h.toLowerCase().includes('tanggal') ? 'date' : (h.toLowerCase().includes('pagu') || h.toLowerCase().includes('anggaran') || h.toLowerCase().includes('volume') || h.toLowerCase().includes('hari') ? 'number' : 'text');
+                input.value = rowData && rowData[h] !== undefined ? rowData[h] : '';
+            }
+        }
+
+        input.name = h;
+        input.className = 'w-full bg-blue-950 border border-blue-800 rounded px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500';
+        div.appendChild(input);
+        container.appendChild(div);
+    });
+
+    let modal = document.getElementById('dataModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+}
+    
     function populateDinasFilterOptions() {
         if (!currentUser || currentUser.role !== 'DINAS') return;
         
