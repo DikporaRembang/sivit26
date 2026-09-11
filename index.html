@@ -1791,7 +1791,16 @@ async function cetakLaporanResmi(paketId, npsn) {
             let isNewData = !rowIndex; 
             
             if (isNewData) {
-                let inputNamaMenu = String(formDataObj['nama_menu'] || '').trim().toLowerCase();
+                // Ambil dari formDataObj, jika kosong ambil langsung dari elemen HTML id='nama_menu'
+                let inputNamaMenu = String(
+                    formDataObj['nama_menu'] || 
+                    (document.getElementById('nama_menu') ? document.getElementById('nama_menu').value : '')
+                ).trim().toLowerCase();
+                
+                // Masukkan kembali ke formDataObj agar ikut terkirim ke server
+                if (inputNamaMenu) {
+                    formDataObj['nama_menu'] = inputNamaMenu;
+                }
                 
                 if (!inputNamaMenu) {
                     alert("Nama Menu Pekerjaan wajib diisi!");
