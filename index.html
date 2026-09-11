@@ -1460,8 +1460,9 @@ async function cetakLaporanResmi(paketId, npsn) {
             } 
             else if (currentActiveSheet === 'paket_pekerjaan_sd') {
                 if (!rowData && currentUser.role === 'SEKOLAH') {
-                    // Ambil nilai nama menu yang baru diinputkan oleh sekolah (sesuaikan id input form Anda, misal: 'nama_menu' atau 'inputNamaMenu')
-                    let inputNamaMenu = document.getElementById('nama_menu') ? document.getElementById('nama_menu').value.trim().toLowerCase() : '';
+                    // Ambil nilai nama menu (pastikan ID elemen di form HTML Anda benar, misal: 'nama_menu')
+                    let inputEl = document.getElementById('nama_menu');
+                    let inputNamaMenu = inputEl ? inputEl.value.trim().toLowerCase() : '';
                     
                     if (!inputNamaMenu) {
                         alert("Nama Menu Pekerjaan wajib diisi!");
@@ -1479,6 +1480,7 @@ async function cetakLaporanResmi(paketId, npsn) {
                         return; 
                     }
                 }
+            }
 
                 if (h.toLowerCase() === 'paket_id') {
                     input = document.createElement('input');
