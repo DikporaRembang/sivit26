@@ -326,7 +326,7 @@
     
 <!-- ================= SCRIPT UTAMA ================= -->
 <script>
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwCRJuCg2pMfyAVKpZDL2gXKRhpIaWUFiiZrga4iN_8BKG38IGlexIFhLmQpnWnVpQrUA/exec";
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw2WsNIlOT6nROLo6GmoEc7XNnJFiWr-j89x_UbfJ2_JK5zDRNTW7TAx-EZZcUZ_VqHgA/exec";
         
     let currentUser = null;
     let currentActiveSheet = '';
@@ -1781,6 +1781,35 @@ async function cetakLaporanResmi(paketId, npsn) {
                 formDataObj[inp.name] = inp.value;
             }
         });
+
+        // ==========================================
+        // TAMBAHKAN VALIDASI DUPLIKASI NAMA MENU DI SINI
+        // ==========================================
+        if (currentActiveSheet === 'paket_pekerjaan_sd' && currentUser.role === 'SEKOLAH') {
+            // Cek apakah ini data BARU (jika rowIndex kosong/null berarti sedang tambah data baru)
+            let isNewData = !rowIndex; 
+            
+            if (isNewData) {
+                let inputNamaMenu = String(formDataObj['nama_menu'] || '').trim().toLowerCase();
+                
+                if (!inputNamaMenu) {
+                    alert("Nama Menu Pekerjaan wajib diisi!");
+                    return; // Batalkan proses
+                }
+
+                // Cek apakah NPSN yang sama sudah pernah menginput nama menu ini
+                let isDuplicate = paketPekerjaanList.some(p => 
+                    String(p.npsn || '').trim() === String(currentUser.username).trim() &&
+                    String(p.nama_menu || '').trim().toLowerCase() === inputNamaMenu
+                );
+
+                if (isDuplicate) {
+                    alert("Peringatan: Menu pekerjaan dengan nama tersebut sudah pernah ditambahkan sebelumnya. Silakan pilih nama menu yang lain.");
+                    return; // Batalkan proses simpan dan hentikan eksekusi fetch
+                }
+            }
+        }
+        // ==========================================
 
         let btnSave = document.getElementById('btnSaveModal');
         btnSave.innerText = "Menyimpan...";
