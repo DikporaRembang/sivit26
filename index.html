@@ -1610,27 +1610,32 @@ async function cetakLaporanResmi(paketId, npsn) {
     }
 
     async function deleteRowData(rowIndex) {
-        if (!confirm("Apakah Anda yakin ingin menghapus baris data ini?")) return;
+        if (!confirm('Apakah Anda yakin ingin menghapus baris data ini?')) return;
+
+        let payload = {
+            action: 'deleteData',
+            sheet: currentActiveSheet,
+            rowIndex: rowIndex,
+            username: currentUser.username,
+            role: currentUser.role
+        };
 
         try {
             let res = await fetch(WEB_APP_URL, {
                 method: 'POST',
-                body: JSON.stringify({
-                    action: 'deleteData',
-                    sheet: currentActiveSheet,
-                    rowIndex: rowIndex
-                })
+                body: JSON.stringify(payload)
             });
             let result = await res.json();
-            alert(result.pesan);
+
             if (result.status === 'success') {
                 loadTableData(currentActiveSheet);
+            } else {
+                alert('Gagal menghapus data: ' + result.pesan);
             }
         } catch (err) {
-            alert('Gagal menghapus data.');
+            alert('Terjadi kesalahan koneksi saat menghapus data.');
         }
     }
-
     async function bukaRiwayatPagu(npsn, paketId) {
         let modal = document.getElementById('modalRiwayatPagu');
         let tbody = document.getElementById('riwayatTableBody');
