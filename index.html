@@ -309,7 +309,7 @@
     
 <!-- ================= SCRIPT UTAMA ================= -->
 <script>
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxE5WXKOEU8wyR71vY19tI_HawLYFBytbOg4Ij4iqtlXbagYkHGJVQF2S_Vvfszvqnx2Q/exec";
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx0iHgPlk0GkF70xPd2OaRFEwNI3QxsBNKuVGKXqEzhZ3_F3hBzKgIps4iTAA5KxjeMvQ/exec";
         
     let currentUser = null;
     let currentActiveSheet = '';
@@ -1758,24 +1758,6 @@
                 }
             }
             
-    function hitungTanggalSelesai() {
-        let mulaiInput = document.getElementById('inputTanggalMulai');
-        let lamaInput = document.getElementById('inputLamaHari');
-        let selesaiInput = document.getElementById('inputTanggalSelesai');
-
-        if (mulaiInput && lamaInput && selesaiInput && mulaiInput.value) {
-            let tglMulai = new Date(mulaiInput.value);
-            let lamaHari = parseInt(lamaInput.value) || 0;
-            if (!isNaN(tglMulai.getTime())) {
-                tglMulai.setDate(tglMulai.getDate() + lamaHari);
-                let yyyy = tglMulai.getFullYear();
-                let mm = String(tglMulai.getMonth() + 1).padStart(2, '0');
-                let dd = String(tglMulai.getDate()).padStart(2, '0');
-                selesaiInput.value = `${yyyy}-${mm}-${dd}`;
-            }
-        }
-    }
-
     function closeModal() {
         let modal = document.getElementById('dataModal');
         modal.classList.add('hidden');
