@@ -1636,63 +1636,55 @@ async function cetakLaporanResmi(paketId, npsn) {
             alert('Terjadi kesalahan koneksi saat menghapus data.');
         }
     }
-    async function bukaRiwayatPagu(npsn, paketId) {
+    async function bukaRiwayatPagu(paketId) {
         let modal = document.getElementById('modalRiwayatPagu');
-        let tbody = document.getElementById('riwayatTableBody');
-        let infoNamaSekolah = document.getElementById('infoNamaSekolah');
-        let infoNamaMenu = document.getElementById('infoNamaMenu');
+        let tbody = document.getElementById('riwayatPaguTbody');
+        if (!modal || !tbody) return;
 
-        tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-blue-300">Memuat riwayat perubahan pagu...</td></tr>`;
         modal.classList.remove('hidden');
         modal.classList.add('flex');
+        tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-blue-300"><i class="fa-solid fa-spinner fa-spin text-xl"></i><p class="mt-1 text-xs">Memuat riwayat...</p></td></tr>`;
 
         try {
-            let res = await fetch(`${WEB_APP_URL}?action=getData&sheet=riwayat_pagu&role=${currentUser.role}&npsn=${encodeURIComponent(npsn)}`);
+            let res = await fetch(`${WEB_APP_URL}?action=getRiwayatPagu&paket_id=${encodeURIComponent(paketId)}`);
             let result = await res.json();
+
             if (result.status === 'success') {
-                let dataRiwayat = (result.data || []).filter(r => String(r.paket_id || '').trim() === String(paketId).trim());
+                let dataRiwayat = result.data || [];
+                tbody.innerHTML = '';
                 
-                let foundUser = usersList.find(u => String(u.username || u.npsn || '').trim() === String(npsn).trim());
-                infoNamaSekolah.innerText = foundUser ? `${npsn} - ${foundUser.nama_pengguna || foundUser.nama_sekolah}` : `NPSN: ${npsn}`;
-
-                let foundPaket = paketPekerjaanList.find(p => String(p.paket_id || '').trim() === String(paketId).trim());
-                infoNamaMenu.innerText = foundPaket ? `Menu Pekerjaan: ${foundPaket.nama_menu} (ID: ${paketId})` : `ID Paket: ${paketId}`;
-
-                tbody.innerHTML = "";
                 if (dataRiwayat.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-blue-300">Belum ada riwayat perubahan pagu untuk paket ini.</td></tr>`;
-                    return;
+                    tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-blue-300">Belum ada riwayat perubahan pagu.</td></tr>`;
+                } else {
+                    dataRiwayat.forEach((row, index) => {
+                        let tr = document.createElement('tr');
+                        tr.className = "border-b border-blue-900/50 hover:bg-blue-900/20";
+                        // Menyesuaikan kolom dengan struktur tabel riwayat_pagu: time_stamp, alasan_perubahan
+                        tr.innerHTML = `
+                            <td class="p-3 text-center text-xs text-white">${index + 1}</td>
+                            <td class="p-3 text-xs text-white">${row.time_stamp || '-'}</td>
+                            <td class="p-3 text-xs text-right text-white">Rp ${Number(row.pagu_lama || 0).toLocaleString('id-ID')}</td>
+                            <td class="p-3 text-xs text-right font-bold text-amber-400">Rp ${Number(row.pagu_baru || 0).toLocaleString('id-ID')}</td>
+                            <td class="p-3 text-xs text-white">${row.alasan_perubahan || '-'}</td>
+                            <td class="p-3 text-xs text-white">${row.npsn || '-'}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
                 }
-
-                dataRiwayat.forEach((r, idx) => {
-                    let tr = document.createElement('tr');
-                    tr.className = "hover:bg-blue-800/30";
-                    let selisih = Number(r.pagu_baru || 0) - Number(r.pagu_lama || 0);
-                    let selisihStr = (selisih > 0 ? "+" : "") + "Rp " + selisih.toLocaleString('id-ID');
-                    let selisihColor = selisih > 0 ? "text-emerald-400" : (selisih < 0 ? "text-red-400" : "text-slate-300");
-
-                    tr.innerHTML = `
-                        <td class="p-2.5 text-center">${idx + 1}</td>
-                        <td class="p-2.5">${r.tanggal || r.timestamp || '-'}</td>
-                        <td class="p-2.5 text-right">Rp ${Number(r.pagu_lama || 0).toLocaleString('id-ID')}</td>
-                        <td class="p-2.5 text-right font-bold text-amber-300">Rp ${Number(r.pagu_baru || 0).toLocaleString('id-ID')}</td>
-                        <td class="p-2.5 text-center font-semibold ${selisihColor}">${selisihStr}</td>
-                        <td class="p-2.5">${r.keterangan || '-'}</td>
-                    `;
-                    tbody.appendChild(tr);
-                });
             } else {
                 tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-red-400">Gagal memuat data riwayat.</td></tr>`;
             }
-        } catch (e) {
-            tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-red-400">Terjadi kesalahan koneksi.</td></tr>`;
+        } catch (err) {
+            tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-red-400">Terjadi kesalahan koneksi ke server.</td></tr>`;
         }
     }
 
-    function closeRiwayatModal() {
+    function tutupRiwayatPagu() {
         let modal = document.getElementById('modalRiwayatPagu');
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
     }
 </script>
 </body>
