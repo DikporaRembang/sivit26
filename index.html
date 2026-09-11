@@ -1460,9 +1460,22 @@ async function cetakLaporanResmi(paketId, npsn) {
             } 
             else if (currentActiveSheet === 'paket_pekerjaan_sd') {
                 if (!rowData && currentUser.role === 'SEKOLAH') {
-                    let existingPaket = paketPekerjaanList.filter(p => String(p.npsn || '').trim() === String(currentUser.username).trim());
-                    if (existingPaket.length >= 1) {
-                        alert("Batas Maksimal: Sekolah Anda hanya diizinkan menginput 1 Nama Menu Pekerjaan revitalisasi.");
+                    // Ambil nilai nama menu yang baru diinputkan oleh sekolah (sesuaikan id input form Anda, misal: 'nama_menu' atau 'inputNamaMenu')
+                    let inputNamaMenu = document.getElementById('nama_menu') ? document.getElementById('nama_menu').value.trim().toLowerCase() : '';
+                    
+                    if (!inputNamaMenu) {
+                        alert("Nama Menu Pekerjaan wajib diisi!");
+                        return;
+                    }
+
+                    // Cek apakah NPSN tersebut sudah memiliki nama_menu yang persis sama
+                    let isDuplicate = paketPekerjaanList.some(p => 
+                        String(p.npsn || '').trim() === String(currentUser.username).trim() &&
+                        String(p.nama_menu || '').trim().toLowerCase() === inputNamaMenu
+                    );
+
+                    if (isDuplicate) {
+                        alert("Peringatan: Menu pekerjaan dengan nama tersebut sudah pernah ditambahkan sebelumnya. Silakan gunakan nama menu yang berbeda.");
                         return; 
                     }
                 }
