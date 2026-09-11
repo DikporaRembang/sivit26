@@ -761,17 +761,16 @@
     }
 
     function eksporGrafikJPEG() {
-        if (!chartKurvaSInstance) {
-            alert("Grafik belum dimuat.");
-            return;
-        }
-        let imageURL = chartKurvaSInstance.toBase64Image();
+        let canvas = document.getElementById('kurvaSChartCanvas');
+        if (!canvas) return;
+        let imageURL = canvas.toDataURL('image/jpeg', 1.0);
         let link = document.createElement('a');
         link.href = imageURL;
-        link.download = `Kurva-S-Progres-${currentUser.username}.jpeg`;
+        link.download = 'Kurva-S-Pekerjaan.jpg';
+        document.body.appendChild(link);
         link.click();
+        document.body.removeChild(link);
     }
-
     function renderTable(headers, data, sheetName) {
         let headEl = document.getElementById('tableHead');
         let bodyEl = document.getElementById('tableBody');
