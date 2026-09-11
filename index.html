@@ -2,70 +2,173 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SIVIT26 - Sistem Informasi Pemantauan Revitalisasi SD Kabupaten Rembang 2026</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Pustaka Exif-JS untuk membaca metadata foto (tanggal & koordinat GPS) -->
-    <script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
-    <!-- Chart.js untuk Kurva S & Grafik Progres -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <title>SIVIT26 - Sistem Revitalisasi Sekolah</title>
     <style>
-        #tableBody td {
-            color: #000000 !important;
-            font-weight: 700 !important;
-        }
-        @media print {
-            body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
-            .no-print { display: none; }
-        }
+        body { font-family: Arial, sans-serif; background: #f4f7f6; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        .container { background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
+        h2 { text-align: center; color: #333; margin-bottom: 20px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; color: #666; font-size: 14px; }
+        input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { width: 100%; padding: 10px; background: #007bff; border: none; color: white; border-radius: 4px; font-size: 16px; cursor: pointer; margin-top: 10px; }
+        button:hover { background: #0056b3; }
+        .toggle-link { text-align: center; margin-top: 15px; font-size: 14px; color: #007bff; cursor: pointer; }
+        .hidden { display: none; }
+        .alert { padding: 10px; margin-bottom: 15px; border-radius: 4px; font-size: 14px; display: none; }
+        .alert-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
     </style>
 </head>
-<body class="bg-gradient-to-br from-blue-950 via-blue-900 to-slate-900 min-h-screen text-white font-sans antialiased flex flex-col justify-between">
+<body>
 
-    <!-- (Isi konten HTML aplikasi Anda di sini) -->
+<div class="container">
+    <div id="alertBox" class="alert"></div>
 
-    <!-- --- PENEMPATAN SCRIPT TAMBAHAN (EXIF & RENTANG MINGGU) --- -->
-    <script>
-        // Fungsionalitas Tambahan untuk Perbaikan Error Frontend
-        function bacaMetadataFotoEXIF(file) {
-            if (typeof EXIF === 'undefined') {
-                console.warn("Library EXIF.js belum dimuat.");
-                return;
-            }
-            EXIF.getData(file, function() {
-                let dateTime = EXIF.getTag(this, "DateTimeOriginal") || EXIF.getTag(this, "DateTime") || null;
-                let lat = EXIF.getTag(this, "GPSLatitude");
-                let latRef = EXIF.getTag(this, "GPSLatitudeRef");
-                let lon = EXIF.getTag(this, "GPSLongitude");
-                let lonRef = EXIF.getTag(this, "GPSLongitudeRef");
+    <!-- Form Login -->
+    <div id="loginSection">
+        <h2>Masuk SIVIT26</h2>
+        <form id="loginForm" onsubmit="handleLoginSubmit(event)">
+            <div class="form-group">
+                <label>Username / NPSN</label>
+                <input type="text" id="loginUsername" required>
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="loginPassword" required>
+            </div>
+            <button type="submit">Masuk</button>
+        </form>
+        <div class="toggle-link" onclick="toggleView('register')">Belum punya akun? Daftar Sekolah</div>
+    </div>
 
-                let gpsStr = "";
-                if (lat && lon) {
-                    let latitude = lat[0] + lat[1]/60 + lat[2]/3600;
-                    let longitude = lon[0] + lon[1]/60 + lon[2]/3600;
-                    if (latRef === "S") latitude = -latitude;
-                    if (lonRef === "W") longitude = -longitude;
-                    gpsStr = `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
+    <!-- Form Register -->
+    <div id="registerSection" class="hidden">
+        <h2>Daftar Sekolah</h2>
+        <form id="registerForm" onsubmit="handleRegisterSubmit(event)">
+            <div class="form-group">
+                <label>NPSN</label>
+                <input type="text" id="regNpsn" required placeholder="Masukkan NPSN...">
+            </div>
+            <div class="form-group">
+                <label>Nama Sekolah (Otomatis)</label>
+                <input type="text" id="regNamaSekolah" readonly placeholder="Terisi otomatis dari database...">
+            </div>
+            <div class="form-group">
+                <label>Password Baru</label>
+                <input type="password" id="regPassword" required>
+            </div>
+            <button type="submit" id="btnRegister" disabled>Kirim Pendaftaran</button>
+        </form>
+        <div class="toggle-link" onclick="toggleView('login')">Sudah punya akun? Masuk</div>
+    </div>
+</div>
+
+<script>
+    // Ganti URL berikut dengan Web App URL Google Apps Script yang sudah di-deploy
+    const WEB_APP_URL = "URL_WEB_APP_ANDA_DISINI";
+
+    function showAlert(message, type) {
+        const alertBox = document.getElementById('alertBox');
+        alertBox.innerText = message;
+        alertBox.className = `alert alert-${type}`;
+        alertBox.style.display = 'block';
+        setTimeout(() => { alertBox.style.display = 'none'; }, 5000);
+    }
+
+    function toggleView(view) {
+        if (view === 'register') {
+            document.getElementById('loginSection').classList.add('hidden');
+            document.getElementById('registerSection').classList.remove('hidden');
+        } else {
+            document.getElementById('registerSection').classList.add('hidden');
+            document.getElementById('loginSection').classList.remove('hidden');
+        }
+        document.getElementById('alertBox').style.display = 'none';
+    }
+
+    // Pengecekan NPSN otomatis saat fokus keluar (blur)
+    document.getElementById('regNpsn').addEventListener('blur', function() {
+        let npsn = this.value.trim();
+        if (!npsn) return;
+
+        fetch(`${WEB_APP_URL}?action=checkNpsn&npsn=${npsn}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    document.getElementById('regNamaSekolah').value = data.nama_sekolah;
+                    document.getElementById('btnRegister').removeAttribute('disabled');
+                    showAlert('NPSN valid ditemukan dalam database.', 'success');
+                } else {
+                    document.getElementById('regNamaSekolah').value = '';
+                    document.getElementById('btnRegister').setAttribute('disabled', 'true');
+                    showAlert(data.pesan, 'error');
                 }
-                let lokasiField = document.querySelector('input[name="lokasi_koordinat"]');
-                if (lokasiField && gpsStr) {
-                    lokasiField.value = gpsStr;
-                }
+            })
+            .catch(err => {
+                showAlert('Gagal menghubungi server database.', 'error');
             });
+    });
+
+    function handleLoginSubmit(e) {
+        e.preventDefault();
+        let payload = {
+            action: 'login',
+            username: document.getElementById('loginUsername').value.trim(),
+            password: document.getElementById('loginPassword').value.trim()
+        };
+
+        fetch(WEB_APP_URL, {
+            method: 'POST',
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                showAlert(data.pesan, 'success');
+                // Lakukan redirect atau simpan sesi sesuai kebutuhan
+                console.log("Logged in as:", data.role, data.nama);
+            } else {
+                showAlert(data.pesan, 'error');
+            }
+        })
+        .catch(err => showAlert('Terjadi kesalahan koneksi.', 'error'));
+    }
+
+    function handleRegisterSubmit(e) {
+        e.preventDefault();
+        let namaSekolah = document.getElementById('regNamaSekolah').value.trim();
+        if (!namaSekolah) {
+            showAlert('NPSN belum terverifikasi dengan database Dinas.', 'error');
+            return;
         }
 
-        function cekRentangMingguEksis(mingguVal) {
-            // Fungsi validasi untuk memeriksa rentang minggu laporan progres
-            console.log("Memeriksa rentang minggu:", mingguVal);
-            // Tambahkan logika tambahan di sini jika diperlukan oleh form Anda
-        }
-    </script>
+        let payload = {
+            action: 'register',
+            npsn: document.getElementById('regNpsn').value.trim(),
+            nama_sekolah: namaSekolah,
+            password: document.getElementById('regPassword').value.trim()
+        };
+
+        fetch(WEB_APP_URL, {
+            method: 'POST',
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                showAlert(data.pesan, 'success');
+                document.getElementById('registerForm').reset();
+                document.getElementById('regNamaSekolah').value = '';
+                document.getElementById('btnRegister').setAttribute('disabled', 'true');
+                setTimeout(() => toggleView('login'), 3000);
+            } else {
+                showAlert(data.pesan, 'error');
+            }
+        })
+        .catch(err => showAlert('Terjadi kesalahan koneksi.', 'error'));
+    }
+</script>
+
 </body>
 </html>
 
