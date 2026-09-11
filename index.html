@@ -1784,19 +1784,28 @@ async function cetakLaporanResmi(paketId, npsn) {
         });
 
         // ==========================================
-        // VALIDASI DUPLIKASI NAMA MENU
+        // TAMBAHAN SKRIP VALIDASI DUPLIKASI NAMA MENU
         // ==========================================
         if (currentActiveSheet === 'paket_pekerjaan_sd' && currentUser.role === 'SEKOLAH') {
-            let isNewData = !rowIndex; // Cek apakah tambah data baru
-            
+            let isNewData = !rowIndex; // True jika data baru, False jika sedang edit
+
             if (isNewData) {
-                let inputNamaMenu = String(formDataObj['nama_menu'] || '').trim().toLowerCase();
-                
+                let inputNamaMenu = String(
+                    formDataObj['nama_menu'] || 
+                    (document.getElementById('nama_menu') ? document.getElementById('nama_menu').value : '')
+                ).trim().toLowerCase();
+            
+                if (inputNamaMenu) {
+                    formDataObj['nama_menu'] = inputNamaMenu;
+                }
+            
+                // Validasi jika kosong
                 if (!inputNamaMenu) {
-                    alert("Nama Menu Pekerjaan wajib dipilih!");
-                    return;
+                    alert("Nama Menu Pekerjaan wajib diisi!");
+                    return; 
                 }
 
+                // Validasi duplikasi berdasarkan NPSN dan Nama Menu
                 let isDuplicate = paketPekerjaanList.some(p => 
                     String(p.npsn || '').trim() === String(currentUser.username).trim() &&
                     String(p.nama_menu || '').trim().toLowerCase() === inputNamaMenu
