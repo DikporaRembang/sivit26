@@ -868,6 +868,14 @@
         modal.classList.remove('hidden');
         modal.classList.add('flex');
     }
+function tutupModalForm() {
+        let modal = document.getElementById('modalForm');
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+    }
+
 async function cetakLaporanResmi(paketId, npsn) {
         const paket = paketPekerjaanList.find(p => String(p.paket_id || p.id_paket || '').trim() === String(paketId).trim());
         if (!paket) {
