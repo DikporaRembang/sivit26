@@ -1784,30 +1784,19 @@ async function cetakLaporanResmi(paketId, npsn) {
         });
 
         // ==========================================
-        // TAMBAHKAN VALIDASI DUPLIKASI NAMA MENU DI SINI
+        // VALIDASI DUPLIKASI NAMA MENU
         // ==========================================
         if (currentActiveSheet === 'paket_pekerjaan_sd' && currentUser.role === 'SEKOLAH') {
-            // Cek apakah ini data BARU (jika rowIndex kosong/null berarti sedang tambah data baru)
-            let isNewData = !rowIndex; 
+            let isNewData = !rowIndex; // Cek apakah tambah data baru
             
             if (isNewData) {
-                // Ambil dari formDataObj, jika kosong ambil langsung dari elemen HTML id='nama_menu'
-                let inputNamaMenu = String(
-                    formDataObj['nama_menu'] || 
-                    (document.getElementById('nama_menu') ? document.getElementById('nama_menu').value : '')
-                ).trim().toLowerCase();
-                
-                // Masukkan kembali ke formDataObj agar ikut terkirim ke server
-                if (inputNamaMenu) {
-                    formDataObj['nama_menu'] = inputNamaMenu;
-                }
+                let inputNamaMenu = String(formDataObj['nama_menu'] || '').trim().toLowerCase();
                 
                 if (!inputNamaMenu) {
-                    alert("Nama Menu Pekerjaan wajib diisi!");
-                    return; // Batalkan proses
+                    alert("Nama Menu Pekerjaan wajib dipilih!");
+                    return;
                 }
 
-                // Cek apakah NPSN yang sama sudah pernah menginput nama menu ini
                 let isDuplicate = paketPekerjaanList.some(p => 
                     String(p.npsn || '').trim() === String(currentUser.username).trim() &&
                     String(p.nama_menu || '').trim().toLowerCase() === inputNamaMenu
@@ -1815,7 +1804,7 @@ async function cetakLaporanResmi(paketId, npsn) {
 
                 if (isDuplicate) {
                     alert("Peringatan: Menu pekerjaan dengan nama tersebut sudah pernah ditambahkan sebelumnya. Silakan pilih nama menu yang lain.");
-                    return; // Batalkan proses simpan dan hentikan eksekusi fetch
+                    return; 
                 }
             }
         }
@@ -1830,13 +1819,11 @@ async function cetakLaporanResmi(paketId, npsn) {
                 method: 'POST',
                 body: JSON.stringify({
                     action: 'saveData',
-                    sheet: currentActiveSheet,
-                    role: currentUser.role,
-                    rowIndex: rowIndex ? Number(rowIndex) : null,
-                    formData: formDataObj
+                    sheetName: currentActiveSheet,
+                    rowIndex: rowIndex,
+                    data: formDataObj
                 })
-            });
-            let result = await res.json();
+            });            let result = await res.json();
             alert(result.pesan);
             if (result.status === 'success') {
                 closeModal();
