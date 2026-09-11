@@ -677,114 +677,63 @@
             }, 300);
         }
     function filterDataDinasAndPaket() {
-        if (!currentUser || currentUser.role !== 'DINAS') return;
+        let filterDinas = document.getElementById('filterDinas');
+        let filterPaket = document.getElementById('filterPaket');
+        let selectedDinas = filterDinas ? filterDinas.value : "";
+        let selectedPaket = filterPaket ? filterPaket.value : "";
 
-        let selectedNpsn = document.getElementById('selectDinasNpsn').value;
-        let selectedPaketMenu = document.getElementById('selectDinasPaket').value;
+        let filtered = window.allRawDataMaster || [];
 
-        currentData = originalServerData.filter(row => {
-            let matchNpsn = true;
-            let matchPaket = true;
-
-            if (selectedNpsn) {
-                let rowNpsn = String(row.npsn || '').trim();
-                if (rowNpsn !== selectedNpsn) matchNpsn = false;
-            }
-
-            if (selectedPaketMenu) {
-                let rowMenu = String(row.nama_menu || '').trim();
-                if (!rowMenu && row.paket_id) {
-                    let matchedPaket = paketPekerjaanList.find(p => String(p.paket_id || p.id_paket || '').trim() === String(row.paket_id).trim());
-                    if (matchedPaket) rowMenu = String(matchedPaket.nama_menu || '').trim();
-                }
-                if (rowMenu !== selectedPaketMenu) matchPaket = false;
-            }
-
-            return matchNpsn && matchPaket;
-        });
-
-        renderTable(currentHeaders, currentData, currentActiveSheet);
-        if (currentActiveSheet === 'kurva_s') {
-            renderKurvaSChart();
+        if (selectedDinas) {
+            filtered = filtered.filter(item => String(item.dinas || item.dinas_pendidikan || '').trim() === String(selectedDinas).trim());
         }
+        if (selectedPaket) {
+            filtered = filtered.filter(item => String(item.paket_id || '').trim() === String(selectedPaket).trim());
+        }
+
+        renderTable(filtered);
     }
-        
-    function renderKurvaSChart() {
-        let ctx = document.getElementById('chartKurvaS').getContext('2d');
-        if (chartKurvaSInstance) chartKurvaSInstance.destroy();
 
-        let firstRow = currentData.length > 0 ? currentData[0] : {};
-        let currentNpsn = firstRow.npsn || currentUser.username || '-';
-        let currentMenu = firstRow.nama_menu || firstRow.menu || 'Pekerjaan Revitalisasi';
+    function renderKurvaSChart(dataList) {
+        let canvas = document.getElementById('kurvaSChartCanvas');
+        if (!canvas) return;
 
-        let namaSekolah = "Sekolah Tidak Ditemukan";
-        if (typeof usersList !== 'undefined' && Array.isArray(usersList)) {
-            let foundSekolah = usersList.find(s => String(s.username || s.npsn || '').trim() === String(currentNpsn).trim());
-            if (foundSekolah) {
-                namaSekolah = foundSekolah.nama_pengguna || foundSekolah.nama_sekolah || namaSekolah;
-            }
-        } else if (currentUser && currentUser.sekolah && currentUser.sekolah.nama_sekolah) {
-            namaSekolah = currentUser.sekolah.nama_sekolah;
-        } else if (firstRow.nama_sekolah) {
-            namaSekolah = firstRow.nama_sekolah;
+        let ctx = canvas.getContext('2d');
+        if (window.myKurvaSChart instanceof Chart) {
+            window.myKurvaSChart.destroy();
         }
 
-        let infoEl = document.getElementById('infoSekolahMenu');
-        if (infoEl) {
-            infoEl.innerHTML = `<strong>Nama Sekolah:</strong> ${namaSekolah} (NPSN: ${currentNpsn}) &bull; <strong>Menu:</strong> ${currentMenu}`;
-        }
-
-        let labels = currentData.map(d => d.minggu_ke || d.minggu || d.tanggal_lapor || 'Minggu');
-        
-        let targetData = currentData.map(d => {
-            let val = d.target_kurva_s !== undefined ? d.target_kurva_s : (d.target || 0);
-            return Number(String(val).replace('%','')) || 0;
+        let sortedData = [...dataList].sort((a, b) => {
+            let weekA = parseInt((a.minggu_ke || '0').replace(/[^0-9]/g, '')) || 0;
+            let weekB = parseInt((b.minggu_ke || '0').replace(/[^0-9]/g, '')) || 0;
+            return weekA - weekB;
         });
 
-        let realisasiData = currentData.map(d => {
-            let val = d.realisasi_fisik !== undefined && d.realisasi_fisik !== null ? d.realisasi_fisik : 0;
-            return Number(String(val).replace('%', '').trim()) || 0;
-        });
+        let labels = sortedData.map(d => d.minggu_ke || 'Minggu');
+        let targetData = sortedData.map(d => parseFloat(String(d.target_kurva_s || '0').replace('%', '')) || 0);
+        let realisasiData = sortedData.map(d => parseFloat(String(d.realisasi_fisik || '0').replace('%', '')) || 0);
 
-        let anggaranPersenData = currentData.map(d => {
-            let pId = String(d.paket_id || d.id_paket || '').trim();
-            let matchedPaket = paketPekerjaanList.find(p => String(p.paket_id || p.id_paket || '').trim() === pId);
-            let paguPekerjaan = matchedPaket ? (Number(matchedPaket.pagu || matchedPaket.pagu_anggaran) || 0) : 0;
-            let penggunaan = Number(d.penggunaan_anggaran || d.anggaran || 0);
-            
-            if (paguPekerjaan > 0) {
-                return Number(((penggunaan / paguPekerjaan) * 100).toFixed(2));
-            }
-            return 0;
-        });
-
-        chartKurvaSInstance = new Chart(ctx, {
+        window.myKurvaSChart = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: labels.length ? labels : ['Minggu 1', 'Minggu 2', 'Minggu 3', 'Minggu 4'],
+                labels: labels,
                 datasets: [
                     {
                         label: 'Target Kurva S (%)',
                         data: targetData,
-                        borderColor: 'rgb(59, 130, 246)',
+                        borderColor: '#3b82f6',
                         backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                        tension: 0.3,
+                        borderWidth: 2,
+                        tension: 0.1,
                         fill: false
                     },
                     {
                         label: 'Realisasi Fisik (%)',
                         data: realisasiData,
-                        borderColor: 'rgb(245, 158, 11)',
+                        borderColor: '#f59e0b',
                         backgroundColor: 'rgba(245, 158, 11, 0.1)',
-                        tension: 0.3,
-                        fill: false
-                    },
-                    {
-                        label: 'Penggunaan Anggaran (%)',
-                        data: anggaranPersenData,
-                        borderColor: 'rgb(16, 185, 129)',
-                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                        tension: 0.3,
+                        borderWidth: 2,
+                        tension: 0.1,
                         fill: false
                     }
                 ]
@@ -792,11 +741,20 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                scales: { 
-                    y: { 
-                        beginAtZero: true, 
-                        max: 100 
-                    } 
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: { color: '#93c5fd', font: { size: 10 } },
+                        grid: { color: 'rgba(59, 130, 246, 0.1)' }
+                    },
+                    x: {
+                        ticks: { color: '#93c5fd', font: { size: 10 } },
+                        grid: { color: 'rgba(59, 130, 246, 0.1)' }
+                    }
+                },
+                plugins: {
+                    legend: { labels: { color: '#bfdbfe', font: { size: 11 } } }
                 }
             }
         });
