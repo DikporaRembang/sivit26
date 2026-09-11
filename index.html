@@ -326,7 +326,7 @@
     
 <!-- ================= SCRIPT UTAMA ================= -->
 <script>
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzllhGtdN0vIuI5S24cJttL7DPhUUG_pMyE9o90Uj25XpbD9MJDDFq594WWXeYAQdqxAg/exec";
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxllqUpzD6WbDTL3VfatQ-MSICPabsZpKstMCdvnR6pW1A7UFEWhjIjoB-UPevNxVPnSQ/exec";
         
     let currentUser = null;
     let currentActiveSheet = '';
@@ -868,14 +868,14 @@
         modal.classList.remove('hidden');
         modal.classList.add('flex');
     }
-function tutupModalForm() {
+    function tutupModalForm() {
         let modal = document.getElementById('modalForm');
         if (modal) {
             modal.classList.add('hidden');
             modal.classList.remove('flex');
         }
     }
-async function submitDynamicForm(event) {
+    async function submitDynamicForm(event) {
         event.preventDefault();
         let form = document.getElementById('dynamicForm');
         let formData = new FormData(form);
@@ -910,7 +910,7 @@ async function submitDynamicForm(event) {
             alert('Terjadi kesalahan koneksi saat menyimpan data.');
         }
     }
-async function cetakLaporanResmi(paketId, npsn) {
+    async function cetakLaporanResmi(paketId, npsn) {
         const paket = paketPekerjaanList.find(p => String(p.paket_id || p.id_paket || '').trim() === String(paketId).trim());
         if (!paket) {
             alert("Data paket pekerjaan tidak ditemukan.");
