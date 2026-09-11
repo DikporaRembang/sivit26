@@ -2,175 +2,31 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>SIVIT26 - Sistem Revitalisasi Sekolah</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIVIT26 - Sistem Informasi Pemantauan Revitalisasi SD Kabupaten Rembang 2026</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Pustaka Exif-JS untuk membaca metadata foto (tanggal & koordinat GPS) -->
+    <script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
+    <!-- Chart.js untuk Kurva S & Grafik Progres -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
-        body { font-family: Arial, sans-serif; background: #f4f7f6; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; height: 100vh; }
-        .container { background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
-        h2 { text-align: center; color: #333; margin-bottom: 20px; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; color: #666; font-size: 14px; }
-        input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-        button { width: 100%; padding: 10px; background: #007bff; border: none; color: white; border-radius: 4px; font-size: 16px; cursor: pointer; margin-top: 10px; }
-        button:hover { background: #0056b3; }
-        .toggle-link { text-align: center; margin-top: 15px; font-size: 14px; color: #007bff; cursor: pointer; }
-        .hidden { display: none; }
-        .alert { padding: 10px; margin-bottom: 15px; border-radius: 4px; font-size: 14px; display: none; }
-        .alert-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-        .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        #tableBody td {
+            color: #000000 !important;
+            font-weight: 700 !important;
+        }
+        @media print {
+            body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+            .no-print { display: none; }
+        }
     </style>
 </head>
-<body>
-
-<div class="container">
-    <div id="alertBox" class="alert"></div>
-
-    <!-- Form Login -->
-    <div id="loginSection">
-        <h2>Masuk SIVIT26</h2>
-        <form id="loginForm" onsubmit="handleLoginSubmit(event)">
-            <div class="form-group">
-                <label>Username / NPSN</label>
-                <input type="text" id="loginUsername" required>
-            </div>
-            <div class="form-group">
-                <label>Password</label>
-                <input type="password" id="loginPassword" required>
-            </div>
-            <button type="submit">Masuk</button>
-        </form>
-        <div class="toggle-link" onclick="toggleView('register')">Belum punya akun? Daftar Sekolah</div>
-    </div>
-
-    <!-- Form Register -->
-    <div id="registerSection" class="hidden">
-        <h2>Daftar Sekolah</h2>
-        <form id="registerForm" onsubmit="handleRegisterSubmit(event)">
-            <div class="form-group">
-                <label>NPSN</label>
-                <input type="text" id="regNpsn" required placeholder="Masukkan NPSN...">
-            </div>
-            <div class="form-group">
-                <label>Nama Sekolah (Otomatis)</label>
-                <input type="text" id="regNamaSekolah" readonly placeholder="Terisi otomatis dari database...">
-            </div>
-            <div class="form-group">
-                <label>Password Baru</label>
-                <input type="password" id="regPassword" required>
-            </div>
-            <button type="submit" id="btnRegister" disabled>Kirim Pendaftaran</button>
-        </form>
-        <div class="toggle-link" onclick="toggleView('login')">Sudah punya akun? Masuk</div>
-    </div>
-</div>
-
-<script>
-    // Ganti URL berikut dengan Web App URL Google Apps Script yang sudah di-deploy
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzDTCKqeYyZkpE9fCOcCfX0HooUQSQGJs4jpQxuIU_YDeuN6q7iXOHKx3CJXzn5ipawgg/exec";
-
-    function showAlert(message, type) {
-        const alertBox = document.getElementById('alertBox');
-        alertBox.innerText = message;
-        alertBox.className = `alert alert-${type}`;
-        alertBox.style.display = 'block';
-        setTimeout(() => { alertBox.style.display = 'none'; }, 5000);
-    }
-
-    function toggleView(view) {
-        if (view === 'register') {
-            document.getElementById('loginSection').classList.add('hidden');
-            document.getElementById('registerSection').classList.remove('hidden');
-        } else {
-            document.getElementById('registerSection').classList.add('hidden');
-            document.getElementById('loginSection').classList.remove('hidden');
-        }
-        document.getElementById('alertBox').style.display = 'none';
-    }
-
-    // Pengecekan NPSN otomatis saat fokus keluar (blur)
-    document.getElementById('regNpsn').addEventListener('blur', function() {
-        let npsn = this.value.trim();
-        if (!npsn) return;
-
-        fetch(`${WEB_APP_URL}?action=checkNpsn&npsn=${npsn}`)
-            .then(res => res.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    document.getElementById('regNamaSekolah').value = data.nama_sekolah;
-                    document.getElementById('btnRegister').removeAttribute('disabled');
-                    showAlert('NPSN valid ditemukan dalam database.', 'success');
-                } else {
-                    document.getElementById('regNamaSekolah').value = '';
-                    document.getElementById('btnRegister').setAttribute('disabled', 'true');
-                    showAlert(data.pesan, 'error');
-                }
-            })
-            .catch(err => {
-                showAlert('Gagal menghubungi server database.', 'error');
-            });
-    });
-
-    function handleLoginSubmit(e) {
-        e.preventDefault();
-        let payload = {
-            action: 'login',
-            username: document.getElementById('loginUsername').value.trim(),
-            password: document.getElementById('loginPassword').value.trim()
-        };
-
-        fetch(WEB_APP_URL, {
-            method: 'POST',
-            body: JSON.stringify(payload)
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.status === 'success') {
-                showAlert(data.pesan, 'success');
-                // Lakukan redirect atau simpan sesi sesuai kebutuhan
-                console.log("Logged in as:", data.role, data.nama);
-            } else {
-                showAlert(data.pesan, 'error');
-            }
-        })
-        .catch(err => showAlert('Terjadi kesalahan koneksi.', 'error'));
-    }
-
-    function handleRegisterSubmit(e) {
-        e.preventDefault();
-        let namaSekolah = document.getElementById('regNamaSekolah').value.trim();
-        if (!namaSekolah) {
-            showAlert('NPSN belum terverifikasi dengan database Dinas.', 'error');
-            return;
-        }
-
-        let payload = {
-            action: 'register',
-            npsn: document.getElementById('regNpsn').value.trim(),
-            nama_sekolah: namaSekolah,
-            password: document.getElementById('regPassword').value.trim()
-        };
-
-        fetch(WEB_APP_URL, {
-            method: 'POST',
-            body: JSON.stringify(payload)
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.status === 'success') {
-                showAlert(data.pesan, 'success');
-                document.getElementById('registerForm').reset();
-                document.getElementById('regNamaSekolah').value = '';
-                document.getElementById('btnRegister').setAttribute('disabled', 'true');
-                setTimeout(() => toggleView('login'), 3000);
-            } else {
-                showAlert(data.pesan, 'error');
-            }
-        })
-        .catch(err => showAlert('Terjadi kesalahan koneksi.', 'error'));
-    }
-</script>
-
-</body>
-</html>
+<body class="bg-gradient-to-br from-blue-950 via-blue-900 to-slate-900 min-h-screen text-white font-sans antialiased flex flex-col justify-between">
 
 <!-- ================= AUTH CONTAINER ================= -->
 <div id="authContainer" class="flex-1 flex flex-col items-center justify-center p-4">
@@ -248,6 +104,23 @@
             </div>
         </div>
         <div class="flex items-center space-x-4">
+            <!-- Dropdown Notifikasi In-App -->
+            <div class="relative">
+                <button onclick="toggleNotifDropdown()" class="relative p-2 bg-blue-900 hover:bg-blue-800 text-amber-400 rounded-lg text-xs transition-colors border border-blue-800 cursor-pointer">
+                    <i class="fa-solid fa-bell text-sm"></i>
+                    <span id="notifBadge" class="absolute -top-1 -right-1 bg-red-600 text-white font-bold text-[9px] px-1.5 py-0.2 rounded-full hidden">0</span>
+                </button>
+                <div id="notifDropdown" class="absolute right-0 mt-2 w-72 sm:w-80 bg-blue-900 border border-amber-400/40 rounded-xl shadow-2xl hidden z-50 text-white">
+                    <div class="p-3 border-b border-blue-800 flex justify-between items-center">
+                        <span class="font-bold text-xs text-amber-400"><i class="fa-solid fa-bell mr-1"></i> Notifikasi Sistem</span>
+                        <span class="text-[10px] text-blue-300">Pusat Informasi</span>
+                    </div>
+                    <div id="notifListContainer" class="max-h-64 overflow-y-auto divide-y divide-blue-800/60 text-xs">
+                        <div class="p-3 text-center text-blue-300">Memuat notifikasi...</div>
+                    </div>
+                </div>
+            </div>
+
             <div class="text-right hidden sm:block">
                 <p class="text-xs font-bold text-white" id="userNameDisplay">-</p>
                 <p class="text-[11px] text-amber-300 font-bold" id="userNpsnDisplay">-</p>
@@ -262,7 +135,7 @@
         <aside class="w-64 bg-slate-900 border-r border-blue-950 p-4 hidden md:flex flex-col justify-between shadow-sm">
             <div class="space-y-1">
                 <p class="text-[10px] font-extrabold uppercase tracking-wider text-amber-400 px-3 mb-2">Menu Navigasi</p>
-                <div id="sidebarMenu" class="space-y-1 text-white font-bold text-xs"></div>
+                <div id="sidebarMenuContainer" class="space-y-1 text-white font-bold text-xs"></div>
             </div>
             <div class="pt-4 border-t border-blue-950 px-2 flex flex-col items-center text-center space-y-2">
                 <img src="logorembang.png" alt="Logo Kabupaten" class="w-10 h-10 object-contain drop-shadow-sm" onerror="this.style.display='none'">
@@ -453,7 +326,8 @@
     
 <!-- ================= SCRIPT UTAMA ================= -->
 <script>
-          
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyXKnUihJwAAKMWfeie4lXllY2K4QZioJ0a5mmC8E7TGjkC2FDx2n-6V9Lh9BCMe3bWoA/exec";
+        
     let currentUser = null;
     let currentActiveSheet = '';
     let currentHeaders = [];
@@ -506,6 +380,61 @@
             icon.className = "fa-solid fa-eye text-xs";
         }
     }
+
+    function toggleNotifDropdown() {
+        let dropdown = document.getElementById('notifDropdown');
+        dropdown.classList.toggle('hidden');
+    }
+
+    function loadNotifikasi(penerima) {
+        let container = document.getElementById('notifListContainer');
+        fetch(`${WEB_APP_URL}?action=getNotifikasi&penerima=${encodeURIComponent(penerima)}`)
+            .then(res => res.json())
+            .then(response => {
+                if(response.status === 'success') {
+                    let listNotif = response.data || [];
+                    let badge = document.getElementById('notifBadge');
+                    
+                    if (listNotif.length > 0) {
+                        badge.innerText = listNotif.length;
+                        badge.classList.remove('hidden');
+                        
+                        container.innerHTML = "";
+                        listNotif.reverse().forEach(n => {
+                            let div = document.createElement('div');
+                            div.className = "p-3 hover:bg-blue-800/40 transition-colors flex flex-col justify-between";
+                            div.innerHTML = `
+                                <div>
+                                    <p class="text-blue-100 font-medium mb-1">${n.pesan}</p>
+                                    <span class="text-[9px] text-amber-300 font-semibold"><i class="fa-regular fa-clock mr-1"></i>${n.waktu || '-'}</span>
+                                </div>
+                                ${n.id ? `<button onclick="eksekusiDanHapusNotifikasi('${n.id}')" class="mt-2 self-end px-2 py-1 bg-amber-500 hover:bg-amber-400 text-blue-950 font-bold rounded text-[10px] cursor-pointer"><i class="fa-solid fa-check mr-1"></i> Selesai / Eksekusi</button>` : ''}
+                            `;
+                            container.appendChild(div);
+                        });
+                    } else {
+                        badge.classList.add('hidden');
+                        container.innerHTML = `<div class="p-4 text-center text-blue-300">Tidak ada notifikasi baru.</div>`;
+                    }
+                }
+            })
+            .catch(error => {
+                console.error("Gagal memuat notifikasi", error);
+                container.innerHTML = `<div class="p-4 text-center text-red-400">Gagal memuat notifikasi.</div>`;
+            });
+    }
+
+    function eksekusiDanHapusNotifikasi(idNotifikasi) {
+        fetch(`${WEB_APP_URL}?action=hapusNotifikasi&id=${idNotifikasi}`)
+            .then(response => response.json())
+            .then(result => {
+                if (result.status === "success") {
+                    let targetPenerima = (currentUser && currentUser.role === 'DINAS') ? 'DINAS' : (currentUser ? currentUser.username : '');
+                    loadNotifikasi(targetPenerima); 
+                }
+            })
+            .catch(error => console.error("Error:", error));
+    }
         
     document.getElementById('regNpsn').addEventListener('blur', function() {
         let npsn = this.value.trim();
@@ -529,10 +458,7 @@
         let p = document.getElementById('loginPass').value;
 
         try {
-            let res = await fetch(WEB_APP_URL, {
-                method: 'POST',
-                body: JSON.stringify({ action: 'login', username: u, password: p })
-            });
+            let res = await fetch(`${WEB_APP_URL}?action=login&username=${encodeURIComponent(u)}&password=${encodeURIComponent(p)}`);
             let data = await res.json();
             if (data.status === 'success') {
                 currentUser = data.data;
@@ -647,6 +573,9 @@
         document.getElementById('userNameDisplay').innerText = currentUser.nama_pengguna;
         document.getElementById('userNpsnDisplay').innerText = "NPSN/ID: " + currentUser.username + " | Role: " + currentUser.role;
 
+        let targetPenerima = (currentUser.role === 'DINAS') ? 'DINAS' : currentUser.username;
+        loadNotifikasi(targetPenerima);
+
         if (currentUser.role === 'SEKOLAH' && currentUser.sekolah) {
             document.getElementById('sekolahIdentitasCard').classList.remove('hidden');
             document.getElementById('cardNpsn').innerText = currentUser.sekolah.npsn || currentUser.username || '-';
@@ -665,15 +594,13 @@
     }
 
     function renderSidebar() {
-        let sidebarMenu = document.getElementById('sidebarMenu');
-        if (!sidebarMenu) return;
-        sidebarMenu.innerHTML = '';
+        let container = document.getElementById('sidebarMenuContainer');
+        container.innerHTML = "";
 
         let menus = [];
         if (currentUser.role === 'DINAS') {
             menus = [
-                { name: 'Monitor Paket Pekerjaan Sekolah', sheet: 'paket_pekerjaan_sd', icon: 'fa-boxes-packing' },
-                { name: 'Menu Pekerjaan', sheet: 'menu_pekerjaan', icon: 'fa-list-check' }, // <-- Ditambahkan kembali di sini
+                { name: 'Paket Pekerjaan SD', sheet: 'paket_pekerjaan_sd', icon: 'fa-boxes-packing' },
                 { name: 'Verifikasi Sekolah', sheet: 'sekolah_pending', icon: 'fa-user-check' },
                 { name: 'Peta Persebaran (GIS)', sheet: 'peta_gis', icon: 'fa-map-location-dot' },
                 { name: 'Laporan Progres', sheet: 'laporan_progres', icon: 'fa-chart-line' },
@@ -681,49 +608,37 @@
                 { name: 'Data Sekolah', sheet: 'sekolah', icon: 'fa-school' },
                 { name: 'Manajemen User', sheet: 'users', icon: 'fa-users-gear' }
             ];
-        } else if (currentUser.role === 'SEKOLAH') {
+        } else {
             menus = [
-                { name: 'Paket Pekerjaan Saya', sheet: 'paket_pekerjaan_sd', icon: 'fa-boxes-packing' },
-                { name: 'Laporan Progres', sheet: 'laporan_progres', icon: 'fa-chart-line' },
+                { name: 'Paket Pekerjaan Saya', sheet: 'paket_pekerjaan_sd', icon: 'fa-box' },
+                { name: 'Peta Persebaran (GIS)', sheet: 'peta_gis', icon: 'fa-map-location-dot' },
+                { name: 'Laporan Progres Fisik', sheet: 'laporan_progres', icon: 'fa-clipboard-list' },
                 { name: 'Kurva S & Grafik', sheet: 'kurva_s', icon: 'fa-chart-area' },
-                { name: 'Profil Sekolah', sheet: 'sekolah', icon: 'fa-school' }
+                { name: 'Profil & Tim Teknis', sheet: 'users', icon: 'fa-user-gear' }
             ];
         }
 
         menus.forEach(m => {
             let btn = document.createElement('button');
-            let isActive = currentActiveSheet === m.sheet;
-            btn.className = `w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-xs font-semibold transition-all duration-200 ${
-                isActive 
-                    ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-lg shadow-amber-500/20' 
-                    : 'text-slate-300 hover:bg-blue-900/40 hover:text-white'
-            }`;
-            btn.innerHTML = `<i class="fa-solid ${m.icon} w-5 text-center"></i><span>${m.name}</span>`;
+            btn.className = "w-full flex items-center space-x-2.5 px-3 py-2 rounded-xl text-left font-semibold text-blue-200 hover:bg-blue-900/60 hover:text-amber-400 transition-all text-xs cursor-pointer";
+            btn.innerHTML = `<i class="fa-solid ${m.icon} w-4 text-center"></i><span>${m.name}</span>`;
             btn.onclick = () => loadTableData(m.sheet, m.name);
-            sidebarMenu.appendChild(btn);
+            container.appendChild(btn);
         });
     }
+
     async function loadTableData(sheetName, title) {
         currentActiveSheet = sheetName;
-        let displayTitle = '';
-    if (sheetName === 'paket_pekerjaan_sd') {
-        displayTitle = currentUser.role === 'DINAS' ? 'Monitor Paket Pekerjaan Sekolah' : 'Paket Pekerjaan Saya';
-    } else if (sheetName === 'sekolah_pending') {
-        displayTitle = 'Verifikasi Sekolah';
-    } else if (sheetName === 'peta_gis') {
-        displayTitle = 'Peta Persebaran (GIS)';
-    } else if (sheetName === 'laporan_progres') {
-        displayTitle = 'Laporan Progres Pekerjaan';
-    } else if (sheetName === 'kurva_s') {
-        displayTitle = 'Kurva S & Grafik Progres';
-    } else if (sheetName === 'sekolah') {
-        displayTitle = 'Data Referensi Sekolah';
-    } else if (sheetName === 'users') {
-        displayTitle = 'Manajemen Pengguna Sistem';
-    } else if (sheetName === 'menu_pekerjaan') {
-        displayTitle = 'Daftar Menu Pekerjaan';
-    }
-    
+        let displayTitle = title;
+        if (!displayTitle) {
+            if (sheetName === 'paket_pekerjaan_sd') displayTitle = currentUser.role === 'DINAS' ? 'Data Paket Pekerjaan SD' : 'Paket Pekerjaan Saya';
+            else if (sheetName === 'laporan_progres') displayTitle = currentUser.role === 'DINAS' ? 'Laporan Progres' : 'Laporan Progres Fisik';
+            else if (sheetName === 'kurva_s') displayTitle = 'Kurva S & Grafik';
+            else if (sheetName === 'peta_gis') displayTitle = 'Peta Persebaran Lokasi Revitalisasi (GIS)';
+            else if (sheetName === 'users') displayTitle = currentUser.role === 'DINAS' ? 'Manajemen User' : 'Profil & Tim Teknis';
+            else displayTitle = sheetName;
+        }
+
         document.getElementById('contentTitle').innerText = displayTitle;
         document.getElementById('contentSubtitle').innerText = "Memuat data dari server...";
         
@@ -934,16 +849,12 @@
         let labels = currentData.map(d => d.minggu_ke || d.minggu || d.tanggal_lapor || 'Minggu');
         
         let targetData = currentData.map(d => {
-            let val = d.target_kurva_s !== undefined && d.target_kurva_s !== null ? d.target_kurva_s : 
-                      (d['Target Kurva S'] !== undefined ? d['Target Kurva S'] : 
-                      (d['target'] !== undefined ? d['target'] : 0));
-            return Number(String(val).replace('%', '').trim()) || 0;
+            let val = d.target_kurva_s !== undefined ? d.target_kurva_s : (d.target || 0);
+            return Number(String(val).replace('%','')) || 0;
         });
 
         let realisasiData = currentData.map(d => {
-            let val = d.realisasi_fisik !== undefined && d.realisasi_fisik !== null ? d.realisasi_fisik : 
-                      (d['Realisasi Fisik'] !== undefined ? d['Realisasi Fisik'] : 
-                      (d['realisasi fisik'] !== undefined ? d['realisasi fisik'] : 0));
+            let val = d.realisasi_fisik !== undefined && d.realisasi_fisik !== null ? d.realisasi_fisik : 0;
             return Number(String(val).replace('%', '').trim()) || 0;
         });
 
@@ -967,16 +878,17 @@
                     {
                         label: 'Target Kurva S (%)',
                         data: targetData,
-                        borderColor: 'rgba(54, 162, 235, 1)', // Warna Biru
-                        borderWidth: 2,
-                        borderDash: [5, 5], // Membuat garis menjadi putus-putus
+                        borderColor: 'rgb(59, 130, 246)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        tension: 0.3,
                         fill: false
                     },
                     {
                         label: 'Realisasi Fisik (%)',
                         data: realisasiData,
-                        borderColor: 'rgba(255, 159, 64, 1)', // Warna Oranye
-                        borderWidth: 3, // Dibuat lebih tebal
+                        borderColor: 'rgb(245, 158, 11)',
+                        backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                        tension: 0.3,
                         fill: false
                     },
                     {
@@ -1012,13 +924,6 @@
         link.href = imageURL;
         link.download = `Kurva-S-Progres-${currentUser.username}.jpeg`;
         link.click();
-    }
-
-    function parseRupiah(val) {
-        if (!val) return 0;
-        if (typeof val === 'number') return val;
-        let clean = String(val).replace(/[^0-9.-]+/g, "");
-        return parseFloat(clean) || 0;
     }
 
     function renderTable(headers, data, sheetName) {
@@ -1141,24 +1046,11 @@
                         tdAct.appendChild(btnVerif);
                     }
 
-                    // Di dalam renderTable(), pada bagian penentuan izin edit (allowEdit)
                     let allowEdit = true;
-
-                    if (currentUser.role === 'SEKOLAH') {
-                        if (sheetName === 'paket_pekerjaan_sd') {
-                            // Pastikan sekolah hanya bisa mengedit data milik mereka sendiri berdasarkan NPSN
-                            let rowNpsn = String(row.npsn || '').trim();
-                            let userNpsn = String(currentUser.username || '').trim();
-                            if (rowNpsn === userNpsn) {
-                                allowEdit = true; // Memberikan akses tombol Edit untuk mengubah pagu / data menu
-                            } else {
-                                allowEdit = false;
-                            }
-                            } else if (sheetName === 'laporan_progres') {
-                            let statusVerif = String(row.status_verifikasi || '').trim();
-                            if (statusVerif !== 'DITOLAK' && statusVerif !== 'REJECTED') {
-                                allowEdit = false;
-                            }
+                    if (currentUser.role === 'SEKOLAH' && sheetName === 'users') {
+                        let rowIdentifier = String(row.username || row.npsn || "").trim();
+                        if (rowIdentifier !== String(currentUser.username).trim()) {
+                            allowEdit = false;
                         }
                     }
 
@@ -1207,7 +1099,7 @@
         });
     }
 
-    async function cetakLaporanResmi(paketId, npsn) {
+async function cetakLaporanResmi(paketId, npsn) {
         const paket = paketPekerjaanList.find(p => String(p.paket_id || p.id_paket || '').trim() === String(paketId).trim());
         if (!paket) {
             alert("Data paket pekerjaan tidak ditemukan.");
@@ -1417,41 +1309,6 @@
         }
     }
 
-    function hitungTglSelesaiFormatID() {
-        let tglMulaiInput = document.querySelector('input[name="tanggal_mulai"]');
-        let lamaHariInput = document.querySelector('input[name="lama_hari"]');
-        let tglSelesaiInput = document.querySelector('input[name="tgl_selesai"]');
-
-        if (tglMulaiInput && lamaHariInput && tglSelesaiInput) {
-            let valMulai = tglMulaiInput.value.trim(); // Format: dd-mm-yyyy
-            let lamaHari = parseInt(lamaHariInput.value);
-
-            // Validasi pola dd-mm-yyyy sederhana
-            let parts = valMulai.split('-');
-            if (parts.length === 3 && parts[0].length === 2 && parts[1].length === 2 && parts[2].length === 4) {
-                let day = parseInt(parts[0], 10);
-                let month = parseInt(parts[1], 10) - 1; // Bulan di JS dimulai dari 0
-                let year = parseInt(parts[2], 10);
-
-                let startDate = new Date(year, month, day);
-
-                if (!isNaN(startDate.getTime()) && !isNaN(lamaHari) && lamaHari > 0) {
-                    // Tambahkan hari sejumlah lama_hari
-                    startDate.setDate(startDate.getDate() + lamaHari);
-
-                    // Format kembali ke dd-mm-yyyy
-                    let d = String(startDate.getDate()).padStart(2, '0');
-                    let m = String(startDate.getMonth() + 1).padStart(2, '0');
-                    let y = startDate.getFullYear();
-
-                    tglSelesaiInput.value = `${d}-${m}-${y}`;
-                    return;
-                }
-            }
-            // Jika format belum lengkap/valid, kosongkan tanggal selesai
-            tglSelesaiInput.value = "";
-        }
-    }
     function openModalForm(rowData = null) {
         if (currentUser.role === 'SEKOLAH' && currentActiveSheet === 'users' && rowData) {
             let rowIdentifier = String(rowData.username || rowData.npsn || "").trim();
@@ -1469,6 +1326,7 @@
 
         document.getElementById('formRowIndex').value = rowData ? rowData._rowIndex : "";
         
+        // Integrasi teks judul & tombol berdasarkan rowData (Tambah / Edit)
         if (!rowData) {
             modalTitle.innerText = "Tambah Paket Pekerjaan Baru";
             btnSave.innerText = "Tambah Paket";
@@ -1600,310 +1458,297 @@
                 div.appendChild(metaInfo);
                 div.appendChild(manualFallbackContainer);
             } 
-            // ... (bagian awal fungsi openModalForm sebelum pengecekan sheet)
-
             else if (currentActiveSheet === 'paket_pekerjaan_sd') {
-                let lowerH = h.toLowerCase();
+                if (!rowData && currentUser.role === 'SEKOLAH') {
+                    let existingPaket = paketPekerjaanList.filter(p => String(p.npsn || '').trim() === String(currentUser.username).trim());
+                    if (existingPaket.length >= 1) {
+                        alert("Batas Maksimal: Sekolah Anda hanya diizinkan menginput 1 Nama Menu Pekerjaan revitalisasi.");
+                        return; 
+                    }
+                }
 
-                if (lowerH === 'paket_id') {
+                if (h.toLowerCase() === 'paket_id') {
                     input = document.createElement('input');
                     input.type = "text";
                     input.name = h;
                     input.readOnly = true;
                     input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-400 cursor-not-allowed font-bold";
                     input.value = rowData && rowData[h] ? rowData[h] : "PKT-" + currentUser.username + "-" + Math.floor(Date.now() / 1000);
-                } 
-                else if (lowerH === 'npsn') {
+                } else if (h.toLowerCase() === 'npsn') {
                     input = document.createElement('input');
                     input.type = "text";
                     input.name = h;
                     input.readOnly = true;
-                    input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-400 cursor-not-allowed font-bold";
-                    input.value = rowData && rowData[h] ? rowData[h] : currentUser.username;
-                } 
-                else if (lowerH === 'nama_menu') {
+                    input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-blue-300 cursor-not-allowed";
+                    input.value = currentUser.username;
+                } else if (h.toLowerCase() === 'nama_menu') {
                     input = document.createElement('select');
                     input.name = h;
-                    input.className = "w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-blue-500";
-        
-                    let defaultOpt = document.createElement('option');
-                    defaultOpt.value = "";
-                    defaultOpt.textContent = "-- Pilih Nama Menu Pekerjaan --";
-                    input.appendChild(defaultOpt);
+                    input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
+                    
+                    let defOpt = document.createElement('option');
+                    defOpt.value = "";
+                    defOpt.innerText = "-- Pilih Menu Pekerjaan --";
+                    input.appendChild(defOpt);
 
-                    let existingMenusForThisSchool = paketPekerjaanList
-                        .filter(p => String(p.npsn || '').trim() === String(currentUser.username).trim())
-                        .filter(p => !rowData || String(p.paket_id) !== String(rowData.paket_id))
-                        .map(p => String(p.nama_menu || '').trim().toLowerCase());
-
-                    if (typeof menuPekerjaanList !== 'undefined') {
-                        menuPekerjaanList.forEach(m => {
-                            let menuName = m.nama_menu || m.name || m;
-                            let menuNameStr = String(menuName).trim();
-                            let isAlreadyInputted = existingMenusForThisSchool.includes(menuNameStr.toLowerCase());
-
-                            let opt = document.createElement('option');
-                            opt.value = menuNameStr;
-                
-                            if (isAlreadyInputted) {
-                                opt.textContent = menuNameStr + " (Sudah Pernah Diinput)";
-                                opt.disabled = true;
-                                opt.className = "text-gray-500 bg-gray-900";
-                            } else {
-                                opt.textContent = menuNameStr;
-                            }
-
-                            if (rowData && String(rowData[h]).trim().toLowerCase() === menuNameStr.toLowerCase()) {
-                                opt.selected = true;
-                            }
-                            input.appendChild(opt);
-                        });
-                    }
-                } 
-                else if (lowerH === 'pagu') {
-                    input = document.createElement('input');
-                    input.type = "text"; // Menggunakan text agar pemisah ribuan (.) dapat ditampilkan
-                    input.name = h;
-                    input.className = "w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-blue-500";
-                    input.placeholder = "Contoh: 50.000.000";
-        
-                    let initialPagu = rowData && rowData[h] !== undefined ? rowData[h] : "";
-                    input.value = initialPagu !== "" ? formatRupiah(String(initialPagu)) : "";
-
-                    // Event listener untuk otomatis memformat angka ribuan saat diketik
-                    input.addEventListener('input', function() {
-                        let cleanVal = this.value.replace(/[^0-9]/g, '');
-                        this.value = formatRupiah(cleanVal);
+                    menuPekerjaanList.forEach(m => {
+                        let mName = m.nama_menu || Object.values(m)[1];
+                        let opt = document.createElement('option');
+                        opt.value = mName;
+                        opt.innerText = mName;
+                        if (rowData && rowData[h] === mName) opt.selected = true;
+                        input.appendChild(opt);
                     });
-                }
-                else if (lowerH === 'tanggal_mulai' || lowerH === 'tgl_selesai') {
-                    let isSelesai = (lowerH === 'tgl_selesai');
+                } else if (h.toLowerCase() === 'pagu') {
+                    let rawVal = rowData && rowData[h] !== undefined ? rowData[h] : "";
+                    let initialNum = rawVal !== "" ? Number(rawVal) : "";
 
-                    // Wrapper agar input date (kalender di kanan) dan nilai tersembunyi berformat dd-mm-yyyy bisa disandingkan
                     let wrapper = document.createElement('div');
-                    wrapper.className = "relative flex items-center";
+                    wrapper.className = "relative";
 
-                    let hiddenInput = document.createElement('input');
-                    hiddenInput.type = "hidden";
-                    hiddenInput.name = h;
-                    let initialVal = rowData && rowData[h] ? rowData[h] : "";
-                    hiddenInput.value = initialVal;
+                    input = document.createElement('input');
+                    input.type = "text";
+                    input.id = "inputPaguFormatted";
+                    input.placeholder = "Masukkan nominal pagu";
+                    input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
+                    input.value = initialNum !== "" ? initialNum.toLocaleString('id-ID') : "";
 
-                    let datePicker = document.createElement('input');
-                    datePicker.type = "date";
-                    datePicker.id = lowerH + "_picker";
-                    datePicker.className = "w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-blue-500" + (isSelesai ? " bg-blue-950/60 text-amber-400 cursor-not-allowed font-bold" : "");
-                    if (isSelesai) datePicker.readOnly = true;
+                    let hiddenRealInput = document.createElement('input');
+                    hiddenRealInput.type = "hidden";
+                    hiddenRealInput.id = "inputPaguReal";
+                    hiddenRealInput.name = h;
+                    hiddenRealInput.value = initialNum;
 
-                    // Konversi awal dari format dd-mm-yyyy ke yyyy-mm-dd agar terbaca oleh kalender visual
-                    if (initialVal && initialVal.split('-').length === 3) {
-                        let parts = initialVal.split('-');
-                        if (parts[0].length === 2) {
-                            datePicker.value = `${parts[2]}-${parts[1]}-${parts[0]}`;
-                        } else {
-                            datePicker.value = initialVal;
+                    if (currentUser.role === 'SEKOLAH') {
+                        let currentNamaMenuVal = rowData ? rowData['nama_menu'] : "";
+                        if (!currentNamaMenuVal) {
+                            input.disabled = true;
+                            input.placeholder = "Pilih Nama Menu terlebih dahulu untuk mengisi Pagu";
+                            input.className += " opacity-50 cursor-not-allowed";
                         }
                     }
 
-                    if (!isSelesai) {
-                        datePicker.addEventListener('change', function() {
-                                let val = this.value; // Format dari kalender: yyyy-mm-dd
-                            if (val) {
-                                let parts = val.split('-');
-                                let formatted = `${parts[2]}-${parts[1]}-${parts[0]}`; // Ubah ke dd-mm-yyyy
-                                hiddenInput.value = formatted;
-                                hitungTglSelesaiFormatID();
-                            } else {
-                                hiddenInput.value = "";
-                                hitungTglSelesaiFormatID();
-                            }
-                        });
-                    }
+                    input.oninput = function() {
+                        let cleanStr = this.value.replace(/[^0-9]/g, '');
+                        let num = cleanStr ? parseInt(cleanStr, 10) : 0;
+                        hiddenRealInput.value = num;
+                        this.value = num > 0 ? num.toLocaleString('id-ID') : "";
+                    };
 
-                    wrapper.appendChild(datePicker);
-                    wrapper.appendChild(hiddenInput);
-                    input = wrapper;
-                }
-                else if (lowerH === 'lama_hari') {
+                    wrapper.appendChild(input);
+                    wrapper.appendChild(hiddenRealInput);
+                    div.appendChild(wrapper);
+                } else if (h.toLowerCase() === 'perencana' || h.toLowerCase() === 'pengawas') {
+                    input = document.createElement('input');
+                    input.type = "text";
+                    input.name = h;
+                    input.readOnly = true;
+                    input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-300 cursor-not-allowed font-bold";
+                    
+                    let autoVal = "";
+                    if (currentUser[h]) {
+                        autoVal = currentUser[h];
+                    } else if (currentUser.sekolah && currentUser.sekolah[h]) {
+                        autoVal = currentUser.sekolah[h];
+                    } else if (rowData && rowData[h]) {
+                        autoVal = rowData[h];
+                    }
+                    input.value = autoVal;
+                } else if (h.toLowerCase() === 'tanggal_mulai') {
+                    input = document.createElement('input');
+                    input.type = "date";
+                    input.name = h;
+                    input.id = "inputTanggalMulai";
+                    input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
+                    input.value = convertToInputDate(rowData && rowData[h] ? rowData[h] : new Date().toISOString().split('T')[0]);
+                    input.onchange = hitungTanggalSelesai;
+                } else if (h.toLowerCase() === 'lama_hari') {
                     input = document.createElement('input');
                     input.type = "number";
                     input.name = h;
-                    input.className = "w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-blue-500";
-                    input.placeholder = "Contoh: 90";
-                    input.value = rowData && rowData[h] !== undefined ? rowData[h] : "";
-
-                    input.addEventListener('input', function() {
-                        hitungTglSelesaiFormatID();
-                    });
-                }
-                else if (lowerH === 'perencana') {
+                    input.id = "inputLamaHari";
+                    input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
+                    input.value = rowData && rowData[h] ? rowData[h] : "90";
+                    input.oninput = hitungTanggalSelesai;
+                } else if (h.toLowerCase() === 'tgl_selesai') {
+                    input = document.createElement('input');
+                    input.type = "date";
+                    input.name = h;
+                    input.id = "inputTanggalSelesai";
+                    input.readOnly = true;
+                    input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-blue-300 cursor-not-allowed";
+                    input.value = convertToInputDate(rowData && rowData[h] ? rowData[h] : "");
+                    setTimeout(hitungTanggalSelesai, 200);
+                } else {
                     input = document.createElement('input');
                     input.type = "text";
                     input.name = h;
-                    input.readOnly = true; 
-                    input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-400 cursor-not-allowed font-bold";
-                    input.value = rowData && rowData[h] ? rowData[h] : (currentUser.perencana || currentUser.nama_perencana || "-");
+                    input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
+                    input.value = rowData ? (rowData[h] !== undefined ? rowData[h] : "") : "";
                 }
-                else if (lowerH === 'pengawas') {
-                    input = document.createElement('input');
-                    input.type = "text";
-                    input.name = h;
-                    input.readOnly = true; 
-                    input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-400 cursor-not-allowed font-bold";
-                    input.value = rowData && rowData[h] ? rowData[h] : (currentUser.pengawas || currentUser.nama_pengawas || "-");
-                }
-            }
-                
-// ... (lanjutan kondisi sheet lainnya jika ada) 
+            } 
             else if (currentActiveSheet === 'laporan_progres') {
-                let lowerH = h.toLowerCase();
-
-                if (lowerH === 'npsn') {
+                if (h.toLowerCase() === 'id') {
                     input = document.createElement('input');
                     input.type = "text";
                     input.name = h;
                     input.readOnly = true;
                     input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-400 cursor-not-allowed font-bold";
-                    input.value = rowData && rowData[h] ? rowData[h] : currentUser.username;
-                } 
-                else if (lowerH === 'paket_id') {
-                    // Dropdown paket_id berdasarkan paket yang sudah diinput oleh sekolah ini
+                    input.value = rowData && rowData[h] ? rowData[h] : "LAP-" + currentUser.username + "-" + Math.floor(Date.now() / 1000);
+                } else if (h.toLowerCase() === 'paket_id') {
                     input = document.createElement('select');
                     input.name = h;
-                    input.className = "w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-blue-500";
-        
+                    input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
+                    
                     let defaultOpt = document.createElement('option');
                     defaultOpt.value = "";
-                    defaultOpt.textContent = "-- Pilih Paket Pekerjaan --";
+                    defaultOpt.innerText = "-- Pilih Paket Pekerjaan --";
                     input.appendChild(defaultOpt);
 
-                    let myPakets = typeof paketPekerjaanList !== 'undefined' ? paketPekerjaanList.filter(p => String(p.npsn || '').trim() === String(currentUser.username).trim()) : [];
-        
-                    myPakets.forEach(p => {
-                        let pId = p.paket_id || p.id;
-                        let pMenu = p.nama_menu || '';
-                        let opt = document.createElement('option');
-                        opt.value = pId;
-                        opt.textContent = `${pId} - ${pMenu}`;
-                        if (rowData && String(rowData[h]) === String(pId)) {
-                            opt.selected = true;
+                    paketPekerjaanList.forEach(p => {
+                        if (String(p.npsn) === String(currentUser.username)) {
+                            let pId = p['paket_id'];
+                            let pName = p['nama_menu'];
+                            let opt = document.createElement('option');
+                            opt.value = pId;
+                            opt.innerText = `${pId} - ${pName}`;
+                            if (rowData && rowData[h] === pId) opt.selected = true;
+                            input.appendChild(opt);
                         }
-                        input.appendChild(opt);
                     });
-                }
-                else if (lowerH === 'rentang_minggu' || lowerH === 'minggu_ke') {
-                    // Dropdown Rentang Minggu dengan validasi agar tidak bisa dipilih ulang jika sudah ada pada Paket ID yang sama
+                } else if (h.toLowerCase() === 'minggu_ke') {
                     input = document.createElement('select');
                     input.name = h;
-                    input.className = "w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-blue-500";
-        
-                    let defaultOpt = document.createElement('option');
-                    defaultOpt.value = "";
-                    defaultOpt.textContent = "-- Pilih Rentang Minggu --";
-                    input.appendChild(defaultOpt);
+                    input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
+                    
+                    let defOpt = document.createElement('option');
+                    defOpt.value = "";
+                    defOpt.innerText = "-- Pilih Rentang Minggu --";
+                    input.appendChild(defOpt);
 
-                    // Daftar rentang minggu standar (bisa disesuaikan jika menggunakan list terpisah)
-                    let daftarMinggu = [];
-                    for (let i = 1; i <= 26; i++) {
-                        daftarMinggu.push(`Minggu ke-${i}`);
+                    let baseDate = new Date(2026, 0, 5);
+                    for (let w = 1; w <= 24; w++) {
+                        let startD = new Date(baseDate);
+                        startD.setDate(baseDate.getDate() + (w - 1) * 7);
+                        let endD = new Date(baseDate);
+                        endD.setDate(baseDate.getDate() + w * 7 - 1);
+
+                        let fmtStart = `${String(startD.getDate()).padStart(2, '0')}/${String(startD.getMonth() + 1).padStart(2, '0')}/${startD.getFullYear()}`;
+                        let fmtEnd = `${String(endD.getDate()).padStart(2, '0')}/${String(endD.getMonth() + 1).padStart(2, '0')}/${endD.getFullYear()}`;
+                        
+                        let labelMinggu = `Minggu ke-${w} ${fmtStart} s/d ${fmtEnd}`;
+                        let opt = document.createElement('option');
+                        opt.value = labelMinggu;
+                        opt.innerText = labelMinggu;
+                        if (rowData && rowData[h] === labelMinggu) opt.selected = true;
+                        input.appendChild(opt);
                     }
-
-                    // Ambil minggu yang sudah diinput oleh sekolah ini pada paket tertentu (jika data progres sudah ada)
-                    input.addEventListener('change', function() {
-                        // Validasi dinamis saat rentang minggu dipilih
-                        cekRentangMingguEksis(this.value);
-                    });
-
-                    daftarMinggu.forEach(mStr => {
-                        let opt = document.createElement('option');
-                        opt.value = mStr;
-                        opt.textContent = mStr;
-                        if (rowData && String(rowData[h]) === mStr) {
-                            opt.selected = true;
-                        }
-                        input.appendChild(opt);
-                    });
-                }
-                else if (lowerH === 'target_kurva_s' || lowerH === 'realisasi_fisik') {
+                } else if (h.toLowerCase() === 'tanggal_lapor') {
+                    input = document.createElement('input');
+                    input.type = "date";
+                    input.name = h;
+                    input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
+                    input.value = convertToInputDate(rowData && rowData[h] ? rowData[h] : new Date().toISOString().split('T')[0]);
+                } else if (h.toLowerCase() === 'target_kurva_s' || h.toLowerCase() === 'realisasi_fisik') {
                     input = document.createElement('input');
                     input.type = "number";
                     input.step = "0.01";
-                    input.min = "0";
                     input.max = "100";
+                    input.min = "0";
                     input.name = h;
-                    input.className = "w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-blue-500";
-                    input.placeholder = "Nilai 0 s.d 100";
-                    input.value = rowData && rowData[h] !== undefined ? rowData[h] : "";
-                }
-                else if (lowerH === 'penggunaan_anggaran') {
+                    input.placeholder = "0 - 100";
+                    input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
+                    input.value = rowData && rowData[h] !== undefined ? String(rowData[h]).replace('%', '') : "";
+                } else if (h.toLowerCase() === 'tanggal_upload') {
                     input = document.createElement('input');
                     input.type = "text";
                     input.name = h;
-                    input.className = "w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-blue-500";
-                    input.placeholder = "Contoh: 15.000.000";
-        
-                    let initialVal = rowData && rowData[h] !== undefined ? rowData[h] : "";
-                    input.value = initialVal !== "" ? formatRupiah(String(initialVal)) : "";
-
-                    input.addEventListener('input', function() {
-                        let cleanVal = this.value.replace(/[^0-9]/g, '');
-                        this.value = formatRupiah(cleanVal);
-                    });
-                }
-                else if (lowerH === 'catatan_pekerjaan') {
-                    input = document.createElement('textarea');
-                    input.name = h;
-                    input.className = "w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-blue-500";
-                    input.value = rowData && rowData[h] ? rowData[h] : "Tidak ada kendala";
-                }
-                else if (lowerH === 'catatan_dinas') {
+                    input.readOnly = true;
+                    input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-300 cursor-not-allowed";
+                    let now = new Date();
+                    input.value = rowData && rowData[h] ? rowData[h] : `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+                } else if (h.toLowerCase() === 'lokasi_koordinat') {
                     input = document.createElement('input');
                     input.type = "text";
                     input.name = h;
-                    input.readOnly = true; // SEKOLAH tidak bisa mengisi
-                    input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-400 cursor-not-allowed font-bold";
-                    input.value = rowData && rowData[h] ? rowData[h] : "Tunggu diverifikasi";
-                }
-                else if (lowerH === 'lokasi_koordinat') {
+                    input.readOnly = true;
+                    input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-300 cursor-not-allowed";
+                    input.value = rowData && rowData[h] ? rowData[h] : "Otomatis dari metadata foto...";
+                } else if (h.toLowerCase() === 'penggunaan_anggaran') {
+                    input = document.createElement('input');
+                    input.type = "number";
+                    input.name = h;
+                    input.placeholder = "Nominal anggaran";
+                    input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
+                    input.value = rowData && rowData[h] !== undefined ? Number(rowData[h]) : "";
+                } else if (h.toLowerCase() === 'status_verifikasi') {
                     input = document.createElement('input');
                     input.type = "text";
                     input.name = h;
-                    input.className = "w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-blue-500";
-                    input.placeholder = "Contoh: -6.7156, 111.3452 (Decimal Degrees)";
-                    input.value = rowData && rowData[h] ? rowData[h] : "";
-                }
-                else if (lowerH === 'tanggal_foto_exif') {
+                    input.readOnly = true;
+                    input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-300 cursor-not-allowed font-bold";
+                    input.value = rowData && rowData[h] ? rowData[h] : "DIAJUKAN";
+                } else if (h.toLowerCase() === 'user_id') {
                     input = document.createElement('input');
                     input.type = "text";
                     input.name = h;
-                    input.readOnly = true; // Terisi otomatis dari metadata foto
-                    input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-400 cursor-not-allowed font-bold";
-                    input.value = rowData && rowData[h] ? rowData[h] : "Tidak ada tanggal";
-                }
-                else if (lowerH === 'foto_dokumentasi' || lowerH.includes('foto')) {
-                    // Input file untuk foto dokumentasi yang mendukung pembacaan EXIF (Tanggal & Koordinat GPS)
-                    let wrapper = document.createElement('div');
-                    wrapper.className = "space-y-2";
-
+                    input.readOnly = true;
+                    input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-blue-300 cursor-not-allowed";
+                    input.value = currentUser.nama_pengguna;
+                } else {
                     input = document.createElement('input');
-                    input.type = "file";
-                    input.accept = "image/*";
+                    input.type = "text";
                     input.name = h;
-                    input.className = "w-full text-xs text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer";
-
-                    // Tambahan event listener untuk membaca EXIF tanggal dan koordinat dari file foto yang diunggah
-                    input.addEventListener('change', function(e) {
-                        let file = e.target.files[0];
-                        if (file) {
-                            bacaMetadataFotoEXIF(file);
-                        }
-                    });
-
-                    wrapper.appendChild(input);
-                    input = wrapper;
+                    input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
+                    input.value = rowData ? (rowData[h] !== undefined ? rowData[h] : "") : "";
                 }
+            } 
+            else if (isUserSchoolEditing) {
+                input = document.createElement('input');
+                input.type = "text";
+                input.name = h;
+                input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
+                input.value = rowData ? (rowData[h] !== undefined ? rowData[h] : "") : "";
+                if (h.toLowerCase() === 'username' || h.toLowerCase() === 'id' || h.toLowerCase() === 'role' || h.toLowerCase() === 'status') {
+                    input.readOnly = true;
+                    input.className += " opacity-60 cursor-not-allowed";
+                }
+            } else {
+                input = document.createElement('input');
+                input.type = "text";
+                input.name = h;
+                input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
+                input.value = rowData ? (rowData[h] !== undefined ? rowData[h] : "") : "";
             }
-            
+
+            if (input && !div.contains(input)) {
+                div.appendChild(input);
+            }
+            container.appendChild(div);
+        });
+
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+
+    function hitungTanggalSelesai() {
+        let mulaiInput = document.getElementById('inputTanggalMulai');
+        let lamaInput = document.getElementById('inputLamaHari');
+        let selesaiInput = document.getElementById('inputTanggalSelesai');
+
+        if (mulaiInput && lamaInput && selesaiInput && mulaiInput.value) {
+            let tglMulai = new Date(mulaiInput.value);
+            let lamaHari = parseInt(lamaInput.value) || 0;
+            if (!isNaN(tglMulai.getTime())) {
+                tglMulai.setDate(tglMulai.getDate() + lamaHari);
+                let yyyy = tglMulai.getFullYear();
+                let mm = String(tglMulai.getMonth() + 1).padStart(2, '0');
+                let dd = String(tglMulai.getDate()).padStart(2, '0');
+                selesaiInput.value = `${yyyy}-${mm}-${dd}`;
+            }
+        }
+    }
+
     function closeModal() {
         let modal = document.getElementById('dataModal');
         modal.classList.add('hidden');
@@ -1918,8 +1763,8 @@
 
         let inputs = form.querySelectorAll('input, select, textarea');
         inputs.forEach(inp => {
-                        if (inp.name && inp.name !== 'formRowIndex') {
-                            if (inp.id === 'inputPaguFormatted') return; 
+            if (inp.name && inp.name !== 'formRowIndex') {
+                if (inp.id === 'inputPaguFormatted') return; 
                 formDataObj[inp.name] = inp.value;
             }
         });
@@ -2032,59 +1877,6 @@
         let modal = document.getElementById('modalRiwayatPagu');
         modal.classList.add('hidden');
         modal.classList.remove('flex');
-    }
-
-    function formatRupiah(angka) {
-    let number_string = angka.replace(/[^,\d]/g, '').toString(),
-        split = number_string.split(','),
-        sisa = split[0].length % 3,
-        rupiah = split[0].substr(0, sisa),
-        ribuan = split[0].substr(sisa).match(/\d{3}/gi);
-    if (ribuan) {
-        let separator = sisa ? '.' : '';
-        rupiah += separator + ribuan.join('.');
-    }
-    return split[1] != undefined ? rupiah + ',' + split[1] : rupiah;
-}
-
-    function hitungTglSelesaiFormatID() {
-        let tglMulaiHidden = document.querySelector('input[type="hidden"][name="tanggal_mulai"]');
-        let lamaHariInput = document.querySelector('input[name="lama_hari"]');
-        let tglSelesaiHidden = document.querySelector('input[type="hidden"][name="tgl_selesai"]');
-        let tglSelesaiPicker = document.getElementById('tgl_selesai_picker');
-
-        if (tglMulaiHidden && lamaHariInput && tglSelesaiHidden) {
-            let valMulai = tglMulaiHidden.value.trim(); // Format: dd-mm-yyyy
-            let lamaHari = parseInt(lamaHariInput.value);
-
-            let parts = valMulai.split('-');
-            if (parts.length === 3 && parts[0].length === 2 && parts[1].length === 2 && parts[2].length === 4) {
-                let day = parseInt(parts[0], 10);
-                let month = parseInt(parts[1], 10) - 1;
-                let year = parseInt(parts[2], 10);
-
-                let startDate = new Date(year, month, day);
-
-                if (!isNaN(startDate.getTime()) && !isNaN(lamaHari) && lamaHari > 0) {
-                    startDate.setDate(startDate.getDate() + lamaHari);
-
-                    let d = String(startDate.getDate()).padStart(2, '0');
-                    let m = String(startDate.getMonth() + 1).padStart(2, '0');
-                    let y = startDate.getFullYear();
-
-                    // Simpan format dd-mm-yyyy ke hidden input
-                    tglSelesaiHidden.value = `${d}-${m}-${y}`;
-                
-                    // Perbarui tampilan kalender visual untuk tgl_selesai (yyyy-mm-dd)
-                    if (tglSelesaiPicker) {
-                        tglSelesaiPicker.value = `${y}-${m}-${d}`;
-                    }
-                    return;
-                }
-            }
-            tglSelesaiHidden.value = "";
-            if (tglSelesaiPicker) tglSelesaiPicker.value = "";
-        }
     }
 </script>
 </body>
