@@ -1692,11 +1692,14 @@ function renderFormFields(headers) {
         let autoVal = "";
         if (currentUser[h]) {
           autoVal = currentUser[h];
-        } else if (currentUser.sekolah && currentUser.sekolah[h]) {
+        } else if (currentUser && currentUser.sekolah && currentUser.sekolah[h]) {
           autoVal = currentUser.sekolah[h];
         } else if (rowData && rowData[h]) {
           autoVal = rowData[h];
         }
+       // Masukkan nilai ke input, jika kosong beri teks keterangan
+       input.value = autoVal ? autoVal : "Belum diatur Admin";
+      }
         input.value = autoVal;
       } else if (h.toLowerCase() === 'tanggal_mulai') {
         input = document.createElement('input');
