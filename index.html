@@ -1597,8 +1597,11 @@ async function handleFormSubmit(e) {
 
 // 3. Bungkus perulangan render form fields ke dalam fungsi agar aman dari error headers is not defined
 function renderFormFields(headers) {
+  // PENGAMAN UTAMA: Jika headers kosong atau bukan array, hentikan fungsi agar tidak merusak alur lain (seperti login)
+  if (!headers || !Array.isArray(headers)) return;
+
   let container = document.getElementById('formFieldsContainer');
-  if (!container) return;
+  if (!container) return; // Jika container form belum ada (misal masih di halaman login), batalkan dengan aman
   container.innerHTML = '';
 
   headers.forEach(h => {
@@ -1611,16 +1614,22 @@ function renderFormFields(headers) {
     div.appendChild(label);
 
     let input;
-    let hLower = h.toLowerCase();
+    let hLower = h ? h.toLowerCase() : '';
 
-    if (currentActiveSheet === 'paket_pekerjaan_sd') {
+    // Pastikan variabel global aman dibaca
+    let activeSheet = (typeof currentActiveSheet !== 'undefined') ? currentActiveSheet : '';
+    let user = (typeof currentUser !== 'undefined') ? currentUser : {};
+    let dataRow = (typeof rowData !== 'undefined') ? rowData : null;
+
+    if (activeSheet === 'paket_pekerjaan_sd') {
       if (hLower === 'paket_id') {
         input = document.createElement('input');
         input.type = "text";
         input.name = h;
         input.readOnly = true;
         input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-400 cursor-not-allowed font-bold";
-        input.value = (typeof rowData !== 'undefined' && rowData && rowData[h]) ? rowData[h] : "PKT-" + (currentUser ? (currentUser.username || currentUser.npsn || ' SEKOLAH') : '') + "-" + Math.floor(Date.now() / 1000);
+        let usernameVal = user.username || user.npsn || 'SEKOLAH';
+        input.value = (dataRow && dataRow[h]) ? dataRow[h] : "PKT-" + usernameVal + "-" + Math.floor(Date.now() / 1000);
       } 
       else if (hLower === 'npsn') {
         input = document.createElement('input');
@@ -1628,7 +1637,7 @@ function renderFormFields(headers) {
         input.name = h;
         input.readOnly = true;
         input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-blue-300 cursor-not-allowed";
-        input.value = currentUser ? (currentUser.username || currentUser.npsn || '') : '';
+        input.value = user.username || user.npsn || '';
       } 
       else if (hLower === 'nama_menu') {
         input = document.createElement('select');
@@ -1643,8 +1652,8 @@ function renderFormFields(headers) {
 
         if (typeof menuPekerjaanList !== 'undefined' && Array.isArray(menuPekerjaanList)) {
           let selectedMenus = [];
-          if (typeof allTableData !== 'undefined' && Array.isArray(allTableData) && currentUser) {
-            let currentNpsn = String(currentUser.username || currentUser.npsn || '').trim();
+          if (typeof allTableData !== 'undefined' && Array.isArray(allTableData)) {
+            let currentNpsn = String(user.username || user.npsn || '').trim();
             selectedMenus = allTableData
               .filter(row => String(row.npsn || row.NPSN || '').trim() === currentNpsn)
               .map(row => String(row.nama_menu || row.Nama_Menu || '').trim().toLowerCase());
@@ -1654,7 +1663,7 @@ function renderFormFields(headers) {
             let menuName = m.nama_menu || m.menu || m.Nama_Menu || '';
             let menuNameLower = menuName.trim().toLowerCase();
             let isAlreadySelected = selectedMenus.includes(menuNameLower);
-            let isCurrentRowMenu = (typeof rowData !== 'undefined' && rowData) ? String(rowData[h] || '').trim().toLowerCase() === menuNameLower : false;
+            let isCurrentRowMenu = dataRow ? String(dataRow[h] || '').trim().toLowerCase() === menuNameLower : false;
 
             if (!isAlreadySelected || isCurrentRowMenu) {
               let opt = document.createElement('option');
@@ -1667,7 +1676,7 @@ function renderFormFields(headers) {
         }
       } 
       else if (hLower === 'pagu') {
-        let rawVal = (typeof rowData !== 'undefined' && rowData && rowData[h] !== undefined) ? rowData[h] : "0";
+        let rawVal = (dataRow && dataRow[h] !== undefined) ? dataRow[h] : "0";
         input = document.createElement('input');
         input.type = "text";
         input.name = h;
@@ -1676,7 +1685,7 @@ function renderFormFields(headers) {
         input.value = "Rp " + Number(rawVal || 0).toLocaleString('id-ID');
       }
       else if (hLower === 'pagu_usulan') {
-        let rawVal = (typeof rowData !== 'undefined' && rowData && rowData[h] !== undefined) ? rowData[h] : "";
+        let rawVal = (dataRow && dataRow[h] !== undefined) ? dataRow[h] : "";
         let initialNum = rawVal !== "" ? Number(String(rawVal).replace(/[^0-9]/g, '')) : "";
 
         let wrapper = document.createElement('div');
@@ -1712,7 +1721,7 @@ function renderFormFields(headers) {
         input.name = h;
         input.readOnly = true;
         input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-300 cursor-not-allowed font-bold";
-        input.value = (typeof rowData !== 'undefined' && rowData && rowData[h]) ? rowData[h] : "DIAJUKAN";
+        input.value = (dataRow && dataRow[h]) ? dataRow[h] : "DIAJUKAN";
       } 
       else if (hLower === 'perencana' || hLower === 'pengawas') {
         input = document.createElement('input');
@@ -1721,12 +1730,7 @@ function renderFormFields(headers) {
         input.readOnly = true;
         input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-300 cursor-not-allowed font-bold";
         
-        let autoVal = "";
-        if (currentUser && currentUser[h]) {
-          autoVal = currentUser[h];
-        } else if (typeof rowData !== 'undefined' && rowData && rowData[h]) {
-          autoVal = rowData[h];
-        }
+        let autoVal = user[h] ? user[h] : (dataRow ? dataRow[h] : "");
         input.value = (autoVal && autoVal !== "undefined") ? autoVal : "-";
       } 
       else if (hLower === 'tanggal_mulai') {
@@ -1735,7 +1739,7 @@ function renderFormFields(headers) {
         input.name = h;
         input.id = "inputTanggalMulai";
         input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-        let rawDate = (typeof rowData !== 'undefined' && rowData && rowData[h]) ? rowData[h] : new Date().toISOString().split('T')[0];
+        let rawDate = (dataRow && dataRow[h]) ? dataRow[h] : new Date().toISOString().split('T')[0];
         input.value = typeof convertToInputDate === 'function' ? convertToInputDate(rawDate) : rawDate;
         if (typeof hitungTanggalSelesai === 'function') input.onchange = hitungTanggalSelesai;
       } 
@@ -1745,7 +1749,7 @@ function renderFormFields(headers) {
         input.name = h;
         input.id = "inputLamaHari";
         input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-        input.value = (typeof rowData !== 'undefined' && rowData && rowData[h]) ? rowData[h] : "90";
+        input.value = (dataRow && dataRow[h]) ? dataRow[h] : "90";
         if (typeof hitungTanggalSelesai === 'function') input.oninput = hitungTanggalSelesai;
       } 
       else if (hLower === 'tgl_selesai' || hLower === 'tanggal_selesai') {
@@ -1755,7 +1759,7 @@ function renderFormFields(headers) {
         input.id = "inputTanggalSelesai";
         input.readOnly = true;
         input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-blue-300 cursor-not-allowed";
-        input.value = (typeof rowData !== 'undefined' && rowData && rowData[h]) ? rowData[h] : "";
+        input.value = (dataRow && dataRow[h]) ? dataRow[h] : "";
         if (typeof hitungTanggalSelesai === 'function') setTimeout(hitungTanggalSelesai, 200);
       } 
       else {
@@ -1763,7 +1767,7 @@ function renderFormFields(headers) {
         input.type = "text";
         input.name = h;
         input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-        input.value = (typeof rowData !== 'undefined' && rowData) ? (rowData[h] !== undefined ? rowData[h] : "") : "";
+        input.value = dataRow ? (dataRow[h] !== undefined ? dataRow[h] : "") : "";
       }
     } 
     else {
@@ -1771,7 +1775,7 @@ function renderFormFields(headers) {
       input.type = "text";
       input.name = h;
       input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-      input.value = (typeof rowData !== 'undefined' && rowData) ? (rowData[h] !== undefined ? rowData[h] : "") : "";
+      input.value = dataRow ? (dataRow[h] !== undefined ? dataRow[h] : "") : "";
     }
 
     if (input && !div.contains(input)) {
