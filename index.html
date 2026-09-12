@@ -451,36 +451,106 @@ document.getElementById('regNpsn').addEventListener('blur', function() {
  .catch(err => alert("Gagal memverifikasi NPSN."));
  });
 
- async function handleLogin(e) {
- e.preventDefault();
- let u = document.getElementById('loginUser').value;
- let p = document.getElementById('loginPass').value;
+async function handleLogin(e) {
+  e.preventDefault();
+  
+  // Ambil nilai dari input form login (sesuai id di HTML)
+  const usernameInput = document.getElementById('loginUser').value.trim();
+  const passwordInput = document.getElementById('loginPass').value.trim();
+  const btnSubmit = document.getElementById('btnLoginSubmit');
 
- try {
- let res = await fetch(`${WEB_APP_URL}?action=login&username=${encodeURIComponent(u)}&password=${encodeURIComponent(p)}`);
- let data = await res.json();
- if (data.status === 'success') {
- currentUser = data.data;
- localStorage.setItem('sivit_user', JSON.stringify(currentUser));
- initDashboard();
- } else {
- alert(data.pesan);
- }
- } catch (err) {
- alert('Gagal terhubung ke server.');
- }
- }
+  if (!usernameInput || !passwordInput) {
+    alert("Username dan password wajib diisi!");
+    return;
+  }
 
- async function handleRegister(e) {
- e.preventDefault();
- let npsn = document.getElementById('regNpsn').value;
- let nama = document.getElementById('regNamaSekolah').value;
- let pass = document.getElementById('regPass').value;
+  // Ubah status tombol jadi loading
+  if (btnSubmit) {
+    btnSubmit.disabled = true;
+    btnSubmit.innerText = "Memproses...";
+  }
 
- if (!nama) {
- alert('NPSN belum terverifikasi dengan database Dinas.');
- return;
- }
+  try {
+    // Kirim data ke backend dengan parameter action=login, username, dan password
+    const response = await fetch(WEB_APP_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'login',
+        username: usernameInput, // Dipetakan ke kolom 'username' di sheet users
+        password: passwordInput  // Dipetakan ke kolom 'password' di sheet users
+      })
+    });
+
+    const result = await response.json();
+
+    if (result.status === 'success') {
+      alert(result.pesan || "Login berhasil!");
+      // Simpan data sesi pengguna ke localStorage jika diperlukan
+      localStorage.setItem('sivit_user', JSON.stringify(result.data));
+      // Arahkan ke halaman dashboard sesuai role
+      window.location.reload(); 
+    } else {
+      alert("Gagal Login: " + (result.pesan || "Username atau password salah."));
+    }
+  } catch (err) {
+    console.error("Error login:", err);
+    alert("Terjadi kesalahan koneksi ke server.");
+  } finally {
+    if (btnSubmit) {
+      btnSubmit.disabled = false;
+      btnSubmit.innerText = "Masuk Sistem";
+    }
+  }
+}
+
+async function handleRegister(e) {
+  e.preventDefault();
+
+  const npsnInput = document.getElementById('regNpsn').value.trim();
+  const namaSekolahInput = document.getElementById('regNamaSekolah').value.trim();
+  const passwordInput = document.getElementById('regPass').value.trim();
+  const btnSubmit = document.getElementById('btnRegSubmit');
+
+  if (!npsnInput || !passwordInput) {
+    alert("NPSN dan Password wajib diisi!");
+    return;
+  }
+
+  if (btnSubmit) {
+    btnSubmit.disabled = true;
+    btnSubmit.innerText = "Mengirim...";
+  }
+
+  try {
+    const response = await fetch(WEB_APP_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'register',
+        npsn: npsnInput,
+        nama_lengkap: namaSekolahInput,
+        password: passwordInput
+      })
+    });
+
+    const result = await response.json();
+
+    if (result.status === 'success') {
+      alert(result.pesan || "Pendaftaran berhasil dikirim!");
+      // Reset form atau pindah ke tab login
+      switchTab('login');
+    } else {
+      alert("Pendaftaran Gagal: " + (result.pesan || "Terjadi kesalahan."));
+    }
+  } catch (err) {
+    console.error("Error register:", err);
+    alert("Terjadi kesalahan koneksi ke server.");
+  } finally {
+    if (btnSubmit) {
+      btnSubmit.disabled = false;
+      btnSubmit.innerText = "Kirim Pendaftaran";
+    }
+  }
+}
 
  try {
  let res = await fetch(WEB_APP_URL, {
