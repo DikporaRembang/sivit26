@@ -1510,6 +1510,36 @@ async function handleFormSubmit(e) {
   }
 }
 
+  if (currentUser.role === 'SEKOLAH' && currentActiveSheet === 'users') {
+    formData.username = currentUser.username;
+    formData.npsn = currentUser.username;
+  }
+
+  let payload = {
+    action: "saveData",
+    sheet: currentActiveSheet,
+    role: currentUser.role,
+    rowIndex: rowIndex ? Number(rowIndex) : null,
+    npsn: currentUser.username,
+    formData: formData
+  };
+
+  try {
+    let res = await fetch(WEB_APP_URL, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+    let result = await res.json();
+    alert(result.pesan || result.message);
+    if (result.status === 'success') {
+      closeModal();
+      loadTableData(currentActiveSheet);
+    }
+  } catch (err) {
+    alert('Terjadi kesalahan jaringan saat menyimpan data.');
+  }
+}
+
 // Bagian perulangan render form fields
 headers.forEach(h => {
   let div = document.createElement('div');
