@@ -1467,456 +1467,6 @@ function closeModal() {
   }
 }
 
-async function handleFormSubmit(e) {
-  e.preventDefault();
-  let rowIndex = document.getElementById('formRowIndex').value;
-  let formData = {};
-  
-  let container = document.getElementById('formFieldsContainer');
-  let inputs = container.querySelectorAll('input, select, textarea');
-  inputs.forEach(input => {
-    if (input.name) {
-      formData[input.name] = input.value;
-    }
-  });
-
-  if (currentUser.role === 'SEKOLAH' && currentActiveSheet === 'users') {
-    formData.username = currentUser.username;
-    formData.npsn = currentUser.username;
-  }
-
-  let payload = {
-    action: "saveData",
-    sheet: currentActiveSheet,
-    role: currentUser.role,
-    rowIndex: rowIndex ? Number(rowIndex) : null,
-    npsn: currentUser.username,
-    formData: formData
-  };
-
-  try {
-    let res = await fetch(WEB_APP_URL, {
-      method: 'POST',
-      body: JSON.stringify(payload)
-    });
-    let result = await res.json();
-    alert(result.pesan || result.message);
-    if (result.status === 'success') {
-      closeModal();
-      loadTableData(currentActiveSheet);
-    }
-  } catch (err) {
-    alert('Terjadi kesalahan jaringan saat menyimpan data.');
-  }
-}
-
-  if (currentUser.role === 'SEKOLAH' && currentActiveSheet === 'users') {
-    formData.username = currentUser.username;
-    formData.npsn = currentUser.username;
-  }
-
-  let payload = {
-    action: "saveData",
-    sheet: currentActiveSheet,
-    role: currentUser.role,
-    rowIndex: rowIndex ? Number(rowIndex) : null,
-    npsn: currentUser.username,
-    formData: formData
-  };
-
-  try {
-    let res = await fetch(WEB_APP_URL, {
-      method: 'POST',
-      body: JSON.stringify(payload)
-    });
-    let result = await res.json();
-    alert(result.pesan || result.message);
-    if (result.status === 'success') {
-      closeModal();
-      loadTableData(currentActiveSheet);
-    }
-  } catch (err) {
-    alert('Terjadi kesalahan jaringan saat menyimpan data.');
-  }
-}
-
-// Bagian perulangan render form fields
-headers.forEach(h => {
-  let div = document.createElement('div');
-  div.className = "space-y-1.5";
-  
-  let label = document.createElement('label');
-  label.className = "block text-xs font-medium text-blue-200 uppercase tracking-wider";
-  label.innerText = h.replace(/_/g, ' ');
-  div.appendChild(label);
-
-  let input;
-
-  if (currentActiveSheet === 'paket_pekerjaan_sd') {
-    if (h.toLowerCase() === 'paket_id') {
-      input = document.createElement('input');
-      input.type = "text";
-      input.name = h;
-      input.readOnly = true;
-      input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-400 cursor-not-allowed font-bold";
-      input.value = rowData && rowData[h] ? rowData[h] : "PKT-" + currentUser.username + "-" + Math.floor(Date.now() / 1000);
-    } else if (h.toLowerCase() === 'npsn') {
-      input = document.createElement('input');
-      input.type = "text";
-      input.name = h;
-      input.readOnly = true;
-      input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-blue-300 cursor-not-allowed";
-      input.value = currentUser.username;
-    } else if (h.toLowerCase() === 'nama_menu') {
-      input = document.createElement('select');
-      input.name = h;
-      input.id = "nama_menu";
-      input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-      
-      let defOpt = document.createElement('option');
-      defOpt.value = "";
-      defOpt.innerText = "-- Pilih Menu Pekerjaan --";
-      input.appendChild(defOpt);
-
-      menuPekerjaanList.forEach(m => {
-        let mName = m.nama_menu || Object.values(m)[1];
-        let opt = document.createElement('option');
-        opt.value = mName;
-        opt.innerText = mName;
-        if (rowData && rowData[h] === mName) opt.selected = true;
-        input.appendChild(opt);
-      });
-    } else if (h.toLowerCase() === 'pagu') {
-      let rawVal = rowData && rowData[h] !== undefined ? rowData[h] : "";
-      let initialNum = rawVal !== "" ? Number(rawVal) : "";
-
-      let wrapper = document.createElement('div');
-      wrapper.className = "relative";
-
-      input = document.createElement('input');
-      input.type = "text";
-      input.id = "inputPaguFormatted";
-      input.placeholder = "Masukkan nominal pagu";
-      input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-      input.value = initialNum !== "" ? initialNum.toLocaleString('id-ID') : "";
-
-      let hiddenRealInput = document.createElement('input');
-      hiddenRealInput.type = "hidden";
-      hiddenRealInput.id = "inputPaguReal";
-      hiddenRealInput.name = h;
-      hiddenRealInput.value = initialNum;
-
-      if (currentUser.role === 'SEKOLAH' && rowData) {
-        input.placeholder = "Masukkan pagu anggaran baru untuk diajukan";
-      }
-
-      input.oninput = function() {
-        let cleanStr = this.value.replace(/[^0-9]/g, '');
-        let num = cleanStr ? parseInt(cleanStr, 10) : 0;
-        hiddenRealInput.value = num;
-        this.value = num > 0 ? num.toLocaleString('id-ID') : "";
-      };
-
-      wrapper.appendChild(input);
-      wrapper.appendChild(hiddenRealInput);
-      div.appendChild(wrapper);
-    } else if (h.toLowerCase() === 'pagu_usulan' || h.toLowerCase() === 'status_pagu') {
-      return;
-    } else if (h.toLowerCase() === 'perencana' || h.toLowerCase() === 'pengawas') {
-      input = document.createElement('input');
-      input.type = "text";
-      input.name = h;
-      input.readOnly = true;
-      input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-300 cursor-not-allowed font-bold";
-      
-      let autoVal = "";
-      if (currentUser[h]) {
-        autoVal = currentUser[h];
-      } else if (currentUser.sekolah && currentUser.sekolah[h]) {
-        autoVal = currentUser.sekolah[h];
-      } else if (rowData && rowData[h]) {
-        autoVal = rowData[h];
-      }
-      input.value = autoVal;
-    } else if (h.toLowerCase() === 'tanggal_mulai') {
-      input = document.createElement('input');
-      input.type = "date";
-      input.name = h;
-      input.id = "inputTanggalMulai";
-      input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-      input.value = convertToInputDate(rowData && rowData[h] ? rowData[h] : new Date().toISOString().split('T')[0]);
-      input.onchange = hitungTanggalSelesai;
-    } else if (h.toLowerCase() === 'lama_hari') {
-      input = document.createElement('input');
-      input.type = "number";
-      input.name = h;
-      input.id = "inputLamaHari";
-      input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-      input.value = rowData && rowData[h] ? rowData[h] : "90";
-      input.oninput = hitungTanggalSelesai;
-    } else if (h.toLowerCase() === 'tgl_selesai') {
-      input = document.createElement('input');
-      input.type = "date";
-      input.name = h;
-      input.id = "inputTanggalSelesai";
-      input.readOnly = true;
-      input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-blue-300 cursor-not-allowed";
-      input.value = convertToInputDate(rowData && rowData[h] ? rowData[h] : "");
-      setTimeout(hitungTanggalSelesai, 200);
-    } else {
-      input = document.createElement('input');
-      input.type = "text";
-      input.name = h;
-      input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-      input.value = rowData ? (rowData[h] !== undefined ? rowData[h] : "") : "";
-    }
-  } 
-  else if (currentActiveSheet === 'laporan_progres') {
-    if (h.toLowerCase() === 'id') {
-      input = document.createElement('input');
-      input.type = "text";
-      input.name = h;
-      input.readOnly = true;
-      input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-400 cursor-not-allowed font-bold";
-      input.value = rowData && rowData[h] ? rowData[h] : "LAP-" + currentUser.username + "-" + Math.floor(Date.now() / 1000);
-    } else if (h.toLowerCase() === 'paket_id') {
-      input = document.createElement('select');
-      input.name = h;
-      input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-      
-      let defaultOpt = document.createElement('option');
-      defaultOpt.value = "";
-      defaultOpt.innerText = "-- Pilih Paket Pekerjaan --";
-      input.appendChild(defaultOpt);
-
-      paketPekerjaanList.forEach(p => {
-        if (String(p.npsn) === String(currentUser.username)) {
-          let pId = p['paket_id'];
-          let pName = p['nama_menu'];
-          let opt = document.createElement('option');
-          opt.value = pId;
-          opt.innerText = `${pId} - ${pName}`;
-          if (rowData && rowData[h] === pId) opt.selected = true;
-          input.appendChild(opt);
-        }
-      });
-    } else if (h.toLowerCase() === 'minggu_ke') {
-      input = document.createElement('select');
-      input.name = h;
-      input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-      
-      let defOpt = document.createElement('option');
-      defOpt.value = "";
-      defOpt.innerText = "-- Pilih Rentang Minggu --";
-      input.appendChild(defOpt);
-
-      let baseDate = new Date(2026, 0, 5);
-      for (let w = 1; w <= 24; w++) {
-        let startD = new Date(baseDate);
-        startD.setDate(baseDate.getDate() + (w - 1) * 7);
-        let endD = new Date(baseDate);
-        endD.setDate(baseDate.getDate() + w * 7 - 1);
-
-        let fmtStart = `${String(startD.getDate()).padStart(2, '0')}/${String(startD.getMonth() + 1).padStart(2, '0')}/${startD.getFullYear()}`;
-        let fmtEnd = `${String(endD.getDate()).padStart(2, '0')}/${String(endD.getMonth() + 1).padStart(2, '0')}/${endD.getFullYear()}`;
-        
-        let labelMinggu = `Minggu ke-${w} ${fmtStart} s/d ${fmtEnd}`;
-        let opt = document.createElement('option');
-        opt.value = labelMinggu;
-        opt.innerText = labelMinggu;
-        if (rowData && rowData[h] === labelMinggu) opt.selected = true;
-        input.appendChild(opt);
-      }
-    } else if (h.toLowerCase() === 'tanggal_lapor') {
-      input = document.createElement('input');
-      input.type = "date";
-      input.name = h;
-      input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-      input.value = convertToInputDate(rowData && rowData[h] ? rowData[h] : new Date().toISOString().split('T')[0]);
-    } else if (h.toLowerCase() === 'target_kurva_s' || h.toLowerCase() === 'realisasi_fisik') {
-      input = document.createElement('input');
-      input.type = "number";
-      input.step = "0.01";
-      input.max = "100";
-      input.min = "0";
-      input.name = h;
-      input.placeholder = "0 - 100";
-      input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-      input.value = rowData && rowData[h] !== undefined ? String(rowData[h]).replace('%', '') : "";
-    } else if (h.toLowerCase() === 'tanggal_upload') {
-      input = document.createElement('input');
-      input.type = "text";
-      input.name = h;
-      input.readOnly = true;
-      input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-300 cursor-not-allowed";
-      let now = new Date();
-      input.value = rowData && rowData[h] ? rowData[h] : `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
-    } else if (h.toLowerCase() === 'lokasi_koordinat') {
-      input = document.createElement('input');
-      input.type = "text";
-      input.name = h;
-      input.readOnly = true;
-      input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-300 cursor-not-allowed";
-      input.value = rowData && rowData[h] ? rowData[h] : "Otomatis dari metadata foto...";
-    } else if (h.toLowerCase() === 'penggunaan_anggaran') {
-      input = document.createElement('input');
-      input.type = "number";
-      input.name = h;
-      input.placeholder = "Nominal anggaran";
-      input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-      input.value = rowData && rowData[h] !== undefined ? Number(rowData[h]) : "";
-    } else if (h.toLowerCase() === 'status_verifikasi') {
-      input = document.createElement('input');
-      input.type = "text";
-      input.name = h;
-      input.readOnly = true;
-      input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-300 cursor-not-allowed font-bold";
-      input.value = rowData && rowData[h] ? rowData[h] : "DIAJUKAN";
-    } else if (h.toLowerCase() === 'user_id') {
-      input = document.createElement('input');
-      input.type = "text";
-      input.name = h;
-      input.readOnly = true;
-      input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-blue-300 cursor-not-allowed";
-      input.value = currentUser.nama_pengguna;
-    } else if (h.toLowerCase() === 'foto_kegiatan' || h.toLowerCase() === 'foto') {
-      let wrapper = document.createElement('div');
-      wrapper.className = "space-y-2";
-
-      let btnUpload = document.createElement('label');
-      btnUpload.className = "inline-flex items-center gap-2 px-4 py-2 bg-blue-700 hover:bg-blue-600 text-white text-xs font-semibold rounded-xl cursor-pointer shadow transition";
-      btnUpload.innerHTML = `<i class="fa-solid fa-camera"></i> Pilih/Ambil Foto Kamera`;
-
-      let inputFoto = document.createElement('input');
-      inputFoto.type = "file";
-      inputFoto.accept = "image/*";
-      inputFoto.className = "hidden";
-      inputFoto.name = h;
-
-      let hiddenValInput = document.createElement('input');
-      hiddenValInput.type = "hidden";
-      hiddenValInput.name = h + "_val";
-      hiddenValInput.value = rowData && rowData[h] ? rowData[h] : "";
-
-      let metaInfo = document.createElement('div');
-      metaInfo.className = "text-xs text-blue-300 mt-1";
-      metaInfo.innerHTML = rowData && rowData[h] ? `Foto tersimpan: <a href="${rowData[h]}" target="_blank" class="underline text-amber-400">Lihat Foto</a>` : "Belum ada foto dipilih.";
-
-      let manualFallbackContainer = document.createElement('div');
-      manualFallbackContainer.className = "hidden mt-2 space-y-1";
-      manualFallbackContainer.innerHTML = `<span class="text-amber-400 text-xs">GPS tidak terdeteksi di foto. Masukkan koordinat manual (Latitude, Longitude):</span>
-      <input type="text" id="manualGpsInput" class="w-full px-3 py-1.5 bg-blue-950 border border-blue-700 rounded-lg text-xs text-white" placeholder="Contoh: -6.12345, 106.67890">`;
-
-      inputFoto.onchange = function(evt) {
-        let file = evt.target.files[0];
-        if (!file) return;
-
-        let reader = new FileReader();
-        reader.onload = function(e) {
-          hiddenValInput.value = e.target.result;
-        };
-        reader.readAsDataURL(file);
-
-        if (window.EXIF) {
-          EXIF.getData(file, function() {
-            let dateTime = EXIF.getTag(this, "DateTimeOriginal") || EXIF.getTag(this, "DateTime") || null;
-            let lat = EXIF.getTag(this, "GPSLatitude");
-            let latRef = EXIF.getTag(this, "GPSLatitudeRef");
-            let lon = EXIF.getTag(this, "GPSLongitude");
-            let lonRef = EXIF.getTag(this, "GPSLongitudeRef");
-
-            let gpsStr = "";
-            if (lat && lon) {
-              let latitude = lat[0] + lat[1]/60 + lat[2]/3600;
-              let longitude = lon[0] + lon[1]/60 + lon[2]/3600;
-              if (latRef === "S") latitude = -latitude;
-              if (lonRef === "W") longitude = -longitude;
-              gpsStr = `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
-            } else {
-              manualFallbackContainer.classList.remove('hidden');
-              let manualIn = manualFallbackContainer.querySelector('#manualGpsInput');
-              manualIn.oninput = function() {
-                let lokasiField = document.querySelector('input[name="lokasi_koordinat"]');
-                if (lokasiField) lokasiField.value = this.value;
-              };
-            }
-
-            let formattedDate = "";
-            if (dateTime) {
-              let parts = dateTime.split(' ')[0].split(':');
-              if (parts.length === 3) {
-                formattedDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
-              }
-            }
-            if (!formattedDate) {
-              let now = new Date();
-              let dd = String(now.getDate()).padStart(2, '0');
-              let mm = String(now.getMonth() + 1).padStart(2, '0');
-              let yyyy = now.getFullYear();
-              formattedDate = `${dd}/${mm}/${yyyy}`;
-            }
-
-            let tglUploadField = document.querySelector('input[name="tanggal_upload"]');
-            if (tglUploadField) {
-              tglUploadField.value = formattedDate;
-            }
-
-            let lokasiField = document.querySelector('input[name="lokasi_koordinat"]');
-            if (lokasiField && gpsStr) {
-              lokasiField.value = gpsStr;
-            }
-
-            metaInfo.innerHTML = `<span class="text-emerald-400 font-bold"><i class="fa-solid fa-circle-check"></i> Foto: ${file.name}</span><br>🕒 Waktu Upload: ${formattedDate}<br>📍 Lokasi Koordinat: ${gpsStr || 'Belum ada GPS (harap isi manual di bawah)'}`;
-          });
-        }
-      };
-
-      wrapper.appendChild(btnUpload);
-      wrapper.appendChild(inputFoto);
-      wrapper.appendChild(hiddenValInput);
-      wrapper.appendChild(metaInfo);
-      wrapper.appendChild(manualFallbackContainer);
-      input = wrapper;
-    } else {
-      input = document.createElement('input');
-      input.type = "text";
-      input.name = h;
-      input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-      input.value = rowData ? (rowData[h] !== undefined ? rowData[h] : "") : "";
-    }
-  } 
-  else if (typeof isUserSchoolEditing !== 'undefined' && isUserSchoolEditing) {
-    input = document.createElement('input');
-    input.type = "text";
-    input.name = h;
-    input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-    input.value = rowData ? (rowData[h] !== undefined ? rowData[h] : "") : "";
-    
-    let hLower = h.toLowerCase();
-    if (hLower !== 'perencana' && hLower !== 'pengawas') {
-      input.readOnly = true;
-      input.className += " opacity-60 cursor-not-allowed bg-blue-950/60";
-    }
-  } else {
-    input = document.createElement('input');
-    input.type = "text";
-    input.name = h;
-    input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-    input.value = rowData ? (rowData[h] !== undefined ? rowData[h] : "") : "";
-  }
-
-  if (input && !div.contains(input)) {
-    div.appendChild(input);
-  }
-  container.appendChild(div);
-});
-
-let formModal = document.getElementById('formModal') || document.getElementById('modal');
-if (formModal) {
-  formModal.classList.remove('hidden');
-  formModal.classList.add('flex');
-}
-
  function hitungTanggalSelesai() {
  let mulaiInput = document.getElementById('inputTanggalMulai');
  let lamaInput = document.getElementById('inputLamaHari');
@@ -1942,99 +1492,492 @@ function closeModal() {
     modal.classList.remove('flex');
   }
 }
- async function handleFormSubmit(e) {
- if (e) e.preventDefault();
- 
-let form = e.target;
- let rowIndex = document.getElementById('formRowIndex').value;
- let formDataObj = {};
 
- let inputs = form.querySelectorAll('input, select, textarea');
- inputs.forEach(inp => {
- if (inp.name && inp.name !== 'formRowIndex') {
- if (inp.id === 'inputPaguFormatted') return; 
-formDataObj[inp.name] = inp.value;
- }
- });
-
- if (currentActiveSheet === 'paket_pekerjaan_sd' && currentUser.role === 'SEKOLAH') {
- let isNewData = !rowIndex; 
-
-if (isNewData) {
- let inputNamaMenu = String(
- formDataObj['nama_menu'] || 
-(document.getElementById('nama_menu') ? document.getElementById('nama_menu').value : '')
- ).trim().toLowerCase();
- 
-if (inputNamaMenu) {
- formDataObj['nama_menu'] = inputNamaMenu;
- }
- 
-if (!inputNamaMenu) {
- alert("Nama Menu Pekerjaan wajib diisi!");
- return; 
+// 1. Fungsi closeModal tetap ada
+function closeModal() {
+  let modal = document.getElementById('dataModal');
+  if (modal) {
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+  }
 }
 
- let isDuplicate = paketPekerjaanList.some(p => 
-String(p.npsn || '').trim() === String(currentUser.username).trim() &&
- String(p.nama_menu || '').trim().toLowerCase() === inputNamaMenu
- );
+// 2. Gunakan handleFormSubmit versi lengkap yang baru dan pintar
+async function handleFormSubmit(e) {
+  if (e) e.preventDefault();
+  
+  let form = e.target;
+  let rowIndex = document.getElementById('formRowIndex').value;
+  let formDataObj = {};
 
- if (isDuplicate) {
- alert("Peringatan: Menu pekerjaan dengan nama tersebut sudah pernah ditambahkan sebelumnya. Silakan pilih nama menu yang lain.");
- return; 
+  let inputs = form.querySelectorAll('input, select, textarea');
+  inputs.forEach(inp => {
+    if (inp.name && inp.name !== 'formRowIndex') {
+      if (inp.id === 'inputPaguFormatted') return; 
+      formDataObj[inp.name] = inp.value;
+    }
+  });
+
+  if (currentActiveSheet === 'paket_pekerjaan_sd' && currentUser.role === 'SEKOLAH') {
+    let isNewData = !rowIndex; 
+
+    if (isNewData) {
+      let inputNamaMenu = String(
+        formDataObj['nama_menu'] || 
+        (document.getElementById('nama_menu') ? document.getElementById('nama_menu').value : '')
+      ).trim().toLowerCase();
+      
+      if (inputNamaMenu) {
+        formDataObj['nama_menu'] = inputNamaMenu;
+      }
+      
+      if (!inputNamaMenu) {
+        alert("Nama Menu Pekerjaan wajib diisi!");
+        return; 
+      }
+
+      let isDuplicate = paketPekerjaanList.some(p => 
+        String(p.npsn || '').trim() === String(currentUser.username).trim() &&
+        String(p.nama_menu || '').trim().toLowerCase() === inputNamaMenu
+      );
+
+      if (isDuplicate) {
+        alert("Peringatan: Menu pekerjaan dengan nama tersebut sudah pernah ditambahkan sebelumnya. Silakan pilih nama menu yang lain.");
+        return; 
+      }
+    }
+  }
+
+  let btnSave = document.getElementById('btnSaveModal');
+  if (btnSave) {
+    btnSave.innerText = "Menyimpan...";
+    btnSave.disabled = true;
+  }
+
+  try {
+    let payload = {
+      action: rowIndex ? 'updateData' : 'addData',
+      sheet: currentActiveSheet,
+      role: currentUser.role,
+      npsn: currentUser.username,
+      rowIndex: rowIndex,
+      data: formDataObj
+    };
+
+    let res = await fetch(WEB_APP_URL, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+    let result = await res.json();
+    alert(result.pesan);
+
+    if (result.status === 'success') {
+      if (currentUser.role === 'SEKOLAH' && currentActiveSheet === 'users') {
+        currentUser.perencana = formDataObj['perencana'] || currentUser.perencana;
+        currentUser.pengawas = formDataObj['pengawas'] || currentUser.pengawas;
+        if (!currentUser.sekolah) currentUser.sekolah = {};
+        currentUser.sekolah.perencana = currentUser.perencana;
+        currentUser.sekolah.pengawas = currentUser.pengawas;
+        localStorage.setItem('sivit_user', JSON.stringify(currentUser));
+      }
+
+      closeModal();
+      loadTableData(currentActiveSheet);
+    }
+  } catch (err) {
+    console.error(err);
+    alert('Gagal menyimpan data ke server.');
+  } finally {
+    if (btnSave) {
+      btnSave.innerText = "Simpan Data";
+      btnSave.disabled = false;
+    }
+  }
 }
- }
- }
 
- let btnSave = document.getElementById('btnSaveModal');
- if (btnSave) {
- btnSave.innerText = "Menyimpan...";
- btnSave.disabled = true;
- }
+// 3. Bungkus perulangan render form fields ke dalam fungsi agar aman dari error headers is not defined
+function renderFormFields(headers) {
+  let container = document.getElementById('formFieldsContainer');
+  if (!container) return;
+  container.innerHTML = '';
 
- try {
- let payload = {
- action: rowIndex ? 'updateData' : 'addData',
- sheet: currentActiveSheet,
- role: currentUser.role,
- npsn: currentUser.username,
- rowIndex: rowIndex,
- data: formDataObj
- };
+  headers.forEach(h => {
+    let div = document.createElement('div');
+    div.className = "space-y-1.5";
+    
+    let label = document.createElement('label');
+    label.className = "block text-xs font-medium text-blue-200 uppercase tracking-wider";
+    label.innerText = h.replace(/_/g, ' ');
+    div.appendChild(label);
 
- let res = await fetch(WEB_APP_URL, {
- method: 'POST',
- body: JSON.stringify(payload)
- });
- let result = await res.json();
- alert(result.pesan);
+    let input;
 
- if (result.status === 'success') {
- // Jika sekolah mengedit profil tim teknis, perbarui objek currentUser secara lokal agar langsung sinkron ke paket pekerjaan
- if (currentUser.role === 'SEKOLAH' && currentActiveSheet === 'users') {
- currentUser.perencana = formDataObj['perencana'] || currentUser.perencana;
- currentUser.pengawas = formDataObj['pengawas'] || currentUser.pengawas;
- if (!currentUser.sekolah) currentUser.sekolah = {};
- currentUser.sekolah.perencana = currentUser.perencana;
- currentUser.sekolah.pengawas = currentUser.pengawas;
- localStorage.setItem('sivit_user', JSON.stringify(currentUser));
- }
+    if (currentActiveSheet === 'paket_pekerjaan_sd') {
+      if (h.toLowerCase() === 'paket_id') {
+        input = document.createElement('input');
+        input.type = "text";
+        input.name = h;
+        input.readOnly = true;
+        input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-400 cursor-not-allowed font-bold";
+        input.value = rowData && rowData[h] ? rowData[h] : "PKT-" + currentUser.username + "-" + Math.floor(Date.now() / 1000);
+      } else if (h.toLowerCase() === 'npsn') {
+        input = document.createElement('input');
+        input.type = "text";
+        input.name = h;
+        input.readOnly = true;
+        input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-blue-300 cursor-not-allowed";
+        input.value = currentUser.username;
+      } else if (h.toLowerCase() === 'nama_menu') {
+        input = document.createElement('select');
+        input.name = h;
+        input.id = "nama_menu";
+        input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
+        
+        let defOpt = document.createElement('option');
+        defOpt.value = "";
+        defOpt.innerText = "-- Pilih Menu Pekerjaan --";
+        input.appendChild(defOpt);
 
- closeModal();
- loadTableData(currentActiveSheet);
- }
- } catch (err) {
- console.error(err);
- alert('Gagal menyimpan data ke server.');
- } finally {
- if (btnSave) {
- btnSave.innerText = "Simpan Data";
- btnSave.disabled = false;
- }
- }
- }
+        menuPekerjaanList.forEach(m => {
+          let mName = m.nama_menu || Object.values(m)[1];
+          let opt = document.createElement('option');
+          opt.value = mName;
+          opt.innerText = mName;
+          if (rowData && rowData[h] === mName) opt.selected = true;
+          input.appendChild(opt);
+        });
+      } else if (h.toLowerCase() === 'pagu') {
+        let rawVal = rowData && rowData[h] !== undefined ? rowData[h] : "";
+        let initialNum = rawVal !== "" ? Number(rawVal) : "";
 
+        let wrapper = document.createElement('div');
+        wrapper.className = "relative";
+
+        input = document.createElement('input');
+        input.type = "text";
+        input.id = "inputPaguFormatted";
+        input.placeholder = "Masukkan nominal pagu";
+        input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
+        input.value = initialNum !== "" ? initialNum.toLocaleString('id-ID') : "";
+
+        let hiddenRealInput = document.createElement('input');
+        hiddenRealInput.type = "hidden";
+        hiddenRealInput.id = "inputPaguReal";
+        hiddenRealInput.name = h;
+        hiddenRealInput.value = initialNum;
+
+        if (currentUser.role === 'SEKOLAH' && rowData) {
+          input.placeholder = "Masukkan pagu anggaran baru untuk diajukan";
+        }
+
+        input.oninput = function() {
+          let cleanStr = this.value.replace(/[^0-9]/g, '');
+          let num = cleanStr ? parseInt(cleanStr, 10) : 0;
+          hiddenRealInput.value = num;
+          this.value = num > 0 ? num.toLocaleString('id-ID') : "";
+        };
+
+        wrapper.appendChild(input);
+        wrapper.appendChild(hiddenRealInput);
+        div.appendChild(wrapper);
+      } else if (h.toLowerCase() === 'pagu_usulan' || h.toLowerCase() === 'status_pagu') {
+        return;
+      } else if (h.toLowerCase() === 'perencana' || h.toLowerCase() === 'pengawas') {
+        input = document.createElement('input');
+        input.type = "text";
+        input.name = h;
+        input.readOnly = true;
+        input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-300 cursor-not-allowed font-bold";
+        
+        let autoVal = "";
+        if (currentUser[h]) {
+          autoVal = currentUser[h];
+        } else if (currentUser.sekolah && currentUser.sekolah[h]) {
+          autoVal = currentUser.sekolah[h];
+        } else if (rowData && rowData[h]) {
+          autoVal = rowData[h];
+        }
+        input.value = autoVal;
+      } else if (h.toLowerCase() === 'tanggal_mulai') {
+        input = document.createElement('input');
+        input.type = "date";
+        input.name = h;
+        input.id = "inputTanggalMulai";
+        input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
+        input.value = convertToInputDate(rowData && rowData[h] ? rowData[h] : new Date().toISOString().split('T')[0]);
+        input.onchange = hitungTanggalSelesai;
+      } else if (h.toLowerCase() === 'lama_hari') {
+        input = document.createElement('input');
+        input.type = "number";
+        input.name = h;
+        input.id = "inputLamaHari";
+        input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
+        input.value = rowData && rowData[h] ? rowData[h] : "90";
+        input.oninput = hitungTanggalSelesai;
+      } else if (h.toLowerCase() === 'tgl_selesai') {
+        input = document.createElement('input');
+        input.type = "date";
+        input.name = h;
+        input.id = "inputTanggalSelesai";
+        input.readOnly = true;
+        input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-blue-300 cursor-not-allowed";
+        input.value = convertToInputDate(rowData && rowData[h] ? rowData[h] : "");
+        setTimeout(hitungTanggalSelesai, 200);
+      } else {
+        input = document.createElement('input');
+        input.type = "text";
+        input.name = h;
+        input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
+        input.value = rowData ? (rowData[h] !== undefined ? rowData[h] : "") : "";
+      }
+    } 
+    else if (currentActiveSheet === 'laporan_progres') {
+      if (h.toLowerCase() === 'id') {
+        input = document.createElement('input');
+        input.type = "text";
+        input.name = h;
+        input.readOnly = true;
+        input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-400 cursor-not-allowed font-bold";
+        input.value = rowData && rowData[h] ? rowData[h] : "LAP-" + currentUser.username + "-" + Math.floor(Date.now() / 1000);
+      } else if (h.toLowerCase() === 'paket_id') {
+        input = document.createElement('select');
+        input.name = h;
+        input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
+        
+        let defaultOpt = document.createElement('option');
+        defaultOpt.value = "";
+        defaultOpt.innerText = "-- Pilih Paket Pekerjaan --";
+        input.appendChild(defaultOpt);
+
+        paketPekerjaanList.forEach(p => {
+          if (String(p.npsn) === String(currentUser.username)) {
+            let pId = p['paket_id'];
+            let pName = p['nama_menu'];
+            let opt = document.createElement('option');
+            opt.value = pId;
+            opt.innerText = `${pId} - ${pName}`;
+            if (rowData && rowData[h] === pId) opt.selected = true;
+            input.appendChild(opt);
+          }
+        });
+      } else if (h.toLowerCase() === 'minggu_ke') {
+        input = document.createElement('select');
+        input.name = h;
+        input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
+        
+        let defOpt = document.createElement('option');
+        defOpt.value = "";
+        defOpt.innerText = "-- Pilih Rentang Minggu --";
+        input.appendChild(defOpt);
+
+        let baseDate = new Date(2026, 0, 5);
+        for (let w = 1; w <= 24; w++) {
+          let startD = new Date(baseDate);
+          startD.setDate(baseDate.getDate() + (w - 1) * 7);
+          let endD = new Date(baseDate);
+          endD.setDate(baseDate.getDate() + w * 7 - 1);
+
+          let fmtStart = `${String(startD.getDate()).padStart(2, '0')}/${String(startD.getMonth() + 1).padStart(2, '0')}/${startD.getFullYear()}`;
+          let fmtEnd = `${String(endD.getDate()).padStart(2, '0')}/${String(endD.getMonth() + 1).padStart(2, '0')}/${endD.getFullYear()}`;
+          
+          let labelMinggu = `Minggu ke-${w} ${fmtStart} s/d ${fmtEnd}`;
+          let opt = document.createElement('option');
+          opt.value = labelMinggu;
+          opt.innerText = labelMinggu;
+          if (rowData && rowData[h] === labelMinggu) opt.selected = true;
+          input.appendChild(opt);
+        }
+      } else if (h.toLowerCase() === 'tanggal_lapor') {
+        input = document.createElement('input');
+        input.type = "date";
+        input.name = h;
+        input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
+        input.value = convertToInputDate(rowData && rowData[h] ? rowData[h] : new Date().toISOString().split('T')[0]);
+      } else if (h.toLowerCase() === 'target_kurva_s' || h.toLowerCase() === 'realisasi_fisik') {
+        input = document.createElement('input');
+        input.type = "number";
+        input.step = "0.01";
+        input.max = "100";
+        input.min = "0";
+        input.name = h;
+        input.placeholder = "0 - 100";
+        input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
+        input.value = rowData && rowData[h] !== undefined ? String(rowData[h]).replace('%', '') : "";
+      } else if (h.toLowerCase() === 'tanggal_upload') {
+        input = document.createElement('input');
+        input.type = "text";
+        input.name = h;
+        input.readOnly = true;
+        input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-300 cursor-not-allowed";
+        let now = new Date();
+        input.value = rowData && rowData[h] ? rowData[h] : `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+      } else if (h.toLowerCase() === 'lokasi_koordinat') {
+        input = document.createElement('input');
+        input.type = "text";
+        input.name = h;
+        input.readOnly = true;
+        input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-300 cursor-not-allowed";
+        input.value = rowData && rowData[h] ? rowData[h] : "Otomatis dari metadata foto...";
+      } else if (h.toLowerCase() === 'penggunaan_anggaran') {
+        input = document.createElement('input');
+        input.type = "number";
+        input.name = h;
+        input.placeholder = "Nominal anggaran";
+        input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
+        input.value = rowData && rowData[h] !== undefined ? Number(rowData[h]) : "";
+      } else if (h.toLowerCase() === 'status_verifikasi') {
+        input = document.createElement('input');
+        input.type = "text";
+        input.name = h;
+        input.readOnly = true;
+        input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-300 cursor-not-allowed font-bold";
+        input.value = rowData && rowData[h] ? rowData[h] : "DIAJUKAN";
+      } else if (h.toLowerCase() === 'user_id') {
+        input = document.createElement('input');
+        input.type = "text";
+        input.name = h;
+        input.readOnly = true;
+        input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-blue-300 cursor-not-allowed";
+        input.value = currentUser.nama_pengguna;
+      } else if (h.toLowerCase() === 'foto_kegiatan' || h.toLowerCase() === 'foto') {
+        let wrapper = document.createElement('div');
+        wrapper.className = "space-y-2";
+
+        let btnUpload = document.createElement('label');
+        btnUpload.className = "inline-flex items-center gap-2 px-4 py-2 bg-blue-700 hover:bg-blue-600 text-white text-xs font-semibold rounded-xl cursor-pointer shadow transition";
+        btnUpload.innerHTML = `<i class="fa-solid fa-camera"></i> Pilih/Ambil Foto Kamera`;
+
+        let inputFoto = document.createElement('input');
+        inputFoto.type = "file";
+        inputFoto.accept = "image/*";
+        inputFoto.className = "hidden";
+        inputFoto.name = h;
+
+        let hiddenValInput = document.createElement('input');
+        hiddenValInput.type = "hidden";
+        hiddenValInput.name = h + "_val";
+        hiddenValInput.value = rowData && rowData[h] ? rowData[h] : "";
+
+        let metaInfo = document.createElement('div');
+        metaInfo.className = "text-xs text-blue-300 mt-1";
+        metaInfo.innerHTML = rowData && rowData[h] ? `Foto tersimpan: <a href="${rowData[h]}" target="_blank" class="underline text-amber-400">Lihat Foto</a>` : "Belum ada foto dipilih.";
+
+        let manualFallbackContainer = document.createElement('div');
+        manualFallbackContainer.className = "hidden mt-2 space-y-1";
+        manualFallbackContainer.innerHTML = `<span class="text-amber-400 text-xs">GPS tidak terdeteksi di foto. Masukkan koordinat manual (Latitude, Longitude):</span>
+        <input type="text" id="manualGpsInput" class="w-full px-3 py-1.5 bg-blue-950 border border-blue-700 rounded-lg text-xs text-white" placeholder="Contoh: -6.12345, 106.67890">`;
+
+        inputFoto.onchange = function(evt) {
+          let file = evt.target.files[0];
+          if (!file) return;
+
+          let reader = new FileReader();
+          reader.onload = function(e) {
+            hiddenValInput.value = e.target.result;
+          };
+          reader.readAsDataURL(file);
+
+          if (window.EXIF) {
+            EXIF.getData(file, function() {
+              let dateTime = EXIF.getTag(this, "DateTimeOriginal") || EXIF.getTag(this, "DateTime") || null;
+              let lat = EXIF.getTag(this, "GPSLatitude");
+              let latRef = EXIF.getTag(this, "GPSLatitudeRef");
+              let lon = EXIF.getTag(this, "GPSLongitude");
+              let lonRef = EXIF.getTag(this, "GPSLongitudeRef");
+
+              let gpsStr = "";
+              if (lat && lon) {
+                let latitude = lat[0] + lat[1]/60 + lat[2]/3600;
+                let longitude = lon[0] + lon[1]/60 + lon[2]/3600;
+                if (latRef === "S") latitude = -latitude;
+                if (lonRef === "W") longitude = -longitude;
+                gpsStr = `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
+              } else {
+                manualFallbackContainer.classList.remove('hidden');
+                let manualIn = manualFallbackContainer.querySelector('#manualGpsInput');
+                manualIn.oninput = function() {
+                  let lokasiField = document.querySelector('input[name="lokasi_koordinat"]');
+                  if (lokasiField) lokasiField.value = this.value;
+                };
+              }
+
+              let formattedDate = "";
+              if (dateTime) {
+                let parts = dateTime.split(' ')[0].split(':');
+                if (parts.length === 3) {
+                  formattedDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
+                }
+              }
+              if (!formattedDate) {
+                let now = new Date();
+                let dd = String(now.getDate()).padStart(2, '0');
+                let mm = String(now.getMonth() + 1).padStart(2, '0');
+                let yyyy = now.getFullYear();
+                formattedDate = `${dd}/${mm}/${yyyy}`;
+              }
+
+              let tglUploadField = document.querySelector('input[name="tanggal_upload"]');
+              if (tglUploadField) {
+                tglUploadField.value = formattedDate;
+              }
+
+              let lokasiField = document.querySelector('input[name="lokasi_koordinat"]');
+              if (lokasiField && gpsStr) {
+                lokasiField.value = gpsStr;
+              }
+
+              metaInfo.innerHTML = `<span class="text-emerald-400 font-bold"><i class="fa-solid fa-circle-check"></i> Foto: ${file.name}</span><br>🕒 Waktu Upload: ${formattedDate}<br>📍 Lokasi Koordinat: ${gpsStr || 'Belum ada GPS (harap isi manual di bawah)'}`;
+            });
+          }
+        };
+
+        wrapper.appendChild(btnUpload);
+        wrapper.appendChild(inputFoto);
+        wrapper.appendChild(hiddenValInput);
+        wrapper.appendChild(metaInfo);
+        wrapper.appendChild(manualFallbackContainer);
+        input = wrapper;
+      } else {
+        input = document.createElement('input');
+        input.type = "text";
+        input.name = h;
+        input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
+        input.value = rowData ? (rowData[h] !== undefined ? rowData[h] : "") : "";
+      }
+    } 
+    else if (typeof isUserSchoolEditing !== 'undefined' && isUserSchoolEditing) {
+      input = document.createElement('input');
+      input.type = "text";
+      input.name = h;
+      input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
+      input.value = rowData ? (rowData[h] !== undefined ? rowData[h] : "") : "";
+      
+      let hLower = h.toLowerCase();
+      if (hLower !== 'perencana' && hLower !== 'pengawas') {
+        input.readOnly = true;
+        input.className += " opacity-60 cursor-not-allowed bg-blue-950/60";
+      }
+    } else {
+      input = document.createElement('input');
+      input.type = "text";
+      input.name = h;
+      input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
+      input.value = rowData ? (rowData[h] !== undefined ? rowData[h] : "") : "";
+    }
+
+    if (input && !div.contains(input)) {
+      div.appendChild(input);
+    }
+    container.appendChild(div);
+  });
+
+  let formModal = document.getElementById('formModal') || document.getElementById('modal');
+  if (formModal) {
+    formModal.classList.remove('hidden');
+    formModal.classList.add('flex');
+  }
+}
+ 
  async function deleteRowData(rowIndex) {
  if (!confirm("Apakah Anda yakin ingin menghapus baris data ini?")) return;
 
