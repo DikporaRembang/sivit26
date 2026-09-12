@@ -1310,7 +1310,7 @@ async function verifyReg(npsn, status) {
  }
  }
 
- function openModalForm(rowData = null) {
+function openModalForm(rowData = null) {
  if (currentUser.role === 'SEKOLAH' && currentActiveSheet === 'users' && rowData) {
  let rowIdentifier = String(rowData.username || rowData.npsn || "").trim();
  if (rowIdentifier !== String(currentUser.username).trim()) {
@@ -1327,7 +1327,7 @@ async function verifyReg(npsn, status) {
 
  document.getElementById('formRowIndex').value = rowData ? rowData._rowIndex : "";
  
-if (!rowData) {
+ if (!rowData) {
  modalTitle.innerText = "Tambah Paket Pekerjaan Baru";
  btnSave.innerText = "Tambah Paket";
  } else {
@@ -1336,7 +1336,7 @@ if (!rowData) {
  }
 
  currentHeaders.forEach(h => {
- if (h === '_rowIndex') return;
+ if (h === '_rowIndex' || h === 'rowid') return;
 
  let div = document.createElement('div');
  div.className = "space-y-1";
@@ -1347,59 +1347,92 @@ if (!rowData) {
  div.appendChild(label);
 
  let input;
- let isUserSchoolEditing = (currentUser.role === 'SEKOLAH' && currentActiveSheet === 'users');
+ if (currentUser.role === 'SEKOLAH' && currentActiveSheet === 'users') {
+ if (h === 'perencana' || h === 'pengawas') {
+ input = document.createElement('input');
+ input.type = "text";
+ input.name = h;
+ input.value = rowData ? (rowData[h] || '') : '';
+ input.required = true;
+ input.placeholder = `Masukkan nama ${h}...`;
+ input.className = "w-full px-3.5 py-2.5 border border-blue-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400 text-sm bg-blue-950/50 text-white font-semibold";
+ } else {
+ input = document.createElement('input');
+ input.type = "hidden";
+ input.name = h;
+ input.value = rowData ? (rowData[h] || '') : (h === 'username' || h === 'npsn' ? currentUser.username : '');
+ div.appendChild(input);
+ return;
+ }
+ } else {
+ input = document.createElement('input');
+ input.type = "text";
+ input.name = h;
+ input.value = rowData ? (rowData[h] || '') : (h === 'npsn' ? currentUser.username : '');
+ if (h === 'paket_id' || h === 'id_laporan' || h === 'id') {
+ input.readOnly = true;
+ input.className = "w-full px-3.5 py-2.5 bg-blue-950/30 border border-blue-800 rounded-xl text-blue-300 text-sm cursor-not-allowed";
+ } else {
+ input.className = "w-full px-3.5 py-2.5 border border-blue-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400 text-sm bg-blue-950/50 text-white font-semibold";
+ }
+ }
 
- if (h.toLowerCase().includes('foto_dokumentasi') || h.toLowerCase().includes('foto')) {
- div.className = "space-y-2 p-3 bg-blue-950/60 rounded-xl border border-amber-400/30";
- 
-input = document.createElement('input');
- input.type = "file";
- input.accept = "image/*";
- input.id = "fileInput_" + h;
- input.className = "hidden";
- 
-let hiddenValInput = document.createElement('input');
- hiddenValInput.type = "hidden";
- hiddenValInput.name = h;
- hiddenValInput.id = "valInput_" + h;
- hiddenValInput.value = rowData ? (rowData[h] !== undefined ? rowData[h] : "") : "";
-
- let btnUpload = document.createElement('label');
- btnUpload.htmlFor = "fileInput_" + h;
- btnUpload.className = "cursor-pointer inline-flex items-center space-x-2 px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-blue-950 font-bold rounded-xl text-xs shadow-md transition-all";
- btnUpload.innerHTML = `<i class="fa-solid fa-camera text-sm"></i><span>Pilih / Ambil Foto Dokumentasi</span>`;
-
- let metaInfo = document.createElement('div');
- metaInfo.className = "text-[11px] text-blue-300 space-y-0.5 mt-1";
- metaInfo.id = "metaInfo_" + h;
- metaInfo.innerText = rowData && rowData[h] ? "File tersimpan: " + rowData[h] : "Belum ada foto dipilih (Metadata EXIF tanggal & GPS akan otomatis diekstrak).";
-
- let manualFallbackContainer = document.createElement('div');
- manualFallbackContainer.className = "hidden mt-2 p-2 bg-amber-950/40 border border-amber-500/40 rounded-lg text-[11px] text-amber-200 space-y-1";
- manualFallbackContainer.innerHTML = `
- <p class="font-bold"><i class="fa-solid fa-triangle-exclamation"></i> Metadata EXIF GPS/Tanggal tidak ditemukan pada foto ini.</p>
- <p>Silakan masukkan koordinat GPS secara manual (Contoh: -6.69123, 111.34123):</p>
- <input type="text" id="manualGpsInput" placeholder="Latitude, Longitude" class="w-full px-2 py-1 bg-blue-950 border border-amber-500/50 rounded text-white text-xs">
- `;
-
- input.onchange = function(e) {
- let file = e.target.files[0];
- if (!file) return;
-
- metaInfo.innerText = "Mengekstrak metadata EXIF foto...";
- manualFallbackContainer.classList.add('hidden');
- 
-let reader = new FileReader();
- reader.onload = function(evt) {
- let base64String = evt.target.result;
- hiddenValInput.value = JSON.stringify({
- base64: base64String,
- name: file.name,
- type: file.type
+ div.appendChild(input);
+ container.appendChild(div);
  });
- };
- reader.readAsDataURL(file);
 
+ modal.classList.remove('hidden');
+ modal.classList.add('flex');
+ }
+
+ function closeModal() {
+ let modal = document.getElementById('dataModal');
+ modal.classList.add('hidden');
+ modal.classList.remove('flex');
+ }
+
+ async function handleFormSubmit(e) {
+ e.preventDefault();
+ let rowIndex = document.getElementById('formRowIndex').value;
+ let formData = {};
+ 
+ let container = document.getElementById('formFieldsContainer');
+ let inputs = container.querySelectorAll('input, select, textarea');
+ inputs.forEach(input => {
+ if (input.name) {
+ formData[input.name] = input.value;
+ }
+ });
+
+ if (currentUser.role === 'SEKOLAH' && currentActiveSheet === 'users') {
+ formData.username = currentUser.username;
+ formData.npsn = currentUser.username;
+ }
+
+ let payload = {
+ action: "saveData",
+ sheet: currentActiveSheet,
+ role: currentUser.role,
+ rowIndex: rowIndex ? Number(rowIndex) : null,
+ npsn: currentUser.username,
+ formData: formData
+ };
+
+ try {
+ let res = await fetch(WEB_APP_URL, {
+ method: 'POST',
+ body: JSON.stringify(payload)
+ });
+ let result = await res.json();
+ alert(result.pesan || result.message);
+ if (result.status === 'success') {
+ closeModal();
+ loadTableData(currentActiveSheet);
+ }
+ } catch (err) {
+ alert('Terjadi kesalahan jaringan saat menyimpan data.');
+ }
+ }
  EXIF.getData(file, function() {
  let dateTime = EXIF.getTag(this, "DateTimeOriginal") || EXIF.getTag(this, "DateTime") || null;
  let lat = EXIF.getTag(this, "GPSLatitude");
