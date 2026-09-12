@@ -536,7 +536,6 @@ async function handleRegister(e) {
 
     if (result.status === 'success') {
       alert(result.pesan || "Pendaftaran berhasil dikirim!");
-      // Reset form atau pindah ke tab login
       switchTab('login');
     } else {
       alert("Pendaftaran Gagal: " + (result.pesan || "Terjadi kesalahan."));
@@ -551,22 +550,7 @@ async function handleRegister(e) {
     }
   }
 }
-
- try {
- let res = await fetch(WEB_APP_URL, {
- method: 'POST',
- body: JSON.stringify({ action: 'register', npsn: npsn, nama_lengkap: nama, password: pass })
- });
- let data = await res.json();
- alert(data.pesan);
- if (data.status === 'success') {
- switchTab('login');
- }
- } catch (err) {
- alert('Gagal mengirim pendaftaran.');
- }
- }
-
+ 
  function logout() {
  localStorage.removeItem('sivit_user');
  currentUser = null;
