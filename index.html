@@ -1638,15 +1638,35 @@ function renderFormFields(headers) {
         defOpt.innerText = "-- Pilih Menu Pekerjaan --";
         input.appendChild(defOpt);
 
-        menuPekerjaanList.forEach(m => {
-          let mName = m.nama_menu || Object.values(m)[1];
-          let opt = document.createElement('option');
-          opt.value = mName;
-          opt.innerText = mName;
-          if (rowData && rowData[h] === mName) opt.selected = true;
-          input.appendChild(opt);
-        });
-      } else if (h.toLowerCase() === 'pagu') {
+        // --- TAMBAHAN LOGIKA PENYARINGAN DAN PENGISIAN OPSI ---
+        if (typeof menuPekerjaanList !== 'undefined' && Array.isArray(menuPekerjaanList)) {
+          let selectedMenus = [];
+          if (typeof allTableData !== 'undefined' && Array.isArray(allTableData)) {
+            let currentNpsn = String(currentUser.username || currentUser.npsn || '').trim();
+            selectedMenus = allTableData
+              .filter(row => String(row.npsn || '').trim() === currentNpsn)
+              .map(row => String(row.nama_menu || '').trim().toLowerCase());
+          }
+
+          menuPekerjaanList.forEach(m => {
+            let menuName = m.nama_menu || m.menu || '';
+            let menuNameLower = menuName.trim().toLowerCase();
+            let isAlreadySelected = selectedMenus.includes(menuNameLower);
+            
+            // Cek jika sedang mode edit dan ini adalah menu miliknya sendiri
+            let isCurrentRowMenu = typeof rowData !== 'undefined' && rowData && String(rowData[h] || '').trim().toLowerCase() === menuNameLower;
+
+            if (!isAlreadySelected || isCurrentRowMenu) {
+              let opt = document.createElement('option');
+              opt.value = menuName;
+              opt.innerText = menuName;
+              if (isCurrentRowMenu) {
+                opt.selected = true;
+              }
+              input.appendChild(opt);
+            }
+          });
+        } else if (h.toLowerCase() === 'pagu') {
         let rawVal = rowData && rowData[h] !== undefined ? rowData[h] : "";
         let initialNum = rawVal !== "" ? Number(rawVal) : "";
 
