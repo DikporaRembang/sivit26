@@ -325,7 +325,7 @@
  
 <!-- ================= SCRIPT UTAMA ================= -->
 <script>
- const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwyJOIA8odvo2lBlDH5BTLZLR__VPpHYWJU4hEwoniE9FppO_tMe65eOIPL2L1BTjFvqQ/exec";
+ const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwmrJF7rzrkGs2RHVHC-aVIYzdXKV6UYq4dj6sTYXwx4zaYOpKvYxU3kJR6OqqkjhQTjw/exec";
  
 let currentUser = null;
  let currentActiveSheet = '';
@@ -2108,6 +2108,60 @@ function switchTab(tab) {
   }
 }
 
+function hitungTglSelesai() {
+  let tglMulaiEl = document.querySelector('input[name="tanggal_mulai"]');
+  let lamaHariEl = document.querySelector('input[name="lama_hari"]');
+  let tglSelesaiEl = document.getElementById('inputTglSelesai');
+
+  if (!tglMulaiEl || !lamaHariEl || !tglSelesaiEl) return;
+
+  let tglMulaiVal = tglMulaiEl.value;
+  let lamaHariVal = parseInt(lamaHariEl.value) || 0;
+
+  if (tglMulaiVal && lamaHariVal > 0) {
+    let parts = tglMulaiVal.split('-'); 
+    if (parts.length === 3) {
+      let dateObj = new Date(parts[0], parts[1] - 1, parts[2]);
+      dateObj.setDate(dateObj.getDate() + lamaHariVal);
+
+      let dd = String(dateObj.getDate()).padStart(2, '0');
+      let mm = String(dateObj.getMonth() + 1).padStart(2, '0');
+      let yyyy = dateObj.getFullYear();
+
+      tglSelesaiEl.value = `${dd}/${mm}/${yyyy}`;
+    }
+  } else {
+    tglSelesaiEl.value = "";
+  }
+}
+
+function hitungTglSelesai() {
+  let tglMulaiEl = document.querySelector('input[name="tanggal_mulai"]');
+  let lamaHariEl = document.querySelector('input[name="lama_hari"]');
+  let tglSelesaiEl = document.getElementById('inputTglSelesai');
+
+  if (!tglMulaiEl || !lamaHariEl || !tglSelesaiEl) return;
+
+  let tglMulaiVal = tglMulaiEl.value;
+  let lamaHariVal = parseInt(lamaHariEl.value) || 0;
+
+  if (tglMulaiVal && lamaHariVal > 0) {
+    let parts = tglMulaiVal.split('-'); // format yyyy-mm-dd dari input type="date"
+    if (parts.length === 3) {
+      let dateObj = new Date(parts[0], parts[1] - 1, parts[2]);
+      dateObj.setDate(dateObj.getDate() + lamaHariVal);
+
+      let dd = String(dateObj.getDate()).padStart(2, '0');
+      let mm = String(dateObj.getMonth() + 1).padStart(2, '0');
+      let yyyy = dateObj.getFullYear();
+
+      tglSelesaiEl.value = `${dd}/${mm}/${yyyy}`;
+    }
+  } else {
+    tglSelesaiEl.value = "";
+  }
+}
+ 
 function togglePasswordVisibility(inputId, iconId) {
   const input = document.getElementById(inputId);
   const icon = document.getElementById(iconId);
