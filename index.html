@@ -455,7 +455,7 @@ async function handleLogin(e) {
   e.preventDefault();
   
   // Ambil nilai dari input form login (sesuai id di HTML)
-  const usernameInput = document.getElementById('loginUser').value.trim();
+  const usernameInput = document.getElementById('loginUser').value.toLowerCase().trim();
   const passwordInput = document.getElementById('loginPass').value.trim();
   const btnSubmit = document.getElementById('btnLoginSubmit');
 
