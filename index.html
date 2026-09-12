@@ -1459,11 +1459,13 @@ function openModalForm(rowData = null) {
  modal.classList.add('flex');
  }
 
- function closeModal() {
- let modal = document.getElementById('dataModal');
- modal.classList.add('hidden');
- modal.classList.remove('flex');
- }
+function closeModal() {
+  let modal = document.getElementById('dataModal');
+  if (modal) {
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+  }
+}
 
 async function handleFormSubmit(e) {
   e.preventDefault();
@@ -1748,7 +1750,6 @@ headers.forEach(h => {
       input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-blue-300 cursor-not-allowed";
       input.value = currentUser.nama_pengguna;
     } else if (h.toLowerCase() === 'foto_kegiatan' || h.toLowerCase() === 'foto') {
-      // Menjaga fungsionalitas EXIF Foto Anda tetap utuh di sini
       let wrapper = document.createElement('div');
       wrapper.className = "space-y-2";
 
@@ -1854,7 +1855,7 @@ headers.forEach(h => {
       input.value = rowData ? (rowData[h] !== undefined ? rowData[h] : "") : "";
     }
   } 
-  else if (isUserSchoolEditing) {
+  else if (typeof isUserSchoolEditing !== 'undefined' && isUserSchoolEditing) {
     input = document.createElement('input');
     input.type = "text";
     input.name = h;
@@ -1880,10 +1881,10 @@ headers.forEach(h => {
   container.appendChild(div);
 });
 
-let modal = document.getElementById('formModal') || document.getElementById('modal');
-if (modal) {
-  modal.classList.remove('hidden');
-  modal.classList.add('flex');
+let formModal = document.getElementById('formModal') || document.getElementById('modal');
+if (formModal) {
+  formModal.classList.remove('hidden');
+  formModal.classList.add('flex');
 }
 
  function hitungTanggalSelesai() {
