@@ -1690,17 +1690,16 @@ function renderFormFields(headers) {
         input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-300 cursor-not-allowed font-bold";
         
         let autoVal = "";
-        if (currentUser[h]) {
+        if (currentUser && currentUser[h]) {
           autoVal = currentUser[h];
         } else if (currentUser && currentUser.sekolah && currentUser.sekolah[h]) {
           autoVal = currentUser.sekolah[h];
         } else if (rowData && rowData[h]) {
           autoVal = rowData[h];
         }
-       // Masukkan nilai ke input, jika kosong beri teks keterangan
-       input.value = autoVal ? autoVal : "Belum diatur Admin";
-      }
-        input.value = autoVal;
+        
+        // Masukkan nilai ke input secara aman, cegah undefined
+        input.value = autoVal ? autoVal : "";
       } else if (h.toLowerCase() === 'tanggal_mulai') {
         input = document.createElement('input');
         input.type = "date";
