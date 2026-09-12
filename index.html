@@ -1698,8 +1698,8 @@ function renderFormFields(headers) {
           autoVal = rowData[h];
         }
         
-        // Masukkan nilai ke input secara aman, cegah undefined
-        input.value = autoVal ? autoVal : "";
+        // Pastikan jika nilainya falsy atau string undefined, dikosongkan jadi string kosong
+        input.value = (autoVal && autoVal !== "undefined") ? autoVal : "";
       } else if (h.toLowerCase() === 'tanggal_mulai') {
         input = document.createElement('input');
         input.type = "date";
