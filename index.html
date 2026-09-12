@@ -1905,12 +1905,13 @@ if (formModal) {
  }
  }
 
- function closeModal() {
- let modal = document.getElementById('dataModal');
- modal.classList.add('hidden');
- modal.classList.remove('flex');
- }
-
+function closeModal() {
+  let modal = document.getElementById('dataModal');
+  if (modal) {
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+  }
+}
  async function handleFormSubmit(e) {
  if (e) e.preventDefault();
  
