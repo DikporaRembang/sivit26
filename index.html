@@ -2203,8 +2203,50 @@ function checkNpsnOtomatis(npsn) {
   }, 400);
 }
 </script>
-</body>
-</html>
-}
+<script>
+  function handleLogin(event) {
+    event.preventDefault(); // Mencegah form reload halaman
+
+    let usernameInput = document.getElementById('loginUser').value.trim();
+    let passwordInput = document.getElementById('loginPass').value.trim();
+    let btnSubmit = document.getElementById('btnLoginSubmit');
+
+    if (!usernameInput || !passwordInput) {
+      alert('NPSN/Username dan Password wajib diisi!');
+      return;
+    }
+
+    // Ubah tombol jadi loading
+    btnSubmit.disabled = true;
+    btnSubmit.innerText = "Memproses...";
+
+    let payload = {
+      username: usernameInput,
+      password: passwordInput
+    };
+
+    google.script.run
+      .withSuccessHandler(function(response) {
+        btnSubmit.disabled = false;
+        btnSubmit.innerText = "Masuk Sistem";
+
+        let res = typeof response === 'string' ? JSON.parse(response) : response;
+
+        if (res.status === 'success') {
+          alert("Login Berhasil! Selamat datang, " + res.role);
+          // Tambahkan kode untuk menyembunyikan halaman login dan menampilkan dashboard di sini
+        } else {
+          alert("Gagal Login: " + (res.pesan || "Username atau password salah."));
+        }
+      })
+      .withFailureHandler(function(error) {
+        btnSubmit.disabled = false;
+        btnSubmit.innerText = "Masuk Sistem";
+        alert("Terjadi kesalahan koneksi ke server: " + error.message);
+      })
+      .handleLogin(payload);
+  }
+
+</script>
 </body>
 </html>
