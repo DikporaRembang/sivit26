@@ -503,52 +503,52 @@ async function handleLogin(e) {
   }
 }
 
-async function handleRegister(e) {
-  e.preventDefault();
-
-  const npsnInput = document.getElementById('regNpsn').value.trim();
-  const namaSekolahInput = document.getElementById('regNamaSekolah').value.trim();
-  const passwordInput = document.getElementById('regPass').value.trim();
-  const btnSubmit = document.getElementById('btnRegSubmit');
-
-  if (!npsnInput || !passwordInput) {
-    alert("NPSN dan Password wajib diisi!");
-    return;
-  }
-
-  if (btnSubmit) {
-    btnSubmit.disabled = true;
-    btnSubmit.innerText = "Mengirim...";
-  }
-
-  try {
-    const response = await fetch(WEB_APP_URL, {
-      method: 'POST',
-      body: JSON.stringify({
-        action: 'register',
-        npsn: npsnInput,
-        nama_lengkap: namaSekolahInput,
-        password: passwordInput
-      })
-    });
-
-    const result = await response.json();
-
-    if (result.status === 'success') {
-      alert(result.pesan || "Pendaftaran berhasil dikirim!");
-      switchTab('login');
-    } else {
-      alert("Pendaftaran Gagal: " + (result.pesan || "Terjadi kesalahan."));
-    }
-  } catch (err) {
-    console.error("Error register:", err);
-    alert("Terjadi kesalahan koneksi ke server.");
-  } finally {
-    if (btnSubmit) {
-      btnSubmit.disabled = false;
-      btnSubmit.innerText = "Kirim Pendaftaran";
-    }
-  }
+async function handleRegister(e) {  
+  e.preventDefault();  
+  
+  const npsnInput = document.getElementById('regNpsn').value.trim();  
+  const namaSekolahInput = document.getElementById('regNamaSekolah').value.trim();  
+  const passwordInput = document.getElementById('regPass').value.trim();  
+  const btnSubmit = document.getElementById('btnRegSubmit');  
+  
+  if (!npsnInput || !passwordInput) {  
+    alert("NPSN dan Password wajib diisi!");  
+    return;  
+  }  
+  
+  if (btnSubmit) {  
+    btnSubmit.disabled = true;  
+    btnSubmit.innerText = "Mengirim...";  
+  }  
+  
+  try {  
+    const response = await fetch(WEB_APP_URL, {  
+      method: 'POST',  
+      body: JSON.stringify({  
+        action: 'register',  
+        npsn: npsnInput,          // Cocok dengan kolom 'npsn' di database & backend
+        nama_lengkap: namaSekolahInput, // Akan masuk ke 'nama_pengguna' di users & 'nama_sekolah' di sekolah_pending
+        password: passwordInput   // Cocok dengan kolom 'password'
+      })  
+    });  
+    
+    const result = await response.json();  
+    
+    if (result.status === 'success') {  
+      alert(result.pesan || "Pendaftaran berhasil dikirim!");  
+      switchTab('login');  
+    } else {  
+      alert("Pendaftaran Gagal: " + (result.pesan || "Terjadi kesalahan."));  
+    }  
+  } catch (err) {  
+    console.error("Error register:", err);  
+    alert("Terjadi kesalahan koneksi ke server.");  
+  } finally {  
+    if (btnSubmit) {  
+      btnSubmit.disabled = false;  
+      btnSubmit.innerText = "Kirim Pendaftaran";  
+    }  
+  }  
 }
  
  function logout() {
