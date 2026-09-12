@@ -326,7 +326,7 @@
  
 <!-- ================= SCRIPT UTAMA ================= -->
 <script>
- const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw2WsNIlOT6nROLo6GmoEc7XNnJFiWr-j89x_UbfJ2_JK5zDRNTW7TAx-EZZcUZ_VqHgA/exec";
+ const WEB_APP_URL = "https://script.google.com/macros/s/AKfycby_vVrRiEz9VJJL8EqCz5SXCvCH2zI9X8r6_7puuG5TxCCk9XOD2wXluTFJIQ8C4MqfUw/exec";
  
 let currentUser = null;
  let currentActiveSheet = '';
@@ -586,7 +586,7 @@ let selectNpsn = document.getElementById('selectDinasNpsn');
 
  renderSidebar();
  
- if (currentUser.role === 'DINAS') {
+if (currentUser.role === 'DINAS') {
  loadTableData('paket_pekerjaan_sd', 'Data Paket Pekerjaan SD');
  } else {
  // Sekolah langsung diarahkan ke sub menu Profil & Tim Teknis saat pertama kali masuk
@@ -979,7 +979,7 @@ max: 100
  td.className = "p-3 text-slate-900 text-xs truncate max-w-xs font-bold";
  let val = row[h] !== undefined ? row[h] : "";
 
- if ((h.toLowerCase() === 'pagu' || h.toLowerCase() === 'pagu_lama' || h.toLowerCase() === 'pagu_baru' || h.toLowerCase() === 'penggunaan_anggaran') && !isNaN(val) && val !== "") {
+ if ((h.toLowerCase() === 'pagu' || h.toLowerCase() === 'pagu_lama' || h.toLowerCase() === 'pagu_baru' || h.toLowerCase() === 'penggunaan_anggaran' || h.toLowerCase() === 'pagu_usulan') && !isNaN(val) && val !== "") {
  let angkaNum = Number(val);
  val = "Rp " + angkaNum.toLocaleString('id-ID');
  }
@@ -1512,13 +1512,9 @@ let defOpt = document.createElement('option');
  hiddenRealInput.name = h;
  hiddenRealInput.value = initialNum;
 
- if (currentUser.role === 'SEKOLAH') {
- let currentNamaMenuVal = rowData ? rowData['nama_menu'] : "";
- if (!currentNamaMenuVal) {
- input.disabled = true;
- input.placeholder = "Pilih Nama Menu terlebih dahulu untuk mengisi Pagu";
- input.className += " opacity-50 cursor-not-allowed";
- }
+ if (currentUser.role === 'SEKOLAH' && rowData) {
+ // Mengizinkan sekolah mengajukan usulan pagu baru pada paket yang sudah ada
+ input.placeholder = "Masukkan pagu anggaran baru untuk diajukan";
  }
 
  input.oninput = function() {
@@ -1531,6 +1527,9 @@ let defOpt = document.createElement('option');
  wrapper.appendChild(input);
  wrapper.appendChild(hiddenRealInput);
  div.appendChild(wrapper);
+ } else if (h.toLowerCase() === 'pagu_usulan' || h.toLowerCase() === 'status_pagu') {
+ // Kolom khusus backend/usulan pagu disembunyikan dari form input langsung sekolah/dinas reguler agar rapi
+ return;
  } else if (h.toLowerCase() === 'perencana' || h.toLowerCase() === 'pengawas') {
  input = document.createElement('input');
  input.type = "text";
@@ -1703,7 +1702,7 @@ else if (isUserSchoolEditing) {
  input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
  input.value = rowData ? (rowData[h] !== undefined ? rowData[h] : "") : "";
  
- // SEKOLAH HANYA BISA MENGEDIT PERENCANA DAN PENGAWAS. Password dan Catatan Dinas terblok/read-only.
+// SEKOLAH HANYA BISA MENGEDIT PERENCANA DAN PENGAWAS. Kolom sistem/lainnya diblokir.
  let hLower = h.toLowerCase();
  if (hLower !== 'perencana' && hLower !== 'pengawas') {
  input.readOnly = true;
