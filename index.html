@@ -1607,13 +1607,14 @@ function renderFormFields(headers) {
     div.appendChild(label);
 
     let input;
-    let hLower = h ? h.toLowerCase() : '';
+    let hLower = h ? h.toLowerCase().trim() : '';
 
-    // Ambil variabel global dengan aman tanpa merusak alur sistem lain
-    let activeSheet = (typeof currentActiveSheet !== 'undefined') ? currentActiveSheet : '';
+    // Ambil variabel global dengan aman
+    let activeSheet = (typeof currentActiveSheet !== 'undefined') ? String(currentActiveSheet).toLowerCase().trim().replace(/[\s-]/g, '_') : '';
     let user = (typeof currentUser !== 'undefined') ? currentUser : {};
     let dataRow = (typeof rowData !== 'undefined') ? rowData : null;
 
+    // Deteksi fleksibel untuk sheet paket pekerjaan SD
     if (activeSheet === 'paket_pekerjaan_sd') {
       if (hLower === 'paket_id') {
         input = document.createElement('input');
@@ -1630,7 +1631,7 @@ function renderFormFields(headers) {
         input.name = h;
         input.readOnly = true;
         input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-blue-300 cursor-not-allowed";
-        input.value = user.username || user.npsn || '';
+        input.value = user.username || user.npsn || user.NPSN || '';
       } 
       else if (hLower === 'nama_menu') {
         // Dropdown nama_menu dengan filter 1 sekolah 1 nama_menu unik
@@ -1644,23 +1645,23 @@ function renderFormFields(headers) {
         defOpt.innerText = "-- Pilih Menu Pekerjaan Baru --";
         input.appendChild(defOpt);
 
-        if (typeof menuPekerjaanList !== 'undefined' && Array.isArray(menuPekerjaanList)) {
-          let selectedMenus = [];
-          if (typeof allTableData !== 'undefined' && Array.isArray(allTableData)) {
-            let currentNpsn = String(user.username || user.npsn || '').trim();
-            // Ambil daftar menu yang sudah pernah didaftarkan oleh NPSN ini sebelumnya
-            selectedMenus = allTableData
-              .filter(row => String(row.npsn || row.NPSN || '').trim() === currentNpsn)
-              .map(row => String(row.nama_menu || row.Nama_Menu || '').trim().toLowerCase());
-          }
+        let menuList = (typeof menuPekerjaanList !== 'undefined') ? menuPekerjaanList : [];
+        let selectedMenus = [];
+        
+        if (typeof allTableData !== 'undefined' && Array.isArray(allTableData)) {
+          let currentNpsn = String(user.username || user.npsn || user.NPSN || '').trim();
+          selectedMenus = allTableData
+            .filter(row => String(row.npsn || row.NPSN || '').trim() === currentNpsn)
+            .map(row => String(row.nama_menu || row.Nama_Menu || '').trim().toLowerCase());
+        }
 
-          menuPekerjaanList.forEach(m => {
-            let menuName = m.nama_menu || m.menu || m.Nama_Menu || '';
+        if (Array.isArray(menuList) && menuList.length > 0) {
+          menuList.forEach(m => {
+            let menuName = m.nama_menu || m.menu || m.Nama_Menu || m.nama || '';
             let menuNameLower = menuName.trim().toLowerCase();
             let isAlreadySelected = selectedMenus.includes(menuNameLower);
             let isCurrentRowMenu = dataRow ? String(dataRow[h] || '').trim().toLowerCase() === menuNameLower : false;
 
-            // Masukkan ke pilihan hanya jika belum dipilih oleh sekolah tersebut, atau jika sedang mode edit baris miliknya
             if (!isAlreadySelected || isCurrentRowMenu) {
               let opt = document.createElement('option');
               opt.value = menuName;
@@ -1672,17 +1673,15 @@ function renderFormFields(headers) {
         }
       } 
       else if (hLower === 'pagu') {
-        // Nilai pagu akhir disetujui Dinas (Read-only bagi sekolah)
         let rawVal = (dataRow && dataRow[h] !== undefined) ? dataRow[h] : "0";
         input = document.createElement('input');
         input.type = "text";
         input.name = h;
         input.readOnly = true;
         input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-400 cursor-not-allowed font-bold";
-        input.value = "Rp " + Number(rawVal || 0).toLocaleString('id-ID');
+        input.value = "Rp " + Number(String(rawVal).replace(/[^0-9]/g, '') || 0).toLocaleString('id-ID');
       }
       else if (hLower === 'pagu_usulan') {
-        // Input pagu usulan oleh sekolah dengan format pemisah ribuan otomatis
         let rawVal = (dataRow && dataRow[h] !== undefined) ? dataRow[h] : "";
         let initialNum = rawVal !== "" ? Number(String(rawVal).replace(/[^0-9]/g, '')) : "";
 
@@ -1722,14 +1721,13 @@ function renderFormFields(headers) {
         input.value = (dataRow && dataRow[h]) ? dataRow[h] : "DIAJUKAN";
       } 
       else if (hLower === 'perencana' || hLower === 'pengawas') {
-        // Terisi otomatis dari data profil user sekolah
         input = document.createElement('input');
         input.type = "text";
         input.name = h;
         input.readOnly = true;
         input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-300 cursor-not-allowed font-bold";
         
-        let autoVal = user[h] ? user[h] : (dataRow ? dataRow[h] : "");
+        let autoVal = user[h] || user[h.toLowerCase()] || user[h.toUpperCase()] || (dataRow ? dataRow[h] : "");
         input.value = (autoVal && autoVal !== "undefined") ? autoVal : "-";
       } 
       else if (hLower === 'tanggal_mulai') {
@@ -1770,7 +1768,6 @@ function renderFormFields(headers) {
       }
     } 
     else {
-      // Penanganan form untuk sheet/tabel lain di luar paket_pekerjaan_sd
       input = document.createElement('input');
       input.type = "text";
       input.name = h;
