@@ -454,7 +454,6 @@ document.getElementById('regNpsn').addEventListener('blur', function() {
 async function handleLogin(e) {
   e.preventDefault();
   
-  // Ambil nilai dari input form login (sesuai id di HTML)
   const usernameInput = document.getElementById('loginUser').value.toLowerCase().trim();
   const passwordInput = document.getElementById('loginPass').value.trim();
   const btnSubmit = document.getElementById('btnLoginSubmit');
@@ -464,28 +463,23 @@ async function handleLogin(e) {
     return;
   }
 
-  // Ubah status tombol jadi loading
   if (btnSubmit) {
     btnSubmit.disabled = true;
     btnSubmit.innerText = "Memproses...";
   }
 
   try {
-   // Ubah ke metode GET dan kirim parameter langsung via URL query string
-   const urlWithParams = `${WEB_APP_URL}?action=login&username=${encodeURIComponent(usernameInput)}&password=${encodeURIComponent(passwordInput)}`;
-  
-   const response = await fetch(urlWithParams, {
-    method: 'GET'
-   });
-  
-   let result = await response.json();
-   // ... lanjutkan proses penanganan hasil login (result) seperti biasa
+    const urlWithParams = `${WEB_APP_URL}?action=login&username=${encodeURIComponent(usernameInput)}&password=${encodeURIComponent(passwordInput)}`;
+   
+    const response = await fetch(urlWithParams, {
+      method: 'GET'
+    });
+   
+    let result = await response.json();
 
     if (result.status === 'success') {
       alert(result.pesan || "Login berhasil!");
-      // Simpan data sesi pengguna ke localStorage jika diperlukan
       localStorage.setItem('sivit_user', JSON.stringify(result.data));
-      // Arahkan ke halaman dashboard sesuai role
       window.location.reload(); 
     } else {
       alert("Gagal Login: " + (result.pesan || "Username atau password salah."));
@@ -500,7 +494,6 @@ async function handleLogin(e) {
     }
   }
 }
-
 async function handleRegister(e) {  
   e.preventDefault();  
   
