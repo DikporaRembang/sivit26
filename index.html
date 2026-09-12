@@ -1593,11 +1593,15 @@ async function handleFormSubmit(e) {
 
 // 3. Bungkus perulangan render form fields ke dalam fungsi agar aman dari error headers is not defined
 function renderFormFields(headers) {
+  console.log("Fungsi renderFormFields dipanggil dengan headers:", headers); // <-- Tambahkan baris ini
   // Pengaman utama agar fungsi tidak berjalan jika headers tidak valid atau form belum terbuka
   if (!headers || !Array.isArray(headers)) return;
 
   let container = document.getElementById('formFieldsContainer');
   if (!container) return; // Mencegah error jika dipanggil di luar halaman form (seperti saat login)
+   console.log("Elemen formFieldsContainer tidak ditemukan di DOM!"); // <-- Tambahkan baris ini
+   return;
+  }
   container.innerHTML = '';
 
   headers.forEach(h => {
