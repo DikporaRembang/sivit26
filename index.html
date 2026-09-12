@@ -328,12 +328,12 @@
 <script>
  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw2WsNIlOT6nROLo6GmoEc7XNnJFiWr-j89x_UbfJ2_JK5zDRNTW7TAx-EZZcUZ_VqHgA/exec";
  
- let currentUser = null;
+let currentUser = null;
  let currentActiveSheet = '';
  let currentHeaders = [];
  let currentData = [];
  let originalServerData = []; 
- let paketPekerjaanList = [];
+let paketPekerjaanList = [];
  let menuPekerjaanList = [];
  let usersList = [];
  let chartKurvaSInstance = null;
@@ -395,11 +395,11 @@
  let listNotif = response.data || [];
  let badge = document.getElementById('notifBadge');
  
- if (listNotif.length > 0) {
+if (listNotif.length > 0) {
  badge.innerText = listNotif.length;
  badge.classList.remove('hidden');
  
- container.innerHTML = "";
+container.innerHTML = "";
  listNotif.reverse().forEach(n => {
  let div = document.createElement('div');
  div.className = "p-3 hover:bg-blue-800/40 transition-colors flex flex-col justify-between";
@@ -431,12 +431,12 @@
  if (result.status === "success") {
  let targetPenerima = (currentUser && currentUser.role === 'DINAS') ? 'DINAS' : (currentUser ? currentUser.username : '');
  loadNotifikasi(targetPenerima); 
- }
+}
  })
  .catch(error => console.error("Error:", error));
  }
  
- document.getElementById('regNpsn').addEventListener('blur', function() {
+document.getElementById('regNpsn').addEventListener('blur', function() {
  let npsn = this.value.trim();
  if (!npsn) return;
  fetch(`${WEB_APP_URL}?action=checkNpsn&npsn=${npsn}`)
@@ -537,7 +537,7 @@
  function populateDinasFilterOptions() {
  if (!currentUser || currentUser.role !== 'DINAS') return;
  
- let selectNpsn = document.getElementById('selectDinasNpsn');
+let selectNpsn = document.getElementById('selectDinasNpsn');
  let selectPaket = document.getElementById('selectDinasPaket');
  if (!selectNpsn || !selectPaket) return;
 
@@ -589,7 +589,8 @@
  if (currentUser.role === 'DINAS') {
  loadTableData('paket_pekerjaan_sd', 'Data Paket Pekerjaan SD');
  } else {
- loadTableData('paket_pekerjaan_sd', 'Paket Pekerjaan Saya');
+ // Sekolah langsung diarahkan ke sub menu Profil & Tim Teknis saat pertama kali masuk
+ loadTableData('users', 'Profil & Tim Teknis');
  }
  }
 
@@ -610,11 +611,11 @@
  ];
  } else {
  menus = [
+ { name: 'Profil & Tim Teknis', sheet: 'users', icon: 'fa-user-gear' },
  { name: 'Paket Pekerjaan Saya', sheet: 'paket_pekerjaan_sd', icon: 'fa-box' },
  { name: 'Peta Persebaran (GIS)', sheet: 'peta_gis', icon: 'fa-map-location-dot' },
  { name: 'Laporan Progres Fisik', sheet: 'laporan_progres', icon: 'fa-clipboard-list' },
- { name: 'Kurva S & Grafik', sheet: 'kurva_s', icon: 'fa-chart-area' },
- { name: 'Profil & Tim Teknis', sheet: 'users', icon: 'fa-user-gear' }
+ { name: 'Kurva S & Grafik', sheet: 'kurva_s', icon: 'fa-chart-area' }
  ];
  }
 
@@ -642,7 +643,7 @@
  document.getElementById('contentTitle').innerText = displayTitle;
  document.getElementById('contentSubtitle').innerText = "Memuat data dari server...";
  
- let filterDinasEl = document.getElementById('filterDinasContainer');
+let filterDinasEl = document.getElementById('filterDinasContainer');
  let kurvaEl = document.getElementById('kurvaSContainer');
  let mapEl = document.getElementById('gisMapContainer');
  let printableAreaEl = document.getElementById('printableArea');
@@ -750,7 +751,7 @@
  if (result.status === 'success') {
  let listLaporan = result.data || [];
  
- leafletMap.eachLayer((layer) => {
+leafletMap.eachLayer((layer) => {
  if (layer instanceof L.Marker) {
  leafletMap.removeLayer(layer);
  }
@@ -821,7 +822,7 @@
  }
  }
  
- function renderKurvaSChart() {
+function renderKurvaSChart() {
  let ctx = document.getElementById('chartKurvaS').getContext('2d');
  if (chartKurvaSInstance) chartKurvaSInstance.destroy();
 
@@ -848,7 +849,7 @@
 
  let labels = currentData.map(d => d.minggu_ke || d.minggu || d.tanggal_lapor || 'Minggu');
  
- let targetData = currentData.map(d => {
+let targetData = currentData.map(d => {
  let val = d.target_kurva_s !== undefined ? d.target_kurva_s : (d.target || 0);
  return Number(String(val).replace('%','')) || 0;
  });
@@ -864,7 +865,7 @@
  let paguPekerjaan = matchedPaket ? (Number(matchedPaket.pagu || matchedPaket.pagu_anggaran) || 0) : 0;
  let penggunaan = Number(d.penggunaan_anggaran || d.anggaran || 0);
  
- if (paguPekerjaan > 0) {
+if (paguPekerjaan > 0) {
  return Number(((penggunaan / paguPekerjaan) * 100).toFixed(2));
  }
  return 0;
@@ -905,11 +906,11 @@
  responsive: true,
  maintainAspectRatio: false,
  scales: { 
- y: { 
- beginAtZero: true, 
- max: 100 
- } 
- }
+y: { 
+beginAtZero: true, 
+max: 100 
+} 
+}
  }
  });
  }
@@ -1176,7 +1177,7 @@
  <p class="text-xs text-gray-600">ID Paket: ${paket.paket_id || paket.id_paket || '-'}</p>
  </div>
  
- <div class="mb-6 grid grid-cols-2 gap-4 text-xs bg-gray-50 p-4 rounded-lg border border-gray-200">
+<div class="mb-6 grid grid-cols-2 gap-4 text-xs bg-gray-50 p-4 rounded-lg border border-gray-200">
  <div>
  <table class="w-full">
  <tr><td class="font-semibold py-0.5 w-1/3">NPSN:</td><td>${targetNpsn}</td></tr>
@@ -1249,7 +1250,7 @@
  printWindow.document.close();
  }
  
- async function verifyReg(npsn, status) {
+async function verifyReg(npsn, status) {
  if(!confirm(`Ubah status pendaftaran sekolah menjadi ${status}?`)) return;
  try {
  const res = await fetch(WEB_APP_URL, {
@@ -1326,11 +1327,11 @@
 
  document.getElementById('formRowIndex').value = rowData ? rowData._rowIndex : "";
  
- if (!rowData) {
+if (!rowData) {
  modalTitle.innerText = "Tambah Paket Pekerjaan Baru";
  btnSave.innerText = "Tambah Paket";
  } else {
- modalTitle.innerText = "Edit Paket Pekerjaan";
+ modalTitle.innerText = currentActiveSheet === 'users' ? "Edit Profil & Tim Teknis" : "Edit Paket Pekerjaan";
  btnSave.innerText = "Simpan Perubahan";
  }
 
@@ -1351,13 +1352,13 @@
  if (h.toLowerCase().includes('foto_dokumentasi') || h.toLowerCase().includes('foto')) {
  div.className = "space-y-2 p-3 bg-blue-950/60 rounded-xl border border-amber-400/30";
  
- input = document.createElement('input');
+input = document.createElement('input');
  input.type = "file";
  input.accept = "image/*";
  input.id = "fileInput_" + h;
  input.className = "hidden";
  
- let hiddenValInput = document.createElement('input');
+let hiddenValInput = document.createElement('input');
  hiddenValInput.type = "hidden";
  hiddenValInput.name = h;
  hiddenValInput.id = "valInput_" + h;
@@ -1388,7 +1389,7 @@
  metaInfo.innerText = "Mengekstrak metadata EXIF foto...";
  manualFallbackContainer.classList.add('hidden');
  
- let reader = new FileReader();
+let reader = new FileReader();
  reader.onload = function(evt) {
  let base64String = evt.target.result;
  hiddenValInput.value = JSON.stringify({
@@ -1457,7 +1458,7 @@
  div.appendChild(metaInfo);
  div.appendChild(manualFallbackContainer);
  } 
- else if (currentActiveSheet === 'paket_pekerjaan_sd') {
+else if (currentActiveSheet === 'paket_pekerjaan_sd') {
  if (h.toLowerCase() === 'paket_id') {
  input = document.createElement('input');
  input.type = "text";
@@ -1478,7 +1479,7 @@
  input.id = "nama_menu";
  input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
  
- let defOpt = document.createElement('option');
+let defOpt = document.createElement('option');
  defOpt.value = "";
  defOpt.innerText = "-- Pilih Menu Pekerjaan --";
  input.appendChild(defOpt);
@@ -1537,7 +1538,7 @@
  input.readOnly = true;
  input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-300 cursor-not-allowed font-bold";
  
- let autoVal = "";
+let autoVal = "";
  if (currentUser[h]) {
  autoVal = currentUser[h];
  } else if (currentUser.sekolah && currentUser.sekolah[h]) {
@@ -1579,7 +1580,7 @@
  input.value = rowData ? (rowData[h] !== undefined ? rowData[h] : "") : "";
  }
  } 
- else if (currentActiveSheet === 'laporan_progres') {
+else if (currentActiveSheet === 'laporan_progres') {
  if (h.toLowerCase() === 'id') {
  input = document.createElement('input');
  input.type = "text";
@@ -1592,7 +1593,7 @@
  input.name = h;
  input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
  
- let defaultOpt = document.createElement('option');
+let defaultOpt = document.createElement('option');
  defaultOpt.value = "";
  defaultOpt.innerText = "-- Pilih Paket Pekerjaan --";
  input.appendChild(defaultOpt);
@@ -1613,7 +1614,7 @@
  input.name = h;
  input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
  
- let defOpt = document.createElement('option');
+let defOpt = document.createElement('option');
  defOpt.value = "";
  defOpt.innerText = "-- Pilih Rentang Minggu --";
  input.appendChild(defOpt);
@@ -1628,7 +1629,7 @@
  let fmtStart = `${String(startD.getDate()).padStart(2, '0')}/${String(startD.getMonth() + 1).padStart(2, '0')}/${startD.getFullYear()}`;
  let fmtEnd = `${String(endD.getDate()).padStart(2, '0')}/${String(endD.getMonth() + 1).padStart(2, '0')}/${endD.getFullYear()}`;
  
- let labelMinggu = `Minggu ke-${w} ${fmtStart} s/d ${fmtEnd}`;
+let labelMinggu = `Minggu ke-${w} ${fmtStart} s/d ${fmtEnd}`;
  let opt = document.createElement('option');
  opt.value = labelMinggu;
  opt.innerText = labelMinggu;
@@ -1695,15 +1696,18 @@
  input.value = rowData ? (rowData[h] !== undefined ? rowData[h] : "") : "";
  }
  } 
- else if (isUserSchoolEditing) {
+else if (isUserSchoolEditing) {
  input = document.createElement('input');
  input.type = "text";
  input.name = h;
  input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
  input.value = rowData ? (rowData[h] !== undefined ? rowData[h] : "") : "";
- if (h.toLowerCase() === 'username' || h.toLowerCase() === 'id' || h.toLowerCase() === 'role' || h.toLowerCase() === 'status') {
+ 
+ // SEKOLAH HANYA BISA MENGEDIT PERENCANA DAN PENGAWAS. Password dan Catatan Dinas terblok/read-only.
+ let hLower = h.toLowerCase();
+ if (hLower !== 'perencana' && hLower !== 'pengawas') {
  input.readOnly = true;
- input.className += " opacity-60 cursor-not-allowed";
+ input.className += " opacity-60 cursor-not-allowed bg-blue-950/60";
  }
  } else {
  input = document.createElement('input');
@@ -1750,7 +1754,7 @@
  async function handleFormSubmit(e) {
  if (e) e.preventDefault();
  
- let form = e.target;
+let form = e.target;
  let rowIndex = document.getElementById('formRowIndex').value;
  let formDataObj = {};
 
@@ -1758,37 +1762,37 @@
  inputs.forEach(inp => {
  if (inp.name && inp.name !== 'formRowIndex') {
  if (inp.id === 'inputPaguFormatted') return; 
- formDataObj[inp.name] = inp.value;
+formDataObj[inp.name] = inp.value;
  }
  });
 
  if (currentActiveSheet === 'paket_pekerjaan_sd' && currentUser.role === 'SEKOLAH') {
  let isNewData = !rowIndex; 
 
- if (isNewData) {
+if (isNewData) {
  let inputNamaMenu = String(
  formDataObj['nama_menu'] || 
- (document.getElementById('nama_menu') ? document.getElementById('nama_menu').value : '')
+(document.getElementById('nama_menu') ? document.getElementById('nama_menu').value : '')
  ).trim().toLowerCase();
  
- if (inputNamaMenu) {
+if (inputNamaMenu) {
  formDataObj['nama_menu'] = inputNamaMenu;
  }
  
- if (!inputNamaMenu) {
+if (!inputNamaMenu) {
  alert("Nama Menu Pekerjaan wajib diisi!");
  return; 
- }
+}
 
  let isDuplicate = paketPekerjaanList.some(p => 
- String(p.npsn || '').trim() === String(currentUser.username).trim() &&
+String(p.npsn || '').trim() === String(currentUser.username).trim() &&
  String(p.nama_menu || '').trim().toLowerCase() === inputNamaMenu
  );
 
  if (isDuplicate) {
  alert("Peringatan: Menu pekerjaan dengan nama tersebut sudah pernah ditambahkan sebelumnya. Silakan pilih nama menu yang lain.");
  return; 
- }
+}
  }
  }
 
@@ -1816,6 +1820,16 @@
  alert(result.pesan);
 
  if (result.status === 'success') {
+ // Jika sekolah mengedit profil tim teknis, perbarui objek currentUser secara lokal agar langsung sinkron ke paket pekerjaan
+ if (currentUser.role === 'SEKOLAH' && currentActiveSheet === 'users') {
+ currentUser.perencana = formDataObj['perencana'] || currentUser.perencana;
+ currentUser.pengawas = formDataObj['pengawas'] || currentUser.pengawas;
+ if (!currentUser.sekolah) currentUser.sekolah = {};
+ currentUser.sekolah.perencana = currentUser.perencana;
+ currentUser.sekolah.pengawas = currentUser.pengawas;
+ localStorage.setItem('sivit_user', JSON.stringify(currentUser));
+ }
+
  closeModal();
  loadTableData(currentActiveSheet);
  }
@@ -1868,7 +1882,7 @@
  if (result.status === 'success') {
  let dataRiwayat = (result.data || []).filter(r => String(r.paket_id || '').trim() === String(paketId).trim());
  
- let foundUser = usersList.find(u => String(u.username || u.npsn || '').trim() === String(npsn).trim());
+let foundUser = usersList.find(u => String(u.username || u.npsn || '').trim() === String(npsn).trim());
  infoNamaSekolah.innerText = foundUser ? `${npsn} - ${foundUser.nama_pengguna || foundUser.nama_sekolah}` : `NPSN: ${npsn}`;
 
  let foundPaket = paketPekerjaanList.find(p => String(p.paket_id || '').trim() === String(paketId).trim());
