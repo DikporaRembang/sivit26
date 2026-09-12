@@ -1590,11 +1590,11 @@ async function handleFormSubmit(e) {
 
 // 3. Bungkus perulangan render form fields ke dalam fungsi agar aman dari error headers is not defined
 function renderFormFields(headers) {
-  // PENGAMAN UTAMA: Jika headers kosong atau bukan array, hentikan fungsi agar tidak merusak alur lain (seperti login)
+  // Pengaman utama agar fungsi tidak berjalan jika headers tidak valid atau form belum terbuka
   if (!headers || !Array.isArray(headers)) return;
 
   let container = document.getElementById('formFieldsContainer');
-  if (!container) return; // Jika container form belum ada (misal masih di halaman login), batalkan dengan aman
+  if (!container) return; // Mencegah error jika dipanggil di luar halaman form (seperti saat login)
   container.innerHTML = '';
 
   headers.forEach(h => {
@@ -1609,7 +1609,7 @@ function renderFormFields(headers) {
     let input;
     let hLower = h ? h.toLowerCase() : '';
 
-    // Pastikan variabel global aman dibaca
+    // Ambil variabel global dengan aman tanpa merusak alur sistem lain
     let activeSheet = (typeof currentActiveSheet !== 'undefined') ? currentActiveSheet : '';
     let user = (typeof currentUser !== 'undefined') ? currentUser : {};
     let dataRow = (typeof rowData !== 'undefined') ? rowData : null;
@@ -1633,6 +1633,7 @@ function renderFormFields(headers) {
         input.value = user.username || user.npsn || '';
       } 
       else if (hLower === 'nama_menu') {
+        // Dropdown nama_menu dengan filter 1 sekolah 1 nama_menu unik
         input = document.createElement('select');
         input.name = h;
         input.id = "nama_menu";
@@ -1640,13 +1641,14 @@ function renderFormFields(headers) {
         
         let defOpt = document.createElement('option');
         defOpt.value = "";
-        defOpt.innerText = "-- Pilih Menu Pekerjaan --";
+        defOpt.innerText = "-- Pilih Menu Pekerjaan Baru --";
         input.appendChild(defOpt);
 
         if (typeof menuPekerjaanList !== 'undefined' && Array.isArray(menuPekerjaanList)) {
           let selectedMenus = [];
           if (typeof allTableData !== 'undefined' && Array.isArray(allTableData)) {
             let currentNpsn = String(user.username || user.npsn || '').trim();
+            // Ambil daftar menu yang sudah pernah didaftarkan oleh NPSN ini sebelumnya
             selectedMenus = allTableData
               .filter(row => String(row.npsn || row.NPSN || '').trim() === currentNpsn)
               .map(row => String(row.nama_menu || row.Nama_Menu || '').trim().toLowerCase());
@@ -1658,6 +1660,7 @@ function renderFormFields(headers) {
             let isAlreadySelected = selectedMenus.includes(menuNameLower);
             let isCurrentRowMenu = dataRow ? String(dataRow[h] || '').trim().toLowerCase() === menuNameLower : false;
 
+            // Masukkan ke pilihan hanya jika belum dipilih oleh sekolah tersebut, atau jika sedang mode edit baris miliknya
             if (!isAlreadySelected || isCurrentRowMenu) {
               let opt = document.createElement('option');
               opt.value = menuName;
@@ -1669,6 +1672,7 @@ function renderFormFields(headers) {
         }
       } 
       else if (hLower === 'pagu') {
+        // Nilai pagu akhir disetujui Dinas (Read-only bagi sekolah)
         let rawVal = (dataRow && dataRow[h] !== undefined) ? dataRow[h] : "0";
         input = document.createElement('input');
         input.type = "text";
@@ -1678,6 +1682,7 @@ function renderFormFields(headers) {
         input.value = "Rp " + Number(rawVal || 0).toLocaleString('id-ID');
       }
       else if (hLower === 'pagu_usulan') {
+        // Input pagu usulan oleh sekolah dengan format pemisah ribuan otomatis
         let rawVal = (dataRow && dataRow[h] !== undefined) ? dataRow[h] : "";
         let initialNum = rawVal !== "" ? Number(String(rawVal).replace(/[^0-9]/g, '')) : "";
 
@@ -1687,7 +1692,7 @@ function renderFormFields(headers) {
         input = document.createElement('input');
         input.type = "text";
         input.id = "inputPaguUsulanFormatted";
-        input.placeholder = "Masukkan nominal usulan pagu baru";
+        input.placeholder = "Masukkan nominal usulan pagu...";
         input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
         input.value = initialNum !== "" ? initialNum.toLocaleString('id-ID') : "";
 
@@ -1717,6 +1722,7 @@ function renderFormFields(headers) {
         input.value = (dataRow && dataRow[h]) ? dataRow[h] : "DIAJUKAN";
       } 
       else if (hLower === 'perencana' || hLower === 'pengawas') {
+        // Terisi otomatis dari data profil user sekolah
         input = document.createElement('input');
         input.type = "text";
         input.name = h;
@@ -1764,6 +1770,7 @@ function renderFormFields(headers) {
       }
     } 
     else {
+      // Penanganan form untuk sheet/tabel lain di luar paket_pekerjaan_sd
       input = document.createElement('input');
       input.type = "text";
       input.name = h;
