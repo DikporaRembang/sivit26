@@ -566,31 +566,40 @@
         });
         selectPaket.value = currentPaketVal;
     }
-
+    
     function initDashboard() {
-        document.getElementById('authContainer').classList.add('hidden');
-        document.getElementById('dashboardContainer').classList.remove('hidden');
-        document.getElementById('userNameDisplay').innerText = currentUser.nama_pengguna;
-        document.getElementById('userNpsnDisplay').innerText = "NPSN/ID: " + currentUser.username + " | Role: " + currentUser.role;
+      document.getElementById('authContainer').classList.add('hidden');
+      document.getElementById('dashboardContainer').classList.remove('hidden');
+      document.getElementById('userNameDisplay').innerText = currentUser.nama_pengguna;
+      document.getElementById('userNpsnDisplay').innerText = "NPSN/ID: " + currentUser.username + " | Role: " + currentUser.role;
 
-        let targetPenerima = (currentUser.role === 'DINAS') ? 'DINAS' : currentUser.username;
-        loadNotifikasi(targetPenerima);
+      let targetPenerima = (currentUser.role === 'DINAS') ? 'DINAS' : currentUser.username;
+      loadNotifikasi(targetPenerima);
 
-        if (currentUser.role === 'SEKOLAH' && currentUser.sekolah) {
-            document.getElementById('sekolahIdentitasCard').classList.remove('hidden');
-            document.getElementById('cardNpsn').innerText = currentUser.sekolah.npsn || currentUser.username || '-';
-            document.getElementById('cardNamaSekolah').innerText = currentUser.sekolah.nama_sekolah || '-';
-            document.getElementById('cardKecamatan').innerText = currentUser.sekolah.kecamatan || '-';
-            document.getElementById('cardAlamat').innerText = currentUser.sekolah.alamat_lengkap || '-';
-        }
+      if (currentUser.role === 'SEKOLAH' && currentUser.sekolah) {
+        document.getElementById('sekolahIdentitasCard').classList.remove('hidden');
+        document.getElementById('cardNpsn').innerText = currentUser.sekolah.npsn || currentUser.username || '-';
+        document.getElementById('cardNamaSekolah').innerText = currentUser.sekolah.nama_sekolah || '-';
+        document.getElementById('cardKecamatan').innerText = currentUser.sekolah.kecamatan || '-';
+        document.getElementById('cardAlamat').innerText = currentUser.sekolah.alamat_lengkap || '-';
+      }
 
-        renderSidebar();
-        
-        if (currentUser.role === 'DINAS') {
-            loadTableData('paket_pekerjaan_sd', 'Data Paket Pekerjaan SD');
+      renderSidebar();
+  
+      if (currentUser.role === 'DINAS') {
+        loadTableData('paket_pekerjaan_sd', 'Data Paket Pekerjaan SD');
+      } else {
+        // Cek apakah data perencana atau pengawas pada user yang login masih kosong
+        let isTimTeknisKosong = !currentUser.perencana || !currentUser.pengawas || String(currentUser.perencana).trim() === "" || String(currentUser.pengawas).trim() === "" || String(currentUser.perencana).trim() === "-";
+
+        if (isTimTeknisKosong) {
+          alert("Selamat datang! Silakan lengkapi data Perencana dan Pengawas terlebih dahulu sebelum mengakses menu lainnya.");
+          loadTableData('users', 'Profil & Tim Teknis');
         } else {
-            loadTableData('paket_pekerjaan_sd', 'Paket Pekerjaan Saya');
+          // Jika sudah terisi, langsung arahkan ke Paket Pekerjaan Saya
+          loadTableData('paket_pekerjaan_sd', 'Paket Pekerjaan Saya');
         }
+      }
     }
 
     function renderSidebar() {
