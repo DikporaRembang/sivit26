@@ -1882,54 +1882,6 @@ let foundUser = usersList.find(u => String(u.username || u.npsn || '').trim() ==
 // FUNGSI PENDUKUNG AUTH CONTAINER
 // ==========================================
 
-function switchTab(tab) {
-  const tabLogin = document.getElementById('tabLogin');
-  const tabRegister = document.getElementById('tabRegister');
-  const formLogin = document.getElementById('formLogin');
-  const formRegister = document.getElementById('formRegister');
-
-  if (!tabLogin || !tabRegister || !formLogin || !formRegister) return;
-
-  if (tab === 'login') {
-    tabLogin.className = "flex-1 pb-3 font-semibold text-amber-400 border-b-2 border-amber-400 transition-all text-sm cursor-pointer";
-    tabRegister.className = "flex-1 pb-3 font-semibold text-blue-300/60 border-b-2 border-transparent transition-all text-sm cursor-pointer";
-    formLogin.classList.remove('hidden');
-    formRegister.classList.add('hidden');
-  } else {
-    tabRegister.className = "flex-1 pb-3 font-semibold text-amber-400 border-b-2 border-amber-400 transition-all text-sm cursor-pointer";
-    tabLogin.className = "flex-1 pb-3 font-semibold text-blue-300/60 border-b-2 border-transparent transition-all text-sm cursor-pointer";
-    formRegister.classList.remove('hidden');
-    formLogin.classList.add('hidden');
-  }
-}
-
-function hitungTglSelesai() {
-  let tglMulaiEl = document.querySelector('input[name="tanggal_mulai"]');
-  let lamaHariEl = document.querySelector('input[name="lama_hari"]');
-  let tglSelesaiEl = document.getElementById('inputTglSelesai');
-
-  if (!tglMulaiEl || !lamaHariEl || !tglSelesaiEl) return;
-
-  let tglMulaiVal = tglMulaiEl.value;
-  let lamaHariVal = parseInt(lamaHariEl.value) || 0;
-
-  if (tglMulaiVal && lamaHariVal > 0) {
-    let parts = tglMulaiVal.split('-'); 
-    if (parts.length === 3) {
-      let dateObj = new Date(parts[0], parts[1] - 1, parts[2]);
-      dateObj.setDate(dateObj.getDate() + lamaHariVal);
-
-      let dd = String(dateObj.getDate()).padStart(2, '0');
-      let mm = String(dateObj.getMonth() + 1).padStart(2, '0');
-      let yyyy = dateObj.getFullYear();
-
-      tglSelesaiEl.value = `${dd}/${mm}/${yyyy}`;
-    }
-  } else {
-    tglSelesaiEl.value = "";
-  }
-}
-
 function hitungTglSelesai() {
   let tglMulaiEl = document.querySelector('input[name="tanggal_mulai"]');
   let lamaHariEl = document.querySelector('input[name="lama_hari"]');
