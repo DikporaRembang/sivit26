@@ -69,14 +69,12 @@
             <div>
                 <label class="block text-xs font-semibold uppercase tracking-wider text-blue-200 mb-1">NPSN Sekolah (ID Utama)</label>
                 <input type="text" id="regNpsn" required placeholder="Masukkan NPSN resmi..." class="w-full px-3.5 py-2.5 border border-blue-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400 text-sm bg-blue-950/50 text-white">
-               <div>
-                   <label class="block text-xs font-semibold uppercase tracking-wider text-blue-200 mb-1">NPSN Sekolah (ID Utama)</label>
-                   <input type="text" id="regNpsn" oninput="checkNpsnOtomatis(this.value)" required placeholder="Masukkan NPSN resmi..." class="w-full px-3.5 py-2.5 border border-blue-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400 text-sm bg-blue-950/50 text-white">
-               < div>
+            </div>
+            <div>
                 <label class="block text-xs font-semibold uppercase tracking-wider text-blue-200 mb-1">Nama Sekolah (Autofill)</label>
                 <input type="text" id="regNamaSekolah" readonly placeholder="Otomatis dari database dinas..." class="w-full px-3.5 py-2.5 bg-blue-950/30 border border-blue-800 rounded-xl text-blue-300 text-sm cursor-not-allowed">
             </div>
-         </form>
+            <div>
                 <label class="block text-xs font-semibold uppercase tracking-wider text-blue-200 mb-1">Password Akun</label>
                 <div class="relative">
                     <input type="password" id="regPass" required class="w-full px-3.5 py-2.5 pr-10 border border-blue-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400 text-sm bg-blue-950/50 text-white">
@@ -328,236 +326,1223 @@
  </div>
 </div>
  
-// ==========================================
-// RENDER FORM DINAMIS & VALIDASI NAMA MENU
-// ==========================================
-function renderFormFields(headers, rowData = null) {
-  let container = document.getElementById('formFieldsContainer');
-  if (!container) return;
-  container.innerHTML = '';
+<!-- ================= SCRIPT UTAMA ================= -->
+<script>
+ const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwFG9mzMBIZZAGsovxfQ8nbomfaZwsIYDzbeXm8_Lc1Ca3dMn-PpgCw6aQ7Qn6ughP7/exec";
+ 
+let currentUser = null;
+ let currentActiveSheet = '';
+ let currentHeaders = [];
+ let currentData = [];
+ let originalServerData = []; 
+let paketPekerjaanList = [];
+ let menuPekerjaanList = [];
+ let usersList = [];
+ let chartKurvaSInstance = null;
+ let leafletMap = null;
 
-  headers.forEach(h => {
-    if (h === '_rowIndex' || h === 'rowid') return;
-    let hLower = String(h).toLowerCase().trim();
-    let div = document.createElement('div');
-    div.className = "space-y-1.5";
+ function convertToInputDate(val) {
+ if (!val) return new Date().toISOString().split('T')[0];
+ if (val.includes('/')) {
+ let parts = val.split('/');
+ if (parts.length === 3) {
+ return `${parts[2]}-${parts[1]}-${parts[0]}`;
+ }
+ }
+ return val;
+ }
 
-    let label = document.createElement('label');
-    label.className = "block text-xs font-medium text-blue-200 uppercase tracking-wider";
-    label.innerText = h.replace(/_/g, ' ');
-    div.appendChild(label);
+ function switchTab(tab) {
+ let btnLogin = document.getElementById('tabLogin');
+ let btnReg = document.getElementById('tabRegister');
+ let formLogin = document.getElementById('formLogin');
+ let formReg = document.getElementById('formRegister');
 
-    let input;
+ if (tab === 'login') {
+ btnLogin.className = "flex-1 pb-3 font-semibold text-amber-400 border-b-2 border-amber-400 transition-all text-sm";
+ btnReg.className = "flex-1 pb-3 font-semibold text-blue-300/60 border-b-2 border-transparent transition-all text-sm";
+ formLogin.classList.remove('hidden');
+ formReg.classList.add('hidden');
+ } else {
+ btnReg.className = "flex-1 pb-3 font-semibold text-amber-400 border-b-2 border-amber-400 transition-all text-sm";
+ btnLogin.className = "flex-1 pb-3 font-semibold text-blue-300/60 border-b-2 border-transparent transition-all text-sm";
+ formReg.classList.remove('hidden');
+ formLogin.classList.add('hidden');
+ }
+ }
 
-    if (currentActiveSheet === 'paket_pekerjaan_sd' && currentUser.role === 'SEKOLAH') {
-      if (hLower === 'paket_id') {
-        input = document.createElement('input');
-        input.type = "text";
-        input.name = h;
-        input.readOnly = true;
-        input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-400 cursor-not-allowed font-bold";
-        input.value = (rowData && rowData[h]) ? rowData[h] : "PKT-" + currentUser.username + "-" + Math.floor(Date.now() / 1000);
-      } 
-      else if (hLower === 'npsn') {
-        input = document.createElement('input');
-        input.type = "text";
-        input.name = h;
-        input.readOnly = true;
-        input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-blue-300 cursor-not-allowed";
-        input.value = currentUser.username || '';
-      } 
-      else if (hLower === 'nama_menu') {
-        // Dropdown nama_menu dengan filter agar 1 sekolah hanya 1 nama_menu unik
-        input = document.createElement('select');
-        input.name = h;
-        input.id = "inputNamaMenu";
-        input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none font-semibold";
-        
-        let defOpt = document.createElement('option');
-        defOpt.value = "";
-        defOpt.innerText = "-- Pilih Nama Menu Pekerjaan Baru --";
-        input.appendChild(defOpt);
+ function togglePasswordVisibility(inputId, iconId) {
+ let input = document.getElementById(inputId);
+ let icon = document.getElementById(iconId);
+ if (input.type === "password") {
+ input.type = "text";
+ icon.className = "fa-solid fa-eye-slash text-xs";
+ } else {
+ input.type = "password";
+ icon.className = "fa-solid fa-eye text-xs";
+ }
+ }
 
-        let selectedMenus = currentData
-          .filter(row => String(row.npsn || '').trim() === String(currentUser.username).trim())
-          .map(row => String(row.nama_menu || '').trim().toLowerCase());
+ function toggleNotifDropdown() {
+ let dropdown = document.getElementById('notifDropdown');
+ dropdown.classList.toggle('hidden');
+ }
 
-        if (Array.isArray(menuPekerjaanList)) {
-          menuPekerjaanList.forEach(m => {
-            let menuName = String(m.nama_menu || '').trim();
-            let menuNameLower = menuName.toLowerCase();
-            let isAlreadySelected = selectedMenus.includes(menuNameLower);
-            let isCurrentRowMenu = rowData ? String(rowData[h] || '').trim().toLowerCase() === menuNameLower : false;
+ function loadNotifikasi(penerima) {
+ let container = document.getElementById('notifListContainer');
+ fetch(`${WEB_APP_URL}?action=getNotifikasi&penerima=${encodeURIComponent(penerima)}`)
+ .then(res => res.json())
+ .then(response => {
+ if(response.status === 'success') {
+ let listNotif = response.data || [];
+ let badge = document.getElementById('notifBadge');
+ 
+if (listNotif.length > 0) {
+ badge.innerText = listNotif.length;
+ badge.classList.remove('hidden');
+ 
+container.innerHTML = "";
+ listNotif.reverse().forEach(n => {
+ let div = document.createElement('div');
+ div.className = "p-3 hover:bg-blue-800/40 transition-colors flex flex-col justify-between";
+ div.innerHTML = `
+ <div>
+ <p class="text-blue-100 font-medium mb-1">${n.pesan}</p>
+ <span class="text-[9px] text-amber-300 font-semibold"><i class="fa-regular fa-clock mr-1"></i>${n.waktu || '-'}</span>
+ </div>
+ ${n.id ? `<button onclick="eksekusiDanHapusNotifikasi('${n.id}')" class="mt-2 self-end px-2 py-1 bg-amber-500 hover:bg-amber-400 text-blue-950 font-bold rounded text-[10px] cursor-pointer"><i class="fa-solid fa-check mr-1"></i> Selesai / Eksekusi</button>` : ''}
+ `;
+ container.appendChild(div);
+ });
+ } else {
+ badge.classList.add('hidden');
+ container.innerHTML = `<div class="p-4 text-center text-blue-300">Tidak ada notifikasi baru.</div>`;
+ }
+ }
+ })
+ .catch(error => {
+ console.error("Gagal memuat notifikasi", error);
+ container.innerHTML = `<div class="p-4 text-center text-red-400">Gagal memuat notifikasi.</div>`;
+ });
+ }
 
-            if (!isAlreadySelected || isCurrentRowMenu) {
-              let opt = document.createElement('option');
-              opt.value = menuName;
-              opt.innerText = menuName;
-              if (isCurrentRowMenu) opt.selected = true;
-              input.appendChild(opt);
-            }
-          });
-        }
-      } 
-      else if (hLower === 'pagu') {
-        let rawVal = (rowData && rowData[h] !== undefined) ? rowData[h] : "0";
-        input = document.createElement('input');
-        input.type = "text";
-        input.name = h;
-        input.readOnly = true;
-        input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-400 cursor-not-allowed font-bold";
-        input.value = "Rp " + Number(String(rawVal).replace(/[^0-9]/g, '') || 0).toLocaleString('id-ID');
-      }
-      else if (hLower === 'pagu_usulan') {
-        let rawVal = (rowData && rowData[h] !== undefined) ? rowData[h] : "";
-        let initialNum = rawVal !== "" ? Number(String(rawVal).replace(/[^0-9]/g, '')) : "";
-        let wrapper = document.createElement('div');
-        wrapper.className = "relative";
-        
-        input = document.createElement('input');
-        input.type = "text";
-        input.placeholder = "Masukkan nilai pagu usulan...";
-        input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none font-semibold";
-        input.value = initialNum !== "" ? initialNum.toLocaleString('id-ID') : "";
-        
-        let hiddenRealInput = document.createElement('input');
-        hiddenRealInput.type = "hidden";
-        hiddenRealInput.name = h;
-        hiddenRealInput.value = initialNum;
+ function eksekusiDanHapusNotifikasi(idNotifikasi) {
+ fetch(`${WEB_APP_URL}?action=hapusNotifikasi&id=${idNotifikasi}`)
+ .then(response => response.json())
+ .then(result => {
+ if (result.status === "success") {
+ let targetPenerima = (currentUser && currentUser.role === 'DINAS') ? 'DINAS' : (currentUser ? currentUser.username : '');
+ loadNotifikasi(targetPenerima); 
+}
+ })
+ .catch(error => console.error("Error:", error));
+ }
+ 
+document.getElementById('regNpsn').addEventListener('blur', function() {
+ let npsn = this.value.trim();
+ if (!npsn) return;
+ fetch(`${WEB_APP_URL}?action=checkNpsn&npsn=${npsn}`)
+ .then(res => res.json())
+ .then(res => {
+ if (res.status === 'success') {
+ document.getElementById('regNamaSekolah').value = res.nama_lengkap;
+ } else {
+ alert(res.pesan);
+ document.getElementById('regNamaSekolah').value = "";
+ }
+ })
+ .catch(err => alert("Gagal memverifikasi NPSN."));
+ });
 
-        input.oninput = function() {
-          let cleanStr = this.value.replace(/[^0-9]/g, '');
-          let num = cleanStr ? parseInt(cleanStr, 10) : 0;
-          hiddenRealInput.value = num;
-          this.value = num > 0 ? num.toLocaleString('id-ID') : "";
-        };
+async function handleLogin(e) {
+  e.preventDefault();
+  
+  const usernameInput = document.getElementById('loginUser').value.toLowerCase().trim();
+  const passwordInput = document.getElementById('loginPass').value.trim();
+  const btnSubmit = document.getElementById('btnLoginSubmit');
 
-        wrapper.appendChild(input);
-        wrapper.appendChild(hiddenRealInput);
-        div.appendChild(wrapper);
-        container.appendChild(div);
-        return;
-      } 
-      else if (hLower === 'status_pagu') {
-        input = document.createElement('input');
-        input.type = "text";
-        input.name = h;
-        input.readOnly = true;
-        input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-300 cursor-not-allowed font-bold";
-        input.value = (rowData && rowData[h]) ? rowData[h] : "DIAJUKAN";
-      } 
-      else if (hLower === 'perencana' || hLower === 'pengawas') {
-        input = document.createElement('input');
-        input.type = "text";
-        input.name = h;
-        input.readOnly = true;
-        input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-300 cursor-not-allowed font-bold";
-        input.value = currentUser[h] || (rowData ? rowData[h] : "-");
-      } 
-      else if (hLower === 'tanggal_mulai') {
-        input = document.createElement('input');
-        input.type = "date";
-        input.name = h;
-        input.id = "inputTanggalMulai";
-        input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-        input.value = (rowData && rowData[h]) ? convertToInputDate(rowData[h]) : new Date().toISOString().split('T')[0];
-        input.onchange = hitungTanggalSelesaiOtomatis;
-      } 
-      else if (hLower === 'lama_hari') {
-        input = document.createElement('input');
-        input.type = "number";
-        input.name = h;
-        input.id = "inputLamaHari";
-        input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-        input.value = (rowData && rowData[h]) ? rowData[h] : "90";
-        input.oninput = hitungTanggalSelesaiOtomatis;
-      } 
-      else if (hLower === 'tgl_selesai' || hLower === 'tanggal_selesai') {
-        input = document.createElement('input');
-        input.type = "text";
-        input.name = h;
-        input.id = "inputTanggalSelesai";
-        input.readOnly = true;
-        input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-blue-300 cursor-not-allowed font-bold";
-        input.value = (rowData && rowData[h]) ? rowData[h] : "";
-        setTimeout(hitungTanggalSelesaiOtomatis, 100);
-      } 
-      else {
-        input = document.createElement('input');
-        input.type = "text";
-        input.name = h;
-        input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-        input.value = rowData ? (rowData[h] !== undefined ? rowData[h] : "") : "";
-      }
+  if (!usernameInput || !passwordInput) {
+    alert("Username dan password wajib diisi!");
+    return;
+  }
+
+  if (btnSubmit) {
+    btnSubmit.disabled = true;
+    btnSubmit.innerText = "Memproses...";
+  }
+
+  try {
+    const urlWithParams = `${WEB_APP_URL}?action=login&username=${encodeURIComponent(usernameInput)}&password=${encodeURIComponent(passwordInput)}`;
+   
+    const response = await fetch(urlWithParams, {
+      method: 'GET'
+    });
+   
+    let result = await response.json();
+
+    if (result.status === 'success') {
+      alert(result.pesan || "Login berhasil!");
+      localStorage.setItem('sivit_user', JSON.stringify(result.data));
+      window.location.reload(); 
     } else {
-      input = document.createElement('input');
-      input.type = "text";
-      input.name = h;
-      input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-      input.value = rowData ? (rowData[h] !== undefined ? rowData[h] : "") : "";
+      alert("Gagal Login: " + (result.pesan || "Username atau password salah."));
     }
-
-    div.appendChild(input);
-    container.appendChild(div);
-  });
-
-  let modal = document.getElementById('dataModal');
-  if (modal) {
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
+  } catch (err) {
+    console.error("Error login:", err);
+    alert("Terjadi kesalahan koneksi ke server.");
+  } finally {
+    if (btnSubmit) {
+      btnSubmit.disabled = false;
+      btnSubmit.innerText = "Masuk Sistem";
+    }
   }
 }
+async function handleRegister(e) {  
+  e.preventDefault();  
+  
+  const npsnInput = document.getElementById('regNpsn').value.trim();  
+  const namaSekolahInput = document.getElementById('regNamaSekolah').value.trim();  
+  const passwordInput = document.getElementById('regPass').value.trim();  
+  const btnSubmit = document.getElementById('btnRegSubmit');  
+  
+  if (!npsnInput || !passwordInput) {  
+    alert("NPSN dan Password wajib diisi!");  
+    return;  
+  }  
+  
+  if (btnSubmit) {  
+    btnSubmit.disabled = true;  
+    btnSubmit.innerText = "Mengirim...";  
+  }  
+  
+  try {  
+    const response = await fetch(WEB_APP_URL, {  
+      method: 'POST',  
+      body: JSON.stringify({  
+        action: 'register',  
+        npsn: npsnInput,          // Cocok dengan kolom 'npsn' di database & backend
+        nama_lengkap: namaSekolahInput, // Akan masuk ke 'nama_pengguna' di users & 'nama_sekolah' di sekolah_pending
+        password: passwordInput   // Cocok dengan kolom 'password'
+      })  
+    });  
+    
+    const result = await response.json();  
+    
+    if (result.status === 'success') {  
+      alert(result.pesan || "Pendaftaran berhasil dikirim!");  
+      switchTab('login');  
+    } else {  
+      alert("Pendaftaran Gagal: " + (result.pesan || "Terjadi kesalahan."));  
+    }  
+  } catch (err) {  
+    console.error("Error register:", err);  
+    alert("Terjadi kesalahan koneksi ke server.");  
+  } finally {  
+    if (btnSubmit) {  
+      btnSubmit.disabled = false;  
+      btnSubmit.innerText = "Kirim Pendaftaran";  
+    }  
+  }  
+}
 
-// Otomatisasi Perhitungan Tanggal Selesai (Format dd/mm/yyyy)
-function hitungTanggalSelesaiOtomatis() {
-  let mulaiEl = document.getElementById('inputTanggalMulai');
-  let lamaEl = document.getElementById('inputLamaHari');
-  let selesaiEl = document.getElementById('inputTanggalSelesai');
-  if (!mulaiEl || !lamaEl || !selesaiEl) return;
-
-  let mulaiVal = mulaiEl.value;
-  let lamaVal = parseInt(lamaEl.value) || 0;
-
-  if (mulaiVal && lamaVal > 0) {
-    let parts = mulaiVal.split('-');
-    if (parts.length === 3) {
-      let d = new Date(parts[0], parts[1] - 1, parts[2]);
-      d.setDate(d.getDate() + lamaVal);
-      let dd = String(d.getDate()).padStart(2, '0');
-      let mm = String(d.getMonth() + 1).padStart(2, '0');
-      let yyyy = d.getFullYear();
-      selesaiEl.value = `${dd}/${mm}/${yyyy}`;
+async function prosesVerifikasi(npsnSekolah, statusKeputusan, catatanDinas) {
+  try {
+    const response = await fetch(WEB_APP_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'verifyRegister',
+        npsn: npsnSekolah,       // Menjadi acuan pencarian di kolom 'username' tabel users & 'npsn' tabel sekolah_pending
+        status: statusKeputusan, // 'DISETUJUI' atau 'DITOLAK'
+        catatanDinas: catatanDinas
+      })
+    });
+    
+    const result = await response.json();
+    alert(result.pesan);
+    if (result.status === 'success') {
+      loadDataPending(); // Muat ulang tabel pending di halaman dinas
     }
-  } else {
-    selesaiEl.value = "";
+  } catch (err) {
+    console.error("Error verifikasi:", err);
+    alert("Gagal memproses verifikasi.");
   }
 }
+ 
+ function logout() {
+ localStorage.removeItem('sivit_user');
+ currentUser = null;
+ document.getElementById('authContainer').classList.remove('hidden');
+ document.getElementById('dashboardContainer').classList.add('hidden');
+ }
+
+ window.onload = function() {
+ let saved = localStorage.getItem('sivit_user');
+ if (saved) {
+ currentUser = JSON.parse(saved);
+ initDashboard();
+ }
+ loadReferenceTables();
+ };
+
+ async function loadReferenceTables() {
+ try {
+ let resMenu = await fetch(`${WEB_APP_URL}?action=getRef&type=menu_pekerjaan`);
+ let dataMenu = await resMenu.json();
+ menuPekerjaanList = dataMenu.data || [];
+
+ let resUsers = await fetch(`${WEB_APP_URL}?action=getRef&type=users`);
+ let dataUsers = await resUsers.json();
+ usersList = dataUsers.data || [];
+
+ let resPaket = await fetch(`${WEB_APP_URL}?action=getData&sheet=paket_pekerjaan_sd&role=DINAS&npsn=`);
+ let dataPaket = await resPaket.json();
+ paketPekerjaanList = dataPaket.data || [];
+
+ populateDinasFilterOptions();
+ } catch (e) {
+ console.error("Gagal memuat tabel referensi:", e);
+ }
+ }
+
+ function populateDinasFilterOptions() {
+ if (!currentUser || currentUser.role !== 'DINAS') return;
+ 
+let selectNpsn = document.getElementById('selectDinasNpsn');
+ let selectPaket = document.getElementById('selectDinasPaket');
+ if (!selectNpsn || !selectPaket) return;
+
+ let currentNpsnVal = selectNpsn.value;
+ let currentPaketVal = selectPaket.value;
+
+ selectNpsn.innerHTML = '<option value="">-- Semua Sekolah (Semua NPSN) --</option>';
+ let uniqueNpsn = [...new Set(paketPekerjaanList.map(item => String(item.npsn || '').trim()).filter(Boolean))];
+ uniqueNpsn.forEach(npsn => {
+ let matchedUser = usersList.find(u => String(u.username || u.npsn || '').trim() === npsn);
+ let namaSekolah = matchedUser ? (matchedUser.nama_pengguna || matchedUser.nama_sekolah) : 'Sekolah ' + npsn;
+ let opt = document.createElement('option');
+ opt.value = npsn;
+ opt.innerText = `${npsn} - ${namaSekolah}`;
+ selectNpsn.appendChild(opt);
+ });
+ selectNpsn.value = currentNpsnVal;
+
+ selectPaket.innerHTML = '<option value="">-- Semua Menu Pekerjaan --</option>';
+ let uniqueMenu = [...new Set(paketPekerjaanList.map(item => String(item.nama_menu || '').trim()).filter(Boolean))];
+ uniqueMenu.forEach(menu => {
+ let opt = document.createElement('option');
+ opt.value = menu;
+ opt.innerText = menu;
+ selectPaket.appendChild(opt);
+ });
+ selectPaket.value = currentPaketVal;
+ }
+
+ function initDashboard() {
+ document.getElementById('authContainer').classList.add('hidden');
+ document.getElementById('dashboardContainer').classList.remove('hidden');
+ document.getElementById('userNameDisplay').innerText = currentUser.nama_pengguna;
+ document.getElementById('userNpsnDisplay').innerText = "NPSN/ID: " + currentUser.username + " | Role: " + currentUser.role;
+
+ let targetPenerima = (currentUser.role === 'DINAS') ? 'DINAS' : currentUser.username;
+ loadNotifikasi(targetPenerima);
+
+ if (currentUser.role === 'SEKOLAH' && currentUser.sekolah) {
+ document.getElementById('sekolahIdentitasCard').classList.remove('hidden');
+ document.getElementById('cardNpsn').innerText = currentUser.sekolah.npsn || currentUser.username || '-';
+ document.getElementById('cardNamaSekolah').innerText = currentUser.sekolah.nama_sekolah || '-';
+ document.getElementById('cardKecamatan').innerText = currentUser.sekolah.kecamatan || '-';
+ document.getElementById('cardAlamat').innerText = currentUser.sekolah.alamat_lengkap || '-';
+ }
+
+ renderSidebar();
+ 
+if (currentUser.role === 'DINAS') {
+ loadTableData('paket_pekerjaan_sd', 'Data Paket Pekerjaan SD');
+ } else {
+ // Sekolah langsung diarahkan ke sub menu Profil & Tim Teknis saat pertama kali masuk
+ loadTableData('users', 'Profil & Tim Teknis');
+ }
+ }
+
+ function renderSidebar() {
+ let container = document.getElementById('sidebarMenuContainer');
+ container.innerHTML = "";
+
+ let menus = [];
+ if (currentUser.role === 'DINAS') {
+ menus = [
+ { name: 'Paket Pekerjaan SD', sheet: 'paket_pekerjaan_sd', icon: 'fa-boxes-packing' },
+ { name: 'Verifikasi Sekolah', sheet: 'sekolah_pending', icon: 'fa-user-check' },
+ { name: 'Peta Persebaran (GIS)', sheet: 'peta_gis', icon: 'fa-map-location-dot' },
+ { name: 'Laporan Progres', sheet: 'laporan_progres', icon: 'fa-chart-line' },
+ { name: 'Kurva S & Grafik', sheet: 'kurva_s', icon: 'fa-chart-area' },
+ { name: 'Data Sekolah', sheet: 'sekolah', icon: 'fa-school' },
+ { name: 'Manajemen User', sheet: 'users', icon: 'fa-users-gear' }
+ ];
+ } else {
+ menus = [
+ { name: 'Profil & Tim Teknis', sheet: 'users', icon: 'fa-user-gear' },
+ { name: 'Paket Pekerjaan Saya', sheet: 'paket_pekerjaan_sd', icon: 'fa-box' },
+ { name: 'Peta Persebaran (GIS)', sheet: 'peta_gis', icon: 'fa-map-location-dot' },
+ { name: 'Laporan Progres Fisik', sheet: 'laporan_progres', icon: 'fa-clipboard-list' },
+ { name: 'Kurva S & Grafik', sheet: 'kurva_s', icon: 'fa-chart-area' }
+ ];
+ }
+
+ menus.forEach(m => {
+ let btn = document.createElement('button');
+ btn.className = "w-full flex items-center space-x-2.5 px-3 py-2 rounded-xl text-left font-semibold text-blue-200 hover:bg-blue-900/60 hover:text-amber-400 transition-all text-xs cursor-pointer";
+ btn.innerHTML = `<i class="fa-solid ${m.icon} w-4 text-center"></i><span>${m.name}</span>`;
+ btn.onclick = () => loadTableData(m.sheet, m.name);
+ container.appendChild(btn);
+ });
+ }
+
+ async function loadTableData(sheetName, title) {
+ currentActiveSheet = sheetName;
+ let displayTitle = title;
+ if (!displayTitle) {
+ if (sheetName === 'paket_pekerjaan_sd') displayTitle = currentUser.role === 'DINAS' ? 'Data Paket Pekerjaan SD' : 'Paket Pekerjaan Saya';
+ else if (sheetName === 'laporan_progres') displayTitle = currentUser.role === 'DINAS' ? 'Laporan Progres' : 'Laporan Progres Fisik';
+ else if (sheetName === 'kurva_s') displayTitle = 'Kurva S & Grafik';
+ else if (sheetName === 'peta_gis') displayTitle = 'Peta Persebaran Lokasi Revitalisasi (GIS)';
+ else if (sheetName === 'users') displayTitle = currentUser.role === 'DINAS' ? 'Manajemen User' : 'Profil & Tim Teknis';
+ else displayTitle = sheetName;
+ }
+
+ document.getElementById('contentTitle').innerText = displayTitle;
+ document.getElementById('contentSubtitle').innerText = "Memuat data dari server...";
+ 
+let filterDinasEl = document.getElementById('filterDinasContainer');
+ let kurvaEl = document.getElementById('kurvaSContainer');
+ let mapEl = document.getElementById('gisMapContainer');
+ let printableAreaEl = document.getElementById('printableArea');
+
+ if (currentUser.role === 'DINAS' && (sheetName === 'paket_pekerjaan_sd' || sheetName === 'laporan_progres' || sheetName === 'kurva_s')) {
+ filterDinasEl.classList.remove('hidden');
+ populateDinasFilterOptions();
+ } else {
+ filterDinasEl.classList.add('hidden');
+ }
+
+ if (sheetName === 'kurva_s') {
+ kurvaEl.classList.remove('hidden');
+ printableAreaEl.style.display = 'block';
+ await loadReferenceTables();
+ renderKurvaSChart();
+ } else {
+ kurvaEl.classList.add('hidden');
+ }
+
+ if (sheetName === 'peta_gis') {
+ mapEl.classList.remove('hidden');
+ printableAreaEl.style.display = 'none';
+ await initLeafletMap();
+ return;
+ } else {
+ mapEl.classList.add('hidden');
+ printableAreaEl.style.display = 'block';
+ }
+
+ let headEl = document.getElementById('tableHead');
+ let bodyEl = document.getElementById('tableBody');
+ headEl.innerHTML = "";
+ bodyEl.innerHTML = `<tr><td colspan="10" class="text-center p-4 text-slate-500 text-xs">Sedang memuat data...</td></tr>`;
+
+ let actionBtnContainer = document.getElementById('actionButtonContainer');
+ actionBtnContainer.innerHTML = "";
+
+ if (currentUser.role === 'SEKOLAH' && sheetName === 'paket_pekerjaan_sd') {
+ let btnAdd = document.createElement('button');
+ btnAdd.className = "bg-amber-500 hover:bg-amber-400 text-blue-950 font-bold px-3.5 py-1.5 rounded-xl text-xs shadow-xs flex items-center space-x-1.5 cursor-pointer";
+ btnAdd.innerHTML = `<i class="fa-solid fa-plus"></i><span>Tambah Paket</span>`;
+ btnAdd.onclick = () => openModalForm();
+ actionBtnContainer.appendChild(btnAdd);
+ } else if (currentUser.role === 'SEKOLAH' && sheetName === 'laporan_progres') {
+ let btnAdd = document.createElement('button');
+ btnAdd.className = "bg-amber-500 hover:bg-amber-400 text-blue-950 font-bold px-3.5 py-1.5 rounded-xl text-xs shadow-xs flex items-center space-x-1.5 cursor-pointer";
+ btnAdd.innerHTML = `<i class="fa-solid fa-plus"></i><span>Tambah Laporan</span>`;
+ btnAdd.onclick = () => openModalForm();
+ actionBtnContainer.appendChild(btnAdd);
+ }
+
+ try {
+ let targetSheet = sheetName === 'kurva_s' ? 'laporan_progres' : sheetName;
+ let res = await fetch(`${WEB_APP_URL}?action=getData&sheet=${targetSheet}&role=${currentUser.role}&npsn=${encodeURIComponent(currentUser.username)}`);
+ let result = await res.json();
+
+ if (result.status === 'success') {
+ currentHeaders = result.header || [];
+ originalServerData = result.data || [];
+ currentData = [...originalServerData];
+
+ if (targetSheet === 'users') {
+ usersList = currentData;
+ }
+
+ if (currentUser.role === 'SEKOLAH' && sheetName === 'users') {
+ currentData = currentData.filter(d => {
+ let npsnVal = String(d.username || d.npsn || '').trim();
+ return npsnVal === String(currentUser.username).trim();
+ });
+ }
+
+ if (targetSheet === 'paket_pekerjaan_sd') {
+ paketPekerjaanList = currentData;
+ populateDinasFilterOptions();
+ }
+
+ renderTable(currentHeaders, currentData, sheetName);
+ if (sheetName === 'kurva_s') {
+ renderKurvaSChart();
+ }
+ } else {
+ bodyEl.innerHTML = `<tr><td colspan="10" class="text-center p-4 text-red-500 text-xs">${result.message || 'Gagal memuat data'}</td></tr>`;
+ }
+ } catch (err) {
+ bodyEl.innerHTML = `<tr><td colspan="10" class="text-center p-4 text-red-500 text-xs">Kesalahan jaringan saat mengambil data.</td></tr>`;
+ }
+ }
+
+ async function initLeafletMap() {
+ if (!leafletMap) {
+ leafletMap = L.map('map').setView([-6.706, 111.345], 11);
+ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+ maxZoom: 19,
+ attribution: '&copy; OpenStreetMap contributors'
+ }).addTo(leafletMap);
+ } else {
+ leafletMap.invalidateSize();
+ }
+
+ try {
+ let res = await fetch(`${WEB_APP_URL}?action=getData&sheet=laporan_progres&role=DINAS&npsn=`);
+ let result = await res.json();
+ if (result.status === 'success') {
+ let listLaporan = result.data || [];
+ 
+leafletMap.eachLayer((layer) => {
+ if (layer instanceof L.Marker) {
+ leafletMap.removeLayer(layer);
+ }
+ });
+
+ let markersCount = 0;
+ listLaporan.forEach(item => {
+ let koordinatStr = item.lokasi_koordinat || '';
+ if (koordinatStr && koordinatStr.includes(',')) {
+ let parts = koordinatStr.split(',');
+ let lat = parseFloat(parts[0].trim());
+ let lon = parseFloat(parts[1].trim());
+
+ if (!isNaN(lat) && !isNaN(lon)) {
+ markersCount++;
+ let marker = L.marker([lat, lon]).addTo(leafletMap);
+ marker.bindPopup(`
+ <div class="text-xs space-y-1">
+ <p class="font-bold text-blue-900">NPSN: ${item.npsn || '-'}</p>
+ <p><strong>Minggu:</strong> ${item.minggu_ke || '-'}</p>
+ <p><strong>Realisasi Fisik:</strong> ${item.realisasi_fisik || 0}%</p>
+ <p><strong>Status:</strong> ${item.status_verifikasi || 'DIAJUKAN'}</p>
+ </div>
+ `);
+ }
+ }
+ });
+
+ if (markersCount === 0) {
+ alert("Belum ada data koordinat GPS valid yang ditemukan dari laporan progres sekolah.");
+ }
+ }
+ } catch (e) {
+ console.error("Gagal memuat titik koordinat peta:", e);
+ }
+ }
+
+ function filterDataDinasAndPaket() {
+ if (!currentUser || currentUser.role !== 'DINAS') return;
+
+ let selectedNpsn = document.getElementById('selectDinasNpsn').value;
+ let selectedPaketMenu = document.getElementById('selectDinasPaket').value;
+
+ currentData = originalServerData.filter(row => {
+ let matchNpsn = true;
+ let matchPaket = true;
+
+ if (selectedNpsn) {
+ let rowNpsn = String(row.npsn || '').trim();
+ if (rowNpsn !== selectedNpsn) matchNpsn = false;
+ }
+
+ if (selectedPaketMenu) {
+ let rowMenu = String(row.nama_menu || '').trim();
+ if (!rowMenu && row.paket_id) {
+ let matchedPaket = paketPekerjaanList.find(p => String(p.paket_id || p.id_paket || '').trim() === String(row.paket_id).trim());
+ if (matchedPaket) rowMenu = String(matchedPaket.nama_menu || '').trim();
+ }
+ if (rowMenu !== selectedPaketMenu) matchPaket = false;
+ }
+
+ return matchNpsn && matchPaket;
+ });
+
+ renderTable(currentHeaders, currentData, currentActiveSheet);
+ if (currentActiveSheet === 'kurva_s') {
+ renderKurvaSChart();
+ }
+ }
+ 
+function renderKurvaSChart() {
+ let ctx = document.getElementById('chartKurvaS').getContext('2d');
+ if (chartKurvaSInstance) chartKurvaSInstance.destroy();
+
+ let firstRow = currentData.length > 0 ? currentData[0] : {};
+ let currentNpsn = firstRow.npsn || currentUser.username || '-';
+ let currentMenu = firstRow.nama_menu || firstRow.menu || 'Pekerjaan Revitalisasi';
+
+ let namaSekolah = "Sekolah Tidak Ditemukan";
+ if (typeof usersList !== 'undefined' && Array.isArray(usersList)) {
+ let foundSekolah = usersList.find(s => String(s.username || s.npsn || '').trim() === String(currentNpsn).trim());
+ if (foundSekolah) {
+ namaSekolah = foundSekolah.nama_pengguna || foundSekolah.nama_sekolah || namaSekolah;
+ }
+ } else if (currentUser && currentUser.sekolah && currentUser.sekolah.nama_sekolah) {
+ namaSekolah = currentUser.sekolah.nama_sekolah;
+ } else if (firstRow.nama_sekolah) {
+ namaSekolah = firstRow.nama_sekolah;
+ }
+
+ let infoEl = document.getElementById('infoSekolahMenu');
+ if (infoEl) {
+ infoEl.innerHTML = `<strong>Nama Sekolah:</strong> ${namaSekolah} (NPSN: ${currentNpsn}) &bull; <strong>Menu:</strong> ${currentMenu}`;
+ }
+
+ let labels = currentData.map(d => d.minggu_ke || d.minggu || d.tanggal_lapor || 'Minggu');
+ 
+let targetData = currentData.map(d => {
+ let val = d.target_kurva_s !== undefined ? d.target_kurva_s : (d.target || 0);
+ return Number(String(val).replace('%','')) || 0;
+ });
+
+ let realisasiData = currentData.map(d => {
+ let val = d.realisasi_fisik !== undefined && d.realisasi_fisik !== null ? d.realisasi_fisik : 0;
+ return Number(String(val).replace('%', '').trim()) || 0;
+ });
+
+ let anggaranPersenData = currentData.map(d => {
+ let pId = String(d.paket_id || d.id_paket || '').trim();
+ let matchedPaket = paketPekerjaanList.find(p => String(p.paket_id || p.id_paket || '').trim() === pId);
+ let paguPekerjaan = matchedPaket ? (Number(matchedPaket.pagu || matchedPaket.pagu_anggaran) || 0) : 0;
+ let penggunaan = Number(d.penggunaan_anggaran || d.anggaran || 0);
+ 
+if (paguPekerjaan > 0) {
+ return Number(((penggunaan / paguPekerjaan) * 100).toFixed(2));
+ }
+ return 0;
+ });
+
+ chartKurvaSInstance = new Chart(ctx, {
+ type: 'line',
+ data: {
+ labels: labels.length ? labels : ['Minggu 1', 'Minggu 2', 'Minggu 3', 'Minggu 4'],
+ datasets: [
+ {
+ label: 'Target Kurva S (%)',
+ data: targetData,
+ borderColor: 'rgb(59, 130, 246)',
+ backgroundColor: 'rgba(59, 130, 246, 0.1)',
+ tension: 0.3,
+ fill: false
+ },
+ {
+ label: 'Realisasi Fisik (%)',
+ data: realisasiData,
+ borderColor: 'rgb(245, 158, 11)',
+ backgroundColor: 'rgba(245, 158, 11, 0.1)',
+ tension: 0.3,
+ fill: false
+ },
+ {
+ label: 'Penggunaan Anggaran (%)',
+ data: anggaranPersenData,
+ borderColor: 'rgb(16, 185, 129)',
+ backgroundColor: 'rgba(16, 185, 129, 0.1)',
+ tension: 0.3,
+ fill: false
+ }
+ ]
+ },
+ options: {
+ responsive: true,
+ maintainAspectRatio: false,
+ scales: { 
+y: { 
+beginAtZero: true, 
+max: 100 
+} 
+}
+ }
+ });
+ }
+
+ function eksporGrafikJPEG() {
+ if (!chartKurvaSInstance) {
+ alert("Grafik belum dimuat.");
+ return;
+ }
+ let imageURL = chartKurvaSInstance.toBase64Image();
+ let link = document.createElement('a');
+ link.href = imageURL;
+ link.download = `Kurva-S-Progres-${currentUser.username}.jpeg`;
+ link.click();
+ }
+
+ function renderTable(headers, data, sheetName) {
+ let headEl = document.getElementById('tableHead');
+ let bodyEl = document.getElementById('tableBody');
+ headEl.innerHTML = "";
+ bodyEl.innerHTML = "";
+
+ let showActionColumn = true;
+ if (sheetName === 'sekolah' && currentUser.role === 'SEKOLAH') showActionColumn = false;
+ if (sheetName === 'kurva_s' || sheetName === 'peta_gis') showActionColumn = false;
+
+ let trHead = document.createElement('tr');
+ let thNo = document.createElement('th');
+ thNo.className = "p-3 text-center w-12";
+ thNo.innerText = "NO";
+ trHead.appendChild(thNo);
+
+ headers.forEach(h => {
+ let th = document.createElement('th');
+ th.className = "p-3";
+ th.innerText = h.replace(/_/g, ' ').toUpperCase();
+ trHead.appendChild(th);
+ });
+
+ if (showActionColumn) {
+ let thAct = document.createElement('th');
+ thAct.className = "p-3 text-right";
+ thAct.innerText = "AKSI";
+ trHead.appendChild(thAct);
+ }
+ headEl.appendChild(trHead);
+
+ if (data.length === 0) {
+ let tr = document.createElement('tr');
+ tr.innerHTML = `<td colspan="${headers.length + (showActionColumn ? 1 : 0)}" class="p-4 text-center text-slate-500 text-xs font-medium">Belum ada record data</td>`;
+ bodyEl.appendChild(tr);
+ return;
+ }
+
+ data.forEach((row, idx) => {
+ let tr = document.createElement('tr');
+ tr.className = "hover:bg-blue-50 transition-colors border-b border-slate-200";
+
+ let tdNo = document.createElement('td');
+ tdNo.className = "p-3 text-center font-bold text-slate-900";
+ tdNo.innerText = idx + 1;
+ tr.appendChild(tdNo);
+
+ headers.forEach(h => {
+ let td = document.createElement('td');
+ td.className = "p-3 text-slate-900 text-xs truncate max-w-xs font-bold";
+ let val = row[h] !== undefined ? row[h] : "";
+
+ if ((h.toLowerCase() === 'pagu' || h.toLowerCase() === 'pagu_lama' || h.toLowerCase() === 'pagu_baru' || h.toLowerCase() === 'penggunaan_anggaran' || h.toLowerCase() === 'pagu_usulan') && !isNaN(val) && val !== "") {
+ let angkaNum = Number(val);
+ val = "Rp " + angkaNum.toLocaleString('id-ID');
+ }
+
+ if (h.toLowerCase() === 'paket_id') {
+ let npsnKey = row.npsn || "";
+ let matchedUser = usersList.find(u => String(u.username || u.npsn || '').trim() === String(npsnKey).trim());
+ let namaUser = matchedUser ? (matchedUser.nama_pengguna || matchedUser.nama_sekolah) : "";
+ if (namaUser) {
+ val = `${val} (${namaUser})`;
+ }
+ }
+
+ if (h.toLowerCase() === 'status' || h.toLowerCase() === 'status_verifikasi') {
+ if (val === 'APPROVED' || val === 'DISETUJUI') {
+ val = 'DISETUJUI';
+ } else if (val === 'REJECTED' || val === 'DITOLAK') {
+ val = 'DITOLAK';
+ } else {
+ val = 'DIAJUKAN';
+ }
+ }
+
+ td.innerText = val;
+ tr.appendChild(td);
+ });
+
+ if (showActionColumn) {
+ let tdAct = document.createElement('td');
+ tdAct.className = "p-3 text-right space-x-1";
+
+ if (sheetName === 'sekolah_pending') {
+ let btnApprove = document.createElement('button');
+ btnApprove.className = "px-2.5 py-1 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 rounded-lg text-[11px] font-bold border border-emerald-300 cursor-pointer";
+ btnApprove.innerHTML = `<i class="fa-solid fa-check mr-1"></i> Setujui`;
+ btnApprove.onclick = () => verifyReg(row.username || row.npsn, 'DISETUJUI');
+ tdAct.appendChild(btnApprove);
+
+ let btnReject = document.createElement('button');
+ btnReject.className = "px-2.5 py-1 bg-red-100 hover:bg-red-200 text-red-800 rounded-lg text-[11px] font-bold border border-red-300 cursor-pointer";
+ btnReject.innerHTML = `<i class="fa-solid fa-xmark mr-1"></i> Tolak`;
+ btnReject.onclick = () => verifyReg(row.username || row.npsn, 'DITOLAK');
+ tdAct.appendChild(btnReject);
+ } else {
+ if (sheetName === 'paket_pekerjaan_sd') {
+ let btnCetakPDF = document.createElement('button');
+ btnCetakPDF.className = "px-2.5 py-1 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-[11px] font-bold border border-emerald-600 mr-1 cursor-pointer shadow-sm";
+ btnCetakPDF.innerHTML = `<i class="fa-solid fa-print mr-1"></i> Cetak PDF`;
+ btnCetakPDF.onclick = () => cetakLaporanResmi(row.paket_id, row.npsn);
+ tdAct.appendChild(btnCetakPDF);
+
+ let btnRiwayat = document.createElement('button');
+ btnRiwayat.className = "px-2.5 py-1 bg-cyan-100 hover:bg-cyan-200 text-cyan-900 rounded-lg text-[11px] font-bold border border-cyan-300 mr-1 cursor-pointer";
+ btnRiwayat.innerHTML = `<i class="fa-solid fa-clock-rotate-left mr-1"></i> Riwayat Pagu`;
+ btnRiwayat.onclick = () => bukaRiwayatPagu(row.npsn || currentUser.username, row.paket_id);
+ tdAct.appendChild(btnRiwayat);
+ }
+
+ if (currentUser.role === 'DINAS' && sheetName === 'laporan_progres') {
+ let btnVerif = document.createElement('button');
+ btnVerif.className = "px-2.5 py-1 bg-amber-100 hover:bg-amber-200 text-amber-900 rounded-lg text-[11px] font-bold border border-amber-300 mr-1 cursor-pointer";
+ btnVerif.innerHTML = `<i class="fa-solid fa-clipboard-check mr-1"></i> Verifikasi`;
+ let idLap = row.id || row.id_laporan || row.paket_id || Object.values(row)[0];
+ btnVerif.onclick = () => openVerifikasiModal(idLap);
+ tdAct.appendChild(btnVerif);
+ }
+
+ let allowEdit = true;
+ if (currentUser.role === 'SEKOLAH' && sheetName === 'users') {
+ let rowIdentifier = String(row.username || row.npsn || "").trim();
+ if (rowIdentifier !== String(currentUser.username).trim()) {
+ allowEdit = false;
+ }
+ }
+
+ if (currentUser.role === 'SEKOLAH' && sheetName === 'laporan_progres') {
+ let statusVerif = String(row.status_verifikasi || '').trim();
+ if (statusVerif !== 'DITOLAK' && statusVerif !== 'REJECTED') {
+ allowEdit = false;
+ }
+ }
+
+ if (currentUser.role === 'DINAS' && sheetName === 'laporan_progres') {
+ allowEdit = false;
+ }
+
+ if (allowEdit) {
+ let btnEdit = document.createElement('button');
+ btnEdit.className = "px-2.5 py-1 bg-blue-100 hover:bg-blue-200 text-blue-900 rounded-lg text-[11px] font-bold border border-blue-300 cursor-pointer";
+ btnEdit.innerHTML = `<i class="fa-solid fa-pen-to-square"></i>`;
+ btnEdit.onclick = () => openModalForm(row);
+ tdAct.appendChild(btnEdit);
+ } else if (currentUser.role === 'SEKOLAH' && sheetName === 'laporan_progres') {
+ let statusVerif = String(row.status_verifikasi || '').trim();
+ let badgeLocked = document.createElement('span');
+ badgeLocked.className = "text-[10px] px-2 py-1 rounded font-bold border ";
+ if (statusVerif === 'DISETUJUI' || statusVerif === 'APPROVED') {
+ badgeLocked.className += "text-emerald-700 bg-emerald-100 border-emerald-300";
+ badgeLocked.innerText = "Terkunci (DISETUJUI)";
+ } else {
+ badgeLocked.className += "text-amber-700 bg-amber-100 border-amber-300";
+ badgeLocked.innerText = "Menunggu Verifikasi";
+ }
+ tdAct.appendChild(badgeLocked);
+ }
+
+ if (currentUser.role === 'DINAS' && sheetName !== 'users') {
+ let btnDel = document.createElement('button');
+ btnDel.className = "px-2.5 py-1 bg-red-100 hover:bg-red-200 text-red-800 rounded-lg text-[11px] font-bold border border-red-300 ml-1 cursor-pointer";
+ btnDel.innerHTML = `<i class="fa-solid fa-trash"></i>`;
+ btnDel.onclick = () => deleteRowData(row._rowIndex);
+ tdAct.appendChild(btnDel);
+ }
+ }
+ tr.appendChild(tdAct);
+ }
+ bodyEl.appendChild(tr);
+ });
+ }
+
+ async function cetakLaporanResmi(paketId, npsn) {
+ const paket = paketPekerjaanList.find(p => String(p.paket_id || p.id_paket || '').trim() === String(paketId).trim());
+ if (!paket) {
+ alert("Data paket pekerjaan tidak ditemukan.");
+ return;
+ }
+
+ let namaSekolah = "Sekolah Tidak Ditemukan";
+ let kecamatanSekolah = "-";
+ let alamatSekolah = "-";
+ let targetNpsn = String(npsn || paket.npsn || '').trim();
+
+ if (currentUser && currentUser.sekolah && String(currentUser.username || '').trim() === targetNpsn) {
+ namaSekolah = currentUser.sekolah.nama_sekolah || '-';
+ kecamatanSekolah = currentUser.sekolah.kecamatan || '-';
+ alamatSekolah = currentUser.sekolah.alamat_lengkap || '-';
+ } else {
+ let foundUser = usersList.find(u => String(u.username || u.npsn || '').trim() === targetNpsn);
+ if (foundUser) {
+ namaSekolah = foundUser.nama_pengguna || foundUser.nama_sekolah || '-';
+ kecamatanSekolah = foundUser.kecamatan || '-';
+ alamatSekolah = foundUser.alamat_lengkap || '-';
+ }
+ }
+
+ let progresList = [];
+ try {
+ let res = await fetch(`${WEB_APP_URL}?action=getData&sheet=laporan_progres&role=DINAS&npsn=${encodeURIComponent(targetNpsn)}`);
+ let result = await res.json();
+ if (result.status === 'success') {
+ progresList = (result.data || []).filter(item => String(item.paket_id || '').trim() === String(paketId).trim());
+ }
+ } catch (e) {
+ console.error("Gagal mengambil data progres untuk cetak:", e);
+ }
+
+ let rawPagu = paket.pagu !== undefined ? paket.pagu : (paket.pagu_anggaran !== undefined ? paket.pagu_anggaran : paket.nilai_pagu);
+ let numericPagu = 0;
+ if (typeof rawPagu === 'number') {
+ numericPagu = rawPagu;
+ } else if (typeof rawPagu === 'string') {
+ let cleaned = rawPagu.replace(/[^0-9.-]+/g,"");
+ numericPagu = parseFloat(cleaned) || 0;
+ }
+
+ const printWindow = window.open('', '_blank');
+ printWindow.document.write(`
+ <html>
+ <head>
+ <title>Laporan Revitalisasi SD - ${paket.nama_menu || 'Paket Pekerjaan'} (${targetNpsn})</title>
+ <script src="https://cdn.tailwindcss.com"><\/script>
+ <style>
+ @media print {
+ body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+ .no-print { display: none; }
+ }
+ </style>
+ </head>
+ <body class="p-8 bg-white text-gray-900 font-sans">
+ <!-- KOP SURAT DENGAN LOGO DI KIRI DAN NAMA PENGGUNA SERTA KECAMATAN -->
+ <div class="flex items-center border-b-4 border-double border-gray-800 pb-4 mb-6">
+ <div class="flex-shrink-0 mr-4">
+ <img src="logorembang.png" alt="Logo Rembang" class="w-16 h-16 object-contain">
+ </div>
+ <div class="text-center w-full">
+ <h2 class="text-sm font-bold uppercase tracking-wider">PEMERINTAH KABUPATEN REMBANG</h2>
+ <h1 class="text-base font-extrabold uppercase tracking-wide">DINAS PENDIDIKAN, PEMUDA DAN OLAHRAGA</h1>
+ <p class="text-xs font-medium">${namaSekolah} - Kecamatan ${kecamatanSekolah}</p>
+ <p class="text-[10px] text-gray-600 mt-0.5">Sistem Informasi Pemantauan Revitalisasi SD (SIVIT26 Tahun 2026)</p>
+ </div>
+ </div>
+
+ <div class="text-center mb-6">
+ <h3 class="font-bold text-sm uppercase underline">LAPORAN PEMANTAUAN & PROGRESIF PEKERJAAN REVITALISASI</h3>
+ <p class="text-xs text-gray-600">ID Paket: ${paket.paket_id || paket.id_paket || '-'}</p>
+ </div>
+ 
+<div class="mb-6 grid grid-cols-2 gap-4 text-xs bg-gray-50 p-4 rounded-lg border border-gray-200">
+ <div>
+ <table class="w-full">
+ <tr><td class="font-semibold py-0.5 w-1/3">NPSN:</td><td>${targetNpsn}</td></tr>
+ <tr><td class="font-semibold py-0.5">Nama Sekolah:</td><td>${namaSekolah}</td></tr>
+ <tr><td class="font-semibold py-0.5">Kecamatan:</td><td>${kecamatanSekolah}</td></tr>
+ <tr><td class="font-semibold py-0.5">Alamat:</td><td>${alamatSekolah}</td></tr>
+ </table>
+ </div>
+ <div>
+ <table class="w-full">
+ <tr><td class="font-semibold py-0.5 w-1/3">Jenis Pekerjaan:</td><td>${paket.nama_menu || paket.jenis_pekerjaan || '-'}</td></tr>
+ <tr><td class="font-semibold py-0.5">Pagu Anggaran:</td><td>Rp ${numericPagu.toLocaleString('id-ID')}</td></tr>
+ <tr><td class="font-semibold py-0.5">Jangka Waktu:</td><td>${paket.tanggal_mulai || '-'} s.d. ${paket.tgl_selesai || '-'} (${paket.lama_hari || 0} Hari)</td></tr>
+ <tr><td class="font-semibold py-0.5">Tim Teknis:</td><td>P: ${paket.perencana || '-'} | O: ${paket.pengawas || '-'}</td></tr>
+ </table>
+ </div>
+ </div>
+
+ <div class="mb-8">
+ <h3 class="font-bold text-xs uppercase text-blue-900 border-b border-gray-300 pb-1 mb-2">II. Riwayat Progres Perkembangan Fisik & Kurva S</h3>
+ <table class="w-full border-collapse border border-gray-400 text-xs text-left">
+ <thead>
+ <tr class="bg-gray-200 text-gray-900">
+ <th class="border border-gray-400 p-2 text-center w-10">No</th>
+ <th class="border border-gray-400 p-2">Minggu / Rentang Waktu</th>
+ <th class="border border-gray-400 p-2">Tanggal Lapor</th>
+ <th class="border border-gray-400 p-2 text-center">Target (%)</th>
+ <th class="border border-gray-400 p-2 text-center">Realisasi (%)</th>
+ <th class="border border-gray-400 p-2 text-center">Status Verifikasi</th>
+ </tr>
+ </thead>
+ <tbody>
+ ${progresList.length > 0 ? progresList.map((item, i) => `
+ <tr>
+ <td class="border border-gray-400 p-2 text-center">${i + 1}</td>
+ <td class="border border-gray-400 p-2">${item.minggu_ke || '-'}</td>
+ <td class="border border-gray-400 p-2">${item.tanggal_lapor || '-'}</td>
+ <td class="border border-gray-400 p-2 text-center">${item.target_kurva_s || 0}%</td>
+ <td class="border border-gray-400 p-2 text-center font-bold">${item.realisasi_fisik || 0}%</td>
+ <td class="border border-gray-400 p-2 text-center font-semibold">${item.status_verifikasi || 'DIAJUKAN'}</td>
+ </tr>
+ `).join('') : '<tr><td colspan="6" class="border border-gray-400 p-4 text-center text-gray-500 italic">Belum ada data laporan progres yang diunggah untuk paket ini.</td></tr>'}
+ </tbody>
+ </table>
+ </div>
+
+ <div class="flex justify-between mt-12 text-xs text-center page-break-inside-avoid">
+ <div class="w-1/3">
+ <p class="font-medium">Mengetahui,</p>
+ <p class="font-bold">Penanggungjawab (Kepala Sekolah)</p>
+ <br><br><br><br>
+ <p class="underline font-bold">( ........................................ )</p>
+ </div>
+ <div class="w-1/3">
+ <p class="font-medium">Rembang, ${new Date().toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'})}</p>
+ <p class="font-bold">Personel Teknis / Pengawas Lapangan</p>
+ <br><br><br><br>
+ <p class="underline font-bold">( ........................................ )</p>
+ </div>
+ </div>
+
+ <div class="mt-8 text-center no-print">
+ <button onclick="window.print()" class="bg-blue-700 text-white px-6 py-2.5 rounded-lg shadow-lg font-bold hover:bg-blue-800 transition cursor-pointer text-xs">
+ <i class="fa-solid fa-print mr-2"></i> Cetak / Simpan ke PDF Sekarang
+ </button>
+ </div>
+ </body>
+ </html>
+ `);
+ printWindow.document.close();
+ }
+ 
+async function verifyReg(npsn, status) {
+ if(!confirm(`Ubah status pendaftaran sekolah menjadi ${status}?`)) return;
+ try {
+ const res = await fetch(WEB_APP_URL, {
+ method: 'POST',
+ body: JSON.stringify({ action: 'verifyRegister', npsn: npsn, status: status })
+ });
+ const data = await res.json();
+ alert(data.pesan);
+ loadTableData('sekolah_pending', 'Verifikasi Sekolah');
+ } catch (err) {
+ alert('Gagal memproses verifikasi.');
+ }
+ }
+
+ function openVerifikasiModal(idLaporan) {
+ document.getElementById('verif-id-laporan').value = idLaporan;
+ document.getElementById('verif-catatan').value = "";
+ let modal = document.getElementById('verifikasi-modal');
+ if(modal) {
+ modal.classList.remove('hidden');
+ modal.classList.add('flex');
+ }
+ }
+
+ function closeVerifikasiModal() {
+ let modal = document.getElementById('verifikasi-modal');
+ if(modal) {
+ modal.classList.add('hidden');
+ modal.classList.remove('flex');
+ }
+ }
+
+ async function submitVerifikasiLaporan(e) {
+ e.preventDefault();
+ let idLaporan = document.getElementById('verif-id-laporan').value;
+ let status = document.getElementById('verif-status').value;
+ let catatanDinas = document.getElementById('verif-catatan').value;
+
+ try {
+ let res = await fetch(WEB_APP_URL, {
+ method: 'POST',
+ body: JSON.stringify({
+ action: 'verifikasiLaporan',
+ idLaporan: idLaporan,
+ status: status,
+ catatanDinas: catatanDinas
+ })
+ });
+ let data = await res.json();
+ alert(data.pesan);
+ if (data.status === 'success') {
+ closeVerifikasiModal();
+ loadTableData('laporan_progres', 'Laporan Progres');
+ }
+ } catch (err) {
+ alert('Gagal mengirim verifikasi laporan.');
+ }
+ }
 
 function openModalForm(rowData = null) {
-  document.getElementById('formRowIndex').value = rowData ? rowData._rowIndex : "";
-  let modalTitle = document.getElementById('modalTitle');
-  let btnSave = document.getElementById('btnSaveModal');
-  if (!rowData) {
-    modalTitle.innerText = "Tambah Paket Pekerjaan Baru";
-    btnSave.innerText = "Tambah Paket";
-  } else {
-    modalTitle.innerText = "Edit Paket Pekerjaan";
-    btnSave.innerText = "Simpan Perubahan";
+ if (currentUser.role === 'SEKOLAH' && currentActiveSheet === 'users' && rowData) {
+ let rowIdentifier = String(rowData.username || rowData.npsn || "").trim();
+ if (rowIdentifier !== String(currentUser.username).trim()) {
+ alert("Akses ditolak! Anda hanya diizinkan mengubah Profil & Tim Teknis milik NPSN Anda sendiri.");
+ return;
+ }
+ }
+
+ let modal = document.getElementById('dataModal');
+ let container = document.getElementById('formFieldsContainer');
+ let modalTitle = document.getElementById('modalTitle');
+ let btnSave = document.getElementById('btnSaveModal');
+ container.innerHTML = "";
+
+ document.getElementById('formRowIndex').value = rowData ? rowData._rowIndex : "";
+ 
+ if (!rowData) {
+ modalTitle.innerText = "Tambah Paket Pekerjaan Baru";
+ btnSave.innerText = "Tambah Paket";
+ } else {
+ modalTitle.innerText = currentActiveSheet === 'users' ? "Edit Profil & Tim Teknis" : "Edit Paket Pekerjaan";
+ btnSave.innerText = "Simpan Perubahan";
+ }
+
+ currentHeaders.forEach(h => {
+ if (h === '_rowIndex' || h === 'rowid') return;
+
+ let div = document.createElement('div');
+ div.className = "space-y-1";
+
+ let label = document.createElement('label');
+ label.className = "block text-xs font-semibold uppercase tracking-wider text-blue-200";
+ label.innerText = h.replace(/_/g, ' ');
+ div.appendChild(label);
+
+ let input;
+ if (currentUser.role === 'SEKOLAH' && currentActiveSheet === 'users') {
+ if (h === 'perencana' || h === 'pengawas') {
+ input = document.createElement('input');
+ input.type = "text";
+ input.name = h;
+ input.value = rowData ? (rowData[h] || '') : '';
+ input.required = true;
+ input.placeholder = `Masukkan nama ${h}...`;
+ input.className = "w-full px-3.5 py-2.5 border border-blue-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400 text-sm bg-blue-950/50 text-white font-semibold";
+ } else {
+ input = document.createElement('input');
+ input.type = "hidden";
+ input.name = h;
+ input.value = rowData ? (rowData[h] || '') : (h === 'username' || h === 'npsn' ? currentUser.username : '');
+ div.appendChild(input);
+ return;
+ }
+ } else {
+ input = document.createElement('input');
+ input.type = "text";
+ input.name = h;
+ input.value = rowData ? (rowData[h] || '') : (h === 'npsn' ? currentUser.username : '');
+ if (h === 'paket_id' || h === 'id_laporan' || h === 'id') {
+ input.readOnly = true;
+ input.className = "w-full px-3.5 py-2.5 bg-blue-950/30 border border-blue-800 rounded-xl text-blue-300 text-sm cursor-not-allowed";
+ } else {
+ input.className = "w-full px-3.5 py-2.5 border border-blue-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400 text-sm bg-blue-950/50 text-white font-semibold";
+ }
+ }
+
+ div.appendChild(input);
+ container.appendChild(div);
+ });
+
+ modal.classList.remove('hidden');
+ modal.classList.add('flex');
+ }
+
+function closeModal() {
+  let modal = document.getElementById('dataModal');
+  if (modal) {
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
   }
-  renderFormFields(currentHeaders, rowData);
 }
 
+ function hitungTanggalSelesai() {
+ let mulaiInput = document.getElementById('inputTanggalMulai');
+ let lamaInput = document.getElementById('inputLamaHari');
+ let selesaiInput = document.getElementById('inputTanggalSelesai');
+
+ if (mulaiInput && lamaInput && selesaiInput && mulaiInput.value) {
+ let tglMulai = new Date(mulaiInput.value);
+ let lamaHari = parseInt(lamaInput.value) || 0;
+ if (!isNaN(tglMulai.getTime())) {
+ tglMulai.setDate(tglMulai.getDate() + lamaHari);
+ let yyyy = tglMulai.getFullYear();
+ let mm = String(tglMulai.getMonth() + 1).padStart(2, '0');
+ let dd = String(tglMulai.getDate()).padStart(2, '0');
+ selesaiInput.value = `${yyyy}-${mm}-${dd}`;
+ }
+ }
+ }
+
+function closeModal() {
+  let modal = document.getElementById('dataModal');
+  if (modal) {
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+  }
+}
+
+// 1. Fungsi closeModal tetap ada
+function closeModal() {
+  let modal = document.getElementById('dataModal');
+  if (modal) {
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+  }
+}
+
+// 2. Gunakan handleFormSubmit versi lengkap yang baru dan pintar
 async function handleFormSubmit(e) {
   if (e) e.preventDefault();
+  
   let form = e.target;
   let rowIndex = document.getElementById('formRowIndex').value;
   let formDataObj = {};
+
   let inputs = form.querySelectorAll('input, select, textarea');
   inputs.forEach(inp => {
     if (inp.name && inp.name !== 'formRowIndex') {
+      if (inp.id === 'inputPaguFormatted') return; 
       formDataObj[inp.name] = inp.value;
     }
   });
+
+  if (currentActiveSheet === 'paket_pekerjaan_sd' && currentUser.role === 'SEKOLAH') {
+    let isNewData = !rowIndex; 
+
+    if (isNewData) {
+      let inputNamaMenu = String(
+        formDataObj['nama_menu'] || 
+        (document.getElementById('nama_menu') ? document.getElementById('nama_menu').value : '')
+      ).trim().toLowerCase();
+      
+      if (inputNamaMenu) {
+        formDataObj['nama_menu'] = inputNamaMenu;
+      }
+      
+      if (!inputNamaMenu) {
+        alert("Nama Menu Pekerjaan wajib diisi!");
+        return; 
+      }
+
+      let isDuplicate = paketPekerjaanList.some(p => 
+        String(p.npsn || '').trim() === String(currentUser.username).trim() &&
+        String(p.nama_menu || '').trim().toLowerCase() === inputNamaMenu
+      );
+
+      if (isDuplicate) {
+        alert("Peringatan: Menu pekerjaan dengan nama tersebut sudah pernah ditambahkan sebelumnya. Silakan pilih nama menu yang lain.");
+        return; 
+      }
+    }
+  }
 
   let btnSave = document.getElementById('btnSaveModal');
   if (btnSave) {
@@ -572,15 +1557,26 @@ async function handleFormSubmit(e) {
       role: currentUser.role,
       npsn: currentUser.username,
       rowIndex: rowIndex,
-      formData: formDataObj
+      data: formDataObj
     };
+
     let res = await fetch(WEB_APP_URL, {
       method: 'POST',
       body: JSON.stringify(payload)
     });
     let result = await res.json();
     alert(result.pesan);
+
     if (result.status === 'success') {
+      if (currentUser.role === 'SEKOLAH' && currentActiveSheet === 'users') {
+        currentUser.perencana = formDataObj['perencana'] || currentUser.perencana;
+        currentUser.pengawas = formDataObj['pengawas'] || currentUser.pengawas;
+        if (!currentUser.sekolah) currentUser.sekolah = {};
+        currentUser.sekolah.perencana = currentUser.perencana;
+        currentUser.sekolah.pengawas = currentUser.pengawas;
+        localStorage.setItem('sivit_user', JSON.stringify(currentUser));
+      }
+
       closeModal();
       loadTableData(currentActiveSheet);
     }
@@ -594,7 +1590,296 @@ async function handleFormSubmit(e) {
     }
   }
 }
-// FUNGSI PENDUNGKUNG AUTH CONTAINER & FORM
+
+// 3. Bungkus perulangan render form fields ke dalam fungsi agar aman dari error headers is not defined
+function renderFormFields(headers) {
+  console.log("Fungsi renderFormFields dipanggil dengan headers:", headers); // <-- Tambahkan baris ini
+  // Pengaman utama agar fungsi tidak berjalan jika headers tidak valid atau form belum terbuka
+  if (!headers || !Array.isArray(headers)) return;
+
+  let container = document.getElementById('formFieldsContainer');
+  if (!container) return; // Mencegah error jika dipanggil di luar halaman form (seperti saat login)
+   console.log("Elemen formFieldsContainer tidak ditemukan di DOM!"); // <-- Tambahkan baris ini
+   return;
+  }
+  container.innerHTML = '';
+
+  headers.forEach(h => {
+    let div = document.createElement('div');
+    div.className = "space-y-1.5";
+    
+    let label = document.createElement('label');
+    label.className = "block text-xs font-medium text-blue-200 uppercase tracking-wider";
+    label.innerText = h.replace(/_/g, ' ');
+    div.appendChild(label);
+
+    let input;
+    let hLower = h ? h.toLowerCase().trim() : '';
+
+    // Ambil variabel global dengan aman
+    let activeSheet = (typeof currentActiveSheet !== 'undefined') ? String(currentActiveSheet).toLowerCase().trim().replace(/[\s-]/g, '_') : '';
+    let user = (typeof currentUser !== 'undefined') ? currentUser : {};
+    let dataRow = (typeof rowData !== 'undefined') ? rowData : null;
+
+    // Deteksi fleksibel untuk sheet paket pekerjaan SD
+    if (activeSheet === 'paket_pekerjaan_sd') {
+      if (hLower === 'paket_id') {
+        input = document.createElement('input');
+        input.type = "text";
+        input.name = h;
+        input.readOnly = true;
+        input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-400 cursor-not-allowed font-bold";
+        let usernameVal = user.username || user.npsn || 'SEKOLAH';
+        input.value = (dataRow && dataRow[h]) ? dataRow[h] : "PKT-" + usernameVal + "-" + Math.floor(Date.now() / 1000);
+      } 
+      else if (hLower === 'npsn') {
+        input = document.createElement('input');
+        input.type = "text";
+        input.name = h;
+        input.readOnly = true;
+        input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-blue-300 cursor-not-allowed";
+        input.value = user.username || user.npsn || user.NPSN || '';
+      } 
+      else if (hLower === 'nama_menu') {
+        // Dropdown nama_menu dengan filter 1 sekolah 1 nama_menu unik
+        input = document.createElement('select');
+        input.name = h;
+        input.id = "nama_menu";
+        input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
+        
+        let defOpt = document.createElement('option');
+        defOpt.value = "";
+        defOpt.innerText = "-- Pilih Menu Pekerjaan Baru --";
+        input.appendChild(defOpt);
+
+        let menuList = (typeof menuPekerjaanList !== 'undefined') ? menuPekerjaanList : [];
+        let selectedMenus = [];
+        
+        if (typeof allTableData !== 'undefined' && Array.isArray(allTableData)) {
+          let currentNpsn = String(user.username || user.npsn || user.NPSN || '').trim();
+          selectedMenus = allTableData
+            .filter(row => String(row.npsn || row.NPSN || '').trim() === currentNpsn)
+            .map(row => String(row.nama_menu || row.Nama_Menu || '').trim().toLowerCase());
+        }
+
+        if (Array.isArray(menuList) && menuList.length > 0) {
+          menuList.forEach(m => {
+            let menuName = m.nama_menu || m.menu || m.Nama_Menu || m.nama || '';
+            let menuNameLower = menuName.trim().toLowerCase();
+            let isAlreadySelected = selectedMenus.includes(menuNameLower);
+            let isCurrentRowMenu = dataRow ? String(dataRow[h] || '').trim().toLowerCase() === menuNameLower : false;
+
+            if (!isAlreadySelected || isCurrentRowMenu) {
+              let opt = document.createElement('option');
+              opt.value = menuName;
+              opt.innerText = menuName;
+              if (isCurrentRowMenu) opt.selected = true;
+              input.appendChild(opt);
+            }
+          });
+        }
+      } 
+      else if (hLower === 'pagu') {
+        let rawVal = (dataRow && dataRow[h] !== undefined) ? dataRow[h] : "0";
+        input = document.createElement('input');
+        input.type = "text";
+        input.name = h;
+        input.readOnly = true;
+        input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-400 cursor-not-allowed font-bold";
+        input.value = "Rp " + Number(String(rawVal).replace(/[^0-9]/g, '') || 0).toLocaleString('id-ID');
+      }
+      else if (hLower === 'pagu_usulan') {
+        let rawVal = (dataRow && dataRow[h] !== undefined) ? dataRow[h] : "";
+        let initialNum = rawVal !== "" ? Number(String(rawVal).replace(/[^0-9]/g, '')) : "";
+
+        let wrapper = document.createElement('div');
+        wrapper.className = "relative";
+
+        input = document.createElement('input');
+        input.type = "text";
+        input.id = "inputPaguUsulanFormatted";
+        input.placeholder = "Masukkan nominal usulan pagu...";
+        input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
+        input.value = initialNum !== "" ? initialNum.toLocaleString('id-ID') : "";
+
+        let hiddenRealInput = document.createElement('input');
+        hiddenRealInput.type = "hidden";
+        hiddenRealInput.id = "inputPaguUsulanReal";
+        hiddenRealInput.name = h;
+        hiddenRealInput.value = initialNum;
+
+        input.oninput = function() {
+          let cleanStr = this.value.replace(/[^0-9]/g, '');
+          let num = cleanStr ? parseInt(cleanStr, 10) : 0;
+          hiddenRealInput.value = num;
+          this.value = num > 0 ? num.toLocaleString('id-ID') : "";
+        };
+
+        wrapper.appendChild(input);
+        wrapper.appendChild(hiddenRealInput);
+        div.appendChild(wrapper);
+      } 
+      else if (hLower === 'status_pagu') {
+        input = document.createElement('input');
+        input.type = "text";
+        input.name = h;
+        input.readOnly = true;
+        input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-300 cursor-not-allowed font-bold";
+        input.value = (dataRow && dataRow[h]) ? dataRow[h] : "DIAJUKAN";
+      } 
+      else if (hLower === 'perencana' || hLower === 'pengawas') {
+        input = document.createElement('input');
+        input.type = "text";
+        input.name = h;
+        input.readOnly = true;
+        input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-300 cursor-not-allowed font-bold";
+        
+        let autoVal = user[h] || user[h.toLowerCase()] || user[h.toUpperCase()] || (dataRow ? dataRow[h] : "");
+        input.value = (autoVal && autoVal !== "undefined") ? autoVal : "-";
+      } 
+      else if (hLower === 'tanggal_mulai') {
+        input = document.createElement('input');
+        input.type = "date";
+        input.name = h;
+        input.id = "inputTanggalMulai";
+        input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
+        let rawDate = (dataRow && dataRow[h]) ? dataRow[h] : new Date().toISOString().split('T')[0];
+        input.value = typeof convertToInputDate === 'function' ? convertToInputDate(rawDate) : rawDate;
+        if (typeof hitungTanggalSelesai === 'function') input.onchange = hitungTanggalSelesai;
+      } 
+      else if (hLower === 'lama_hari') {
+        input = document.createElement('input');
+        input.type = "number";
+        input.name = h;
+        input.id = "inputLamaHari";
+        input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
+        input.value = (dataRow && dataRow[h]) ? dataRow[h] : "90";
+        if (typeof hitungTanggalSelesai === 'function') input.oninput = hitungTanggalSelesai;
+      } 
+      else if (hLower === 'tgl_selesai' || hLower === 'tanggal_selesai') {
+        input = document.createElement('input');
+        input.type = "text";
+        input.name = h;
+        input.id = "inputTanggalSelesai";
+        input.readOnly = true;
+        input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-blue-300 cursor-not-allowed";
+        input.value = (dataRow && dataRow[h]) ? dataRow[h] : "";
+        if (typeof hitungTanggalSelesai === 'function') setTimeout(hitungTanggalSelesai, 200);
+      } 
+      else {
+        input = document.createElement('input');
+        input.type = "text";
+        input.name = h;
+        input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
+        input.value = dataRow ? (dataRow[h] !== undefined ? dataRow[h] : "") : "";
+      }
+    } 
+    else {
+      input = document.createElement('input');
+      input.type = "text";
+      input.name = h;
+      input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
+      input.value = dataRow ? (dataRow[h] !== undefined ? dataRow[h] : "") : "";
+    }
+
+    if (input && !div.contains(input)) {
+      div.appendChild(input);
+    }
+    container.appendChild(div);
+  });
+
+  let formModal = document.getElementById('formModal') || document.getElementById('modal');
+  if (formModal) {
+    formModal.classList.remove('hidden');
+    formModal.classList.add('flex');
+  }
+}
+ 
+ async function deleteRowData(rowIndex) {
+ if (!confirm("Apakah Anda yakin ingin menghapus baris data ini?")) return;
+
+ try {
+ let res = await fetch(WEB_APP_URL, {
+ method: 'POST',
+ body: JSON.stringify({
+ action: 'deleteData',
+ sheet: currentActiveSheet,
+ rowIndex: rowIndex
+ })
+ });
+ let result = await res.json();
+ alert(result.pesan);
+ if (result.status === 'success') {
+ loadTableData(currentActiveSheet);
+ }
+ } catch (err) {
+ alert('Gagal menghapus data.');
+ }
+ }
+
+ async function bukaRiwayatPagu(npsn, paketId) {
+ let modal = document.getElementById('modalRiwayatPagu');
+ let tbody = document.getElementById('riwayatTableBody');
+ let infoNamaSekolah = document.getElementById('infoNamaSekolah');
+ let infoNamaMenu = document.getElementById('infoNamaMenu');
+
+ tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-blue-300">Memuat riwayat perubahan pagu...</td></tr>`;
+ modal.classList.remove('hidden');
+ modal.classList.add('flex');
+
+ try {
+ let res = await fetch(`${WEB_APP_URL}?action=getData&sheet=riwayat_pagu&role=${currentUser.role}&npsn=${encodeURIComponent(npsn)}`);
+ let result = await res.json();
+ if (result.status === 'success') {
+ let dataRiwayat = (result.data || []).filter(r => String(r.paket_id || '').trim() === String(paketId).trim());
+ 
+let foundUser = usersList.find(u => String(u.username || u.npsn || '').trim() === String(npsn).trim());
+ infoNamaSekolah.innerText = foundUser ? `${npsn} - ${foundUser.nama_pengguna || foundUser.nama_sekolah}` : `NPSN: ${npsn}`;
+
+ let foundPaket = paketPekerjaanList.find(p => String(p.paket_id || '').trim() === String(paketId).trim());
+ infoNamaMenu.innerText = foundPaket ? `Menu Pekerjaan: ${foundPaket.nama_menu} (ID: ${paketId})` : `ID Paket: ${paketId}`;
+
+ tbody.innerHTML = "";
+ if (dataRiwayat.length === 0) {
+ tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-blue-300">Belum ada riwayat perubahan pagu untuk paket ini.</td></tr>`;
+ return;
+ }
+
+ dataRiwayat.forEach((r, idx) => {
+ let tr = document.createElement('tr');
+ tr.className = "hover:bg-blue-800/30";
+ let selisih = Number(r.pagu_baru || 0) - Number(r.pagu_lama || 0);
+ let selisihStr = (selisih > 0 ? "+" : "") + "Rp " + selisih.toLocaleString('id-ID');
+ let selisihColor = selisih > 0 ? "text-emerald-400" : (selisih < 0 ? "text-red-400" : "text-slate-300");
+
+ tr.innerHTML = `
+ <td class="p-2.5 text-center">${idx + 1}</td>
+ <td class="p-2.5">${r.tanggal || r.timestamp || '-'}</td>
+ <td class="p-2.5 text-right">Rp ${Number(r.pagu_lama || 0).toLocaleString('id-ID')}</td>
+ <td class="p-2.5 text-right font-bold text-amber-300">Rp ${Number(r.pagu_baru || 0).toLocaleString('id-ID')}</td>
+ <td class="p-2.5 text-center font-semibold ${selisihColor}">${selisihStr}</td>
+ <td class="p-2.5">${r.keterangan || '-'}</td>
+ `;
+ tbody.appendChild(tr);
+ });
+ } else {
+ tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-red-400">Gagal memuat data riwayat.</td></tr>`;
+ }
+ } catch (e) {
+ tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-red-400">Terjadi kesalahan koneksi.</td></tr>`;
+ }
+ }
+
+ function closeRiwayatModal() {
+ let modal = document.getElementById('modalRiwayatPagu');
+ modal.classList.add('hidden');
+ modal.classList.remove('flex');
+ }
+</script>
+
+<script>
+// ==========================================
+// FUNGSI PENDUKUNG AUTH CONTAINER
 // ==========================================
 
 function switchTab(tab) {
@@ -629,6 +1914,33 @@ function hitungTglSelesai() {
   let lamaHariVal = parseInt(lamaHariEl.value) || 0;
 
   if (tglMulaiVal && lamaHariVal > 0) {
+    let parts = tglMulaiVal.split('-'); 
+    if (parts.length === 3) {
+      let dateObj = new Date(parts[0], parts[1] - 1, parts[2]);
+      dateObj.setDate(dateObj.getDate() + lamaHariVal);
+
+      let dd = String(dateObj.getDate()).padStart(2, '0');
+      let mm = String(dateObj.getMonth() + 1).padStart(2, '0');
+      let yyyy = dateObj.getFullYear();
+
+      tglSelesaiEl.value = `${dd}/${mm}/${yyyy}`;
+    }
+  } else {
+    tglSelesaiEl.value = "";
+  }
+}
+
+function hitungTglSelesai() {
+  let tglMulaiEl = document.querySelector('input[name="tanggal_mulai"]');
+  let lamaHariEl = document.querySelector('input[name="lama_hari"]');
+  let tglSelesaiEl = document.getElementById('inputTglSelesai');
+
+  if (!tglMulaiEl || !lamaHariEl || !tglSelesaiEl) return;
+
+  let tglMulaiVal = tglMulaiEl.value;
+  let lamaHariVal = parseInt(lamaHariEl.value) || 0;
+
+  if (tglMulaiVal && lamaHariVal > 0) {
     let parts = tglMulaiVal.split('-'); // format yyyy-mm-dd dari input type="date"
     if (parts.length === 3) {
       let dateObj = new Date(parts[0], parts[1] - 1, parts[2]);
@@ -644,7 +1956,7 @@ function hitungTglSelesai() {
     tglSelesaiEl.value = "";
   }
 }
-  
+ 
 function togglePasswordVisibility(inputId, iconId) {
   const input = document.getElementById(inputId);
   const icon = document.getElementById(iconId);
@@ -688,3 +2000,5 @@ function checkNpsnOtomatis(npsn) {
 </script>
 </body>
 </html>
+
+
