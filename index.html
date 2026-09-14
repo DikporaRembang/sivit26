@@ -1424,6 +1424,31 @@ function openModalForm(rowData = null) {
             }
             div.appendChild(input);
         } 
+        // Kondisi 1.5: Role DINAS mengedit sheet 'users' (Manajemen Pengguna & Status Verifikasi)
+        else if (currentUser.role === 'DINAS' && typeof currentActiveSheet !== 'undefined' && currentActiveSheet === 'users') {
+            if (hLower === 'status') {
+                input = document.createElement('select');
+                input.name = h;
+                input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white font-bold focus:ring-2 focus:ring-amber-400 focus:outline-none";
+                
+                ['DIAJUKAN', 'DISETUJUI', 'DITOLAK'].forEach(optStatus => {
+                    let opt = document.createElement('option');
+                    opt.value = optStatus;
+                    opt.innerText = optStatus;
+                    if (String(val).toUpperCase() === optStatus) {
+                        opt.selected = true;
+                    }
+                    input.appendChild(opt);
+                });
+            } else {
+                input = document.createElement('input');
+                input.type = "text";
+                input.name = h;
+                input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
+                input.value = val;
+            }
+            div.appendChild(input);
+        }
         // Kondisi 2: Sheet 'paket_pekerjaan_sd'
         else if (typeof currentActiveSheet !== 'undefined' && currentActiveSheet === 'paket_pekerjaan_sd') {
             if (!rowData && currentUser.role === 'SEKOLAH') {
@@ -1783,7 +1808,6 @@ function openModalForm(rowData = null) {
     modal.classList.remove('hidden');
     modal.classList.add('flex');
 }
-
 function hitungTanggalSelesai() {
     let mulaiInput = document.getElementById('inputTanggalMulai');
     let lamaInput = document.getElementById('inputLamaHari');
