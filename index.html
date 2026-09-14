@@ -1817,9 +1817,19 @@ function hitungTanggalSelesai() {
         inputs.forEach(inp => {
             if (inp.name && inp.name !== 'formRowIndex') {
                 if (inp.id === 'inputPaguFormatted') return; 
-                formDataObj[inp.name] = inp.value;
+                if (inp.name === 'foto_dokumentasi' && inp.dataset.base64) {
+                        formDataObj[inp.name] = inp.dataset.base64;
+                } else if (inp.type !== 'file') {
+                    formDataObj[inp.name] = inp.value;
+                }
             }
         });
+
+        // Logika spesifik: Jika role SEKOLAH memperbarui data pada sheet 'users' (Profil & Tim Teknis)
+        // maka status otomatis diubah kembali menjadi 'DIAJUKAN' untuk menunggu verifikasi ulang dari Dinas.
+        if (currentUser && currentUser.role === 'SEKOLAH' && currentActiveSheet === 'users') {
+            formDataObj['status'] = 'DIAJUKAN';
+        }
 
         let btnSave = document.getElementById('btnSaveModal');
         btnSave.innerText = "Menyimpan...";
@@ -1832,6 +1842,7 @@ function hitungTanggalSelesai() {
                     action: 'saveData',
                     sheet: currentActiveSheet,
                     role: currentUser.role,
+                    npsn: currentUser.username,
                     rowIndex: rowIndex ? Number(rowIndex) : null,
                     formData: formDataObj
                 })
@@ -1849,7 +1860,6 @@ function hitungTanggalSelesai() {
             btnSave.disabled = false;
         }
     }
-
     async function deleteRowData(rowIndex) {
         if (!confirm("Apakah Anda yakin ingin menghapus baris data ini?")) return;
 
