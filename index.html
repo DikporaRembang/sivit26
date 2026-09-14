@@ -458,7 +458,15 @@
         let p = document.getElementById('loginPass').value;
 
         try {
-            let res = await fetch(`${WEB_APP_URL}?action=login&username=${encodeURIComponent(u)}&password=${encodeURIComponent(p)}`);
+            let res = await fetch(WEB_APP_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // Wajib text/plain untuk Apps Script POST
+                body: JSON.stringify({
+                    action: 'login',
+                    username: u,
+                    password: p
+                })
+            });
             let data = await res.json();
             if (data.status === 'success') {
                 currentUser = data.data;
@@ -468,6 +476,7 @@
                 alert(data.pesan);
             }
         } catch (err) {
+            console.error(err);
             alert('Gagal terhubung ke server.');
         }
     }
