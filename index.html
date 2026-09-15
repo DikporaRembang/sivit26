@@ -1477,36 +1477,108 @@ currentHeaders.forEach(h => {
                         }
                     });
                 }
-            } else if (hLower === 'pagu' || hLower.includes('pagu')) {
-                let rawVal = activeRowData && activeRowData[h] !== undefined ? activeRowData[h] : "";
-                let initialNum = rawVal !== "" ? Number(String(rawVal).replace(/[^0-9]/g, '')) : "";
+            } else if (hLower === 'pagu') {
+
+                // ==============================
+                // PAGU DISETUJUI — READ ONLY
+                // ==============================
+                let rawVal = activeRowData && activeRowData[h] !== undefined
+                    ? activeRowData[h]
+                    : "";
+
+                let initialNum = rawVal !== ""
+                    ? Number(String(rawVal).replace(/[^0-9]/g, ''))
+                    : 0;
+
+                input = document.createElement('input');
+                input.type = "text";
+                input.name = h;
+                input.readOnly = true;
+
+                input.className =
+                    "w-full px-3.5 py-2.5 border border-gray-600 bg-gray-800 " +
+                    "rounded-xl text-xs text-gray-300 cursor-not-allowed";
+
+                input.value = initialNum > 0
+                    ? "Rp " + initialNum.toLocaleString('id-ID')
+                    : "Rp 0";
+
+                div.appendChild(input);
+
+
+            } else if (hLower === 'pagu_usulan') {
+
+                // ==============================
+                // PAGU USULAN — BISA DIISI SEKOLAH
+                // ==============================
+                let rawVal = activeRowData && activeRowData[h] !== undefined
+                    ? activeRowData[h]
+                    : "";
+
+                let initialNum = rawVal !== ""
+                    ? Number(String(rawVal).replace(/[^0-9]/g, ''))
+                    : "";
 
                 let wrapper = document.createElement('div');
                 wrapper.className = "relative";
 
                 input = document.createElement('input');
                 input.type = "text";
-                input.id = "inputPaguFormatted";
-                input.placeholder = "Masukkan nominal pagu";
-                input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-                input.value = initialNum !== "" && !isNaN(initialNum) ? initialNum.toLocaleString('id-ID') : "";
+                input.id = "inputPaguUsulanFormatted";
+                input.placeholder = "Masukkan nominal pagu usulan";
+                input.name = h;
 
-                let hiddenRealInput = document.createElement('input');
-                hiddenRealInput.type = "hidden";
-                hiddenRealInput.id = "inputPaguReal";
-                hiddenRealInput.name = h;
-                hiddenRealInput.value = initialNum;
+                input.className =
+                    "w-full px-3.5 py-2.5 border border-blue-700 " +
+                    "bg-blue-950 rounded-xl text-xs text-white " +
+                    "focus:ring-2 focus:ring-amber-400 focus:outline-none";
+
+                input.value =
+                    initialNum !== "" && !isNaN(initialNum)
+                        ? initialNum.toLocaleString('id-ID')
+                        : "";
 
                 input.oninput = function() {
+
                     let cleanStr = this.value.replace(/[^0-9]/g, '');
                     let num = cleanStr ? parseInt(cleanStr, 10) : 0;
-                    hiddenRealInput.value = num;
-                    this.value = num > 0 ? num.toLocaleString('id-ID') : "";
+
+                    this.value = num > 0
+                        ? num.toLocaleString('id-ID')
+                        : "";
                 };
 
                 wrapper.appendChild(input);
-                wrapper.appendChild(hiddenRealInput);
+
+                // Keterangan untuk SEKOLAH
+                let note = document.createElement('div');
+                note.className = "text-[10px] text-amber-300 mt-1";
+                note.innerText =
+                    "Isi PAGU USULAN. PAGU akan ditetapkan setelah disetujui DINAS.";
+
+                wrapper.appendChild(note);
+
                 div.appendChild(wrapper);
+
+
+            } else if (hLower === 'status_pagu') {
+
+                // ==============================
+                // STATUS PAGU — READ ONLY
+                // ==============================
+                input = document.createElement('input');
+                input.type = "text";
+                input.name = h;
+                input.readOnly = true;
+
+                input.className =
+                    "w-full px-3.5 py-2.5 border border-gray-600 " +
+                    "bg-gray-800 rounded-xl text-xs text-gray-300 cursor-not-allowed";
+
+                input.value = val || "DIAJUKAN";
+
+                div.appendChild(input);
+                
             } else if (hLower.includes('perencana') || hLower.includes('pengawas')) {
                 input = document.createElement('input');
                 input.type = "text";
