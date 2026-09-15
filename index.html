@@ -1955,7 +1955,7 @@ function hitungTanggalSelesai() {
         } catch (e) {
             tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-red-400">Terjadi kesalahan koneksi.</td></tr>`;
         }
-    }
+    } // <--- PENUTUP UNTUK FUNGSI showRiwayatPagu (Pastikan ini ada!)
     
     function closeRiwayatModal() {
         let modal = document.getElementById('modalRiwayatPagu');
@@ -1964,27 +1964,27 @@ function hitungTanggalSelesai() {
     }
 
     function switchTab(tabName) {
-    const formLogin = document.getElementById('formLogin');
-    const formRegister = document.getElementById('formRegister');
-    const tabLogin = document.getElementById('tabLogin');
-    const tabRegister = document.getElementById('tabRegister');
+        const formLogin = document.getElementById('formLogin');
+        const formRegister = document.getElementById('formRegister');
+        const tabLogin = document.getElementById('tabLogin');
+        const tabRegister = document.getElementById('tabRegister');
 
-    if (!formLogin || !formRegister || !tabLogin || !tabRegister) return;
+        if (!formLogin || !formRegister || !tabLogin || !tabRegister) return;
 
-    if (tabName === 'login') {
-        formLogin.classList.remove('hidden');
-        formRegister.classList.add('hidden');
-        
-        tabLogin.className = "flex-1 pb-3 font-semibold text-amber-400 border-b-2 border-amber-400 transition-all text-sm cursor-pointer";
-        tabRegister.className = "flex-1 pb-3 font-semibold text-blue-300/60 border-b-2 border-transparent transition-all text-sm cursor-pointer";
-    } else {
-        formLogin.classList.add('hidden');
-        formRegister.classList.remove('hidden');
-        
-        tabRegister.className = "flex-1 pb-3 font-semibold text-amber-400 border-b-2 border-amber-400 transition-all text-sm cursor-pointer";
-        tabLogin.className = "flex-1 pb-3 font-semibold text-blue-300/60 border-b-2 border-transparent transition-all text-sm cursor-pointer";
+        if (tabName === 'login') {
+            formLogin.classList.remove('hidden');
+            formRegister.classList.add('hidden');
+            
+            tabLogin.className = "flex-1 pb-3 font-semibold text-amber-400 border-b-2 border-amber-400 transition-all text-sm cursor-pointer";
+            tabRegister.className = "flex-1 pb-3 font-semibold text-blue-300/60 border-b-2 border-transparent transition-all text-sm cursor-pointer";
+        } else {
+            formLogin.classList.add('hidden');
+            formRegister.classList.remove('hidden');
+            
+            tabRegister.className = "flex-1 pb-3 font-semibold text-amber-400 border-b-2 border-amber-400 transition-all text-sm cursor-pointer";
+            tabLogin.className = "flex-1 pb-3 font-semibold text-blue-300/60 border-b-2 border-transparent transition-all text-sm cursor-pointer";
+        }
     }
-}
 </script>
 </body>
 </html>
