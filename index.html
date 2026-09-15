@@ -1986,29 +1986,6 @@ function hitungTanggalSelesai() {
         }
     }
 
-    // Pastikan ditulis di luar fungsi lain (di cakupan global utama)
-    window.switchTab = function(tabName) {
-        const formLogin = document.getElementById('formLogin');
-        const formRegister = document.getElementById('formRegister');
-        const tabLogin = document.getElementById('tabLogin');
-        const tabRegister = document.getElementById('tabRegister');
-
-        if (!formLogin || !formRegister || !tabLogin || !tabRegister) return;
-
-        if (tabName === 'login') {
-            formLogin.classList.remove('hidden');
-            formRegister.classList.add('hidden');
-        
-            tabLogin.className = "flex-1 pb-3 font-semibold text-amber-400 border-b-2 border-amber-400 transition-all text-sm cursor-pointer";
-            tabRegister.className = "flex-1 pb-3 font-semibold text-blue-300/60 border-b-2 border-transparent transition-all text-sm cursor-pointer";
-        } else {
-            formLogin.classList.add('hidden');
-            formRegister.classList.remove('hidden');
-        
-            tabRegister.className = "flex-1 pb-3 font-semibold text-amber-400 border-b-2 border-amber-400 transition-all text-sm cursor-pointer";
-            tabLogin.className = "flex-1 pb-3 font-semibold text-blue-300/60 border-b-2 border-transparent transition-all text-sm cursor-pointer";
-        }
-    }
 </script>
 </body>
 </html>
