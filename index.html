@@ -1565,6 +1565,7 @@ currentHeaders.forEach(h => {
 
                 // ==============================
                 // STATUS PAGU — READ ONLY
+                // Status ditentukan oleh sistem
                 // ==============================
                 input = document.createElement('input');
                 input.type = "text";
@@ -1576,6 +1577,10 @@ currentHeaders.forEach(h => {
                     "bg-gray-800 rounded-xl text-xs text-gray-300 cursor-not-allowed";
 
                 input.value = val || "DIAJUKAN";
+
+                // Jangan ikut dikirim dari form.
+                // Status akan ditentukan oleh backend.
+                input.dataset.systemField = "true";
 
                 div.appendChild(input);
                 
