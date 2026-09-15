@@ -1888,137 +1888,171 @@ function hitungTanggalSelesai() {
         modal.classList.remove('flex');
     }
 
-    async function handleFormSubmit(e) {
-        e.preventDefault();
+async function handleFormSubmit(e) {
+    e.preventDefault();
 
-        let form = e.target;
-        let rowIndex = document.getElementById('formRowIndex').value;
-        let formDataObj = {};
+    let form = e.target;
+    let rowIndex = document.getElementById('formRowIndex').value;
+    let formDataObj = {};
+
+    let inputs = form.querySelectorAll('input, select, textarea');
+
+    inputs.forEach(inp => {
+
+        if (!inp.name || inp.name === 'formRowIndex') return;
+
+        let fieldName = inp.name.toLowerCase();
 
         // ==========================================
-        // AMBIL DATA DARI FORM
+        // FOTO DOKUMENTASI
         // ==========================================
-        let inputs = form.querySelectorAll('input, select, textarea');
-
-        inputs.forEach(inp => {
-
-            if (!inp.name || inp.name === 'formRowIndex') return;
-
-            // ------------------------------------------
-            // FOTO DOKUMENTASI
-            // ------------------------------------------
-            if (inp.name === 'foto_dokumentasi' && inp.dataset.base64) {
-                formDataObj[inp.name] = inp.dataset.base64;
-                return;
-            }
-
-            // ------------------------------------------
-            // PAGU USULAN
-            // Tampilan : 100.000.000
-            // Dikirim  : 100000000
-            // ------------------------------------------
-            if (inp.name.toLowerCase() === 'pagu_usulan') {
-
-                let cleanValue = String(inp.value || '')
-                    .replace(/[^0-9]/g, '');
-
-                formDataObj[inp.name] = cleanValue !== ''
-                    ? Number(cleanValue)
-                    : 0;
-
-                return;
-            }
-
-            // ------------------------------------------
-            // PAGU
-            // SEKOLAH tidak boleh mengubah PAGU
-            // ------------------------------------------
-            if (
-                inp.name.toLowerCase() === 'pagu' &&
-                currentUser &&
-                currentUser.role === 'SEKOLAH' &&
-                currentActiveSheet === 'paket_pekerjaan_sd'
-            ) {
+        if (inp.name === 'foto_dokumentasi' && inp.dataset.base64) {
+            formDataObj[inp.name] = inp.dataset.base64;
             return;
-            }
-
-            // ------------------------------------------
-            // FIELD LAIN
-            // ------------------------------------------
-            if (inp.type !== 'file') {
-                formDataObj[inp.name] = inp.value;
-            }
-        });
-
+        }
 
         // ==========================================
-        // PROFIL & TIM TEKNIS
-        // Jika SEKOLAH mengubah data users,
-        // status dikembalikan menjadi DIAJUKAN
+        // SEKOLAH - PAKET PEKERJAAN
+        // FIELD YANG DIKENDALIKAN SISTEM
         // ==========================================
         if (
             currentUser &&
             currentUser.role === 'SEKOLAH' &&
-            currentActiveSheet === 'users'
+            currentActiveSheet === 'paket_pekerjaan_sd'
         ) {
-            formDataObj['status'] = 'DIAJUKAN';
-        }
 
-
-        // ==========================================
-        // TENTUKAN ACTION SESUAI SHEET
-        // ==========================================
-        let actionName = 'saveData';
-
-        if (currentActiveSheet === 'paket_pekerjaan_sd') {
-        actionName = 'simpanPaketPekerjaan';
-        }
-
-        // ==========================================
-        // TOMBOL SIMPAN
-        // ==========================================
-        let btnSave = document.getElementById('btnSaveModal');
-
-        btnSave.innerText = "Menyimpan...";
-        btnSave.disabled = true;
-
-        // ==========================================
-        // KIRIM KE GOOGLE APPS SCRIPT
-        // ==========================================
-        try {
-            let res = await fetch(WEB_APP_URL, {
-                method: 'POST',
-                body: JSON.stringify({
-                    action: actionName,
-                    sheet: currentActiveSheet,
-                    role: currentUser.role,
-                    npsn: currentUser.username,
-                    rowIndex: rowIndex
-                        ? Number(rowIndex)
-                        : null,
-                    formData: formDataObj
-                })
-            });
-            let result = await res.json();
-            alert(result.pesan);
-
-            // ======================================
-            // JIKA BERHASIL
-            // ======================================
-            if (result.status === 'success') {
-                closeModal();
-                loadTableData(currentActiveSheet);
+            // PAGU disetujui oleh DINAS
+            if (fieldName === 'pagu') {
+                return;
             }
 
-        } catch (err) {
-            console.error(err);
-            alert('Gagal menyimpan data ke server.');
-        } finally {
-            btnSave.innerText = "Simpan Data";
-            btnSave.disabled = false;
+            // Status ditentukan backend
+            if (fieldName === 'status_pagu') {
+                return;
+            }
+
+            // Perencana otomatis dari Tim Teknis
+            if (fieldName === 'perencana') {
+                return;
+            }
+
+            // Pengawas otomatis dari Tim Teknis
+            if (fieldName === 'pengawas') {
+                return;
+            }
         }
+
+        // ==========================================
+        // PAGU USULAN
+        // Ubah "100.000.000" menjadi 100000000
+        // ==========================================
+        if (fieldName === 'pagu_usulan') {
+
+            let cleanValue = String(inp.value || '')
+                .replace(/[^0-9]/g, '');
+
+            formDataObj[inp.name] =
+                cleanValue !== ''
+                    ? Number(cleanValue)
+                    : 0;
+
+            return;
+        }
+
+        // ==========================================
+        // FIELD FILE
+        // ==========================================
+        if (inp.type === 'file') {
+            return;
+        }
+
+        // ==========================================
+        // FIELD LAIN
+        // ==========================================
+        formDataObj[inp.name] = inp.value;
+    });
+
+
+    // ==========================================
+    // PROFIL & TIM TEKNIS
+    // ==========================================
+    if (
+        currentUser &&
+        currentUser.role === 'SEKOLAH' &&
+        currentActiveSheet === 'users'
+    ) {
+        formDataObj['status'] = 'DIAJUKAN';
     }
-    ```
+
+
+    // ==========================================
+    // TENTUKAN ACTION
+    // ==========================================
+    let actionName = 'saveData';
+
+    if (currentActiveSheet === 'paket_pekerjaan_sd') {
+        actionName = 'simpanPaketPekerjaan';
+    }
+
+
+    // ==========================================
+    // TOMBOL SIMPAN
+    // ==========================================
+    let btnSave = document.getElementById('btnSaveModal');
+
+    btnSave.innerText = "Menyimpan...";
+    btnSave.disabled = true;
+
+
+    try {
+
+        let res = await fetch(WEB_APP_URL, {
+            method: 'POST',
+            body: JSON.stringify({
+
+                action: actionName,
+
+                sheet: currentActiveSheet,
+
+                role: currentUser.role,
+
+                npsn: currentUser.username,
+
+                rowIndex: rowIndex
+                    ? Number(rowIndex)
+                    : null,
+
+                formData: formDataObj
+            })
+        });
+
+        let result = await res.json();
+
+        console.log("Hasil simpan:", result);
+
+        alert(result.pesan);
+
+        if (result.status === 'success') {
+
+            closeModal();
+
+            loadTableData(currentActiveSheet);
+        }
+
+    } catch (err) {
+
+        console.error("Error handleFormSubmit:", err);
+
+        alert('Gagal menyimpan data ke server.');
+
+    } finally {
+
+        btnSave.innerText = "Simpan Data";
+        btnSave.disabled = false;
+    }
+}
+```
+
 
     async function deleteRowData(rowIndex) {
         if (!confirm("Apakah Anda yakin ingin menghapus baris data ini?")) return;
