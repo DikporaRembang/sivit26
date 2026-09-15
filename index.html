@@ -1458,17 +1458,25 @@ function openModalForm(rowData = null) {
             }
             div.appendChild(input);
         }
-        else if (typeof currentActiveSheet !== 'undefined' && currentActiveSheet === 'paket_pekerjaan_sd') {
-            if (!rowData && currentUser.role === 'SEKOLAH') {
-                if (typeof paketPekerjaanList !== 'undefined' && Array.isArray(paketPekerjaanList)) {
-                    let existingPaket = paketPekerjaanList.filter(p => String(p.npsn || '').trim() === String(currentUser.username).trim());
-                    if (existingPaket.length >= 1) {
-                        alert("Batas Maksimal: Sekolah Anda hanya diizinkan menginput 1 Nama Menu Pekerjaan revitalisasi.");
-                        return; 
-                    }
-                }
-            }
+        let res = await fetch(WEB_APP_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'login', username: u, password: p })
+        });
 
+        let textResponse = await res.text(); // Ambil respons sebagai teks dulu
+        try {
+            let result = JSON.parse(textResponse); // Coba ubah ke JSON
+            if (result.status === 'success') {
+                // Lanjutkan aksi sukses
+                alert(result.pesan);
+            } else {
+                alert("Gagal: " + result.pesan);
+            }
+        } catch (e) {
+            // Jika gagal parse JSON, berarti server mengembalikan HTML (Error 500 / URL Salah)
+            console.error("Respons Server Mentah:", textResponse);
+            alert("Terjadi kesalahan sistem atau URL Web App salah. Cek Console (F12) untuk detailnya.");
+        }
             if (hLower === 'paket_id') {
                 input = document.createElement('input');
                 input.type = "text";
