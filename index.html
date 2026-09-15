@@ -350,25 +350,6 @@
         return val;
     }
 
-    function switchTab(tab) {
-        let btnLogin = document.getElementById('tabLogin');
-        let btnReg = document.getElementById('tabRegister');
-        let formLogin = document.getElementById('formLogin');
-        let formReg = document.getElementById('formRegister');
-
-        if (tab === 'login') {
-            btnLogin.className = "flex-1 pb-3 font-semibold text-amber-400 border-b-2 border-amber-400 transition-all text-sm";
-            btnReg.className = "flex-1 pb-3 font-semibold text-blue-300/60 border-b-2 border-transparent transition-all text-sm";
-            formLogin.classList.remove('hidden');
-            formReg.classList.add('hidden');
-        } else {
-            btnReg.className = "flex-1 pb-3 font-semibold text-amber-400 border-b-2 border-amber-400 transition-all text-sm";
-            btnLogin.className = "flex-1 pb-3 font-semibold text-blue-300/60 border-b-2 border-transparent transition-all text-sm";
-            formReg.classList.remove('hidden');
-            formLogin.classList.add('hidden');
-        }
-    }
-
     function togglePasswordVisibility(inputId, iconId) {
         let input = document.getElementById(inputId);
         let icon = document.getElementById(iconId);
