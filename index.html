@@ -1547,7 +1547,7 @@ function openModalForm(rowData = null) {
                 let keyName = hLower.includes('perencana') ? 'perencana' : 'pengawas';
                 
                 if (currentUser) {
-                    autoVal = currentUser[keyName] || currentUser[h] || (currentUser.sekolah ? currentUser.sekolah[keyName] : "");
+                    autoVal = currentUser[keyName] || (currentUser.sekolah ? currentUser.sekolah[keyName] : "");
                 }
                 if ((!autoVal || autoVal === "undefined" || autoVal === "-") && rowData) {
                     autoVal = rowData[h];
@@ -1555,7 +1555,8 @@ function openModalForm(rowData = null) {
                 
                 input.value = (autoVal && autoVal !== "undefined" && autoVal !== "" && !autoVal.includes("Harap isi")) 
                     ? autoVal 
-                    : (currentUser[keyName] || "Harap isi Tim Teknis di Profil terlebih dahulu");
+                    : "Harap lengkapi Tim Teknis di menu Profil & Tim Teknis";
+            }
             } else if (hLower === 'tanggal_mulai') {
                 input = document.createElement('input');
                 input.type = "date";
