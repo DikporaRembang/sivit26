@@ -1458,7 +1458,6 @@ function openModalForm(rowData = null) {
             }
             div.appendChild(input);
         }
-        // Kondisi 2: Sheet 'paket_pekerjaan_sd'
         else if (typeof currentActiveSheet !== 'undefined' && currentActiveSheet === 'paket_pekerjaan_sd') {
             if (!rowData && currentUser.role === 'SEKOLAH') {
                 if (typeof paketPekerjaanList !== 'undefined' && Array.isArray(paketPekerjaanList)) {
@@ -1556,7 +1555,6 @@ function openModalForm(rowData = null) {
                 input.value = (autoVal && autoVal !== "undefined" && autoVal !== "" && !autoVal.includes("Harap isi")) 
                     ? autoVal 
                     : "Harap lengkapi Tim Teknis di menu Profil & Tim Teknis";
-            }
             } else if (hLower === 'tanggal_mulai') {
                 input = document.createElement('input');
                 input.type = "date";
@@ -1593,7 +1591,8 @@ function openModalForm(rowData = null) {
             if (input && !div.contains(input)) {
                 div.appendChild(input);
             }
-        } 
+        }
+    
         // Kondisi 3: Sheet 'laporan_progres'
         else if (typeof currentActiveSheet !== 'undefined' && currentActiveSheet === 'laporan_progres') {
             if (hLower.includes('foto_dokumentasi') || hLower.includes('foto')) {
