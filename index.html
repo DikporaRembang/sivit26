@@ -1389,7 +1389,7 @@ function openModalForm(rowData = null) {
         return;
     }
 
-    currentHeaders.forEach(h => {
+currentHeaders.forEach(h => {
         if (!h || h === '_rowIndex' || h === 'rowid') return;
 
         let div = document.createElement('div');
@@ -1458,32 +1458,15 @@ function openModalForm(rowData = null) {
             }
             div.appendChild(input);
         }
-        let res = await fetch(WEB_APP_URL, {
-            method: 'POST',
-            body: JSON.stringify({ action: 'login', username: u, password: p })
-        });
-
-        let textResponse = await res.text(); // Ambil respons sebagai teks dulu
-        try {
-            let result = JSON.parse(textResponse); // Coba ubah ke JSON
-            if (result.status === 'success') {
-                // Lanjutkan aksi sukses
-                alert(result.pesan);
-            } else {
-                alert("Gagal: " + result.pesan);
-            }
-        } catch (e) {
-            // Jika gagal parse JSON, berarti server mengembalikan HTML (Error 500 / URL Salah)
-            console.error("Respons Server Mentah:", textResponse);
-            alert("Terjadi kesalahan sistem atau URL Web App salah. Cek Console (F12) untuk detailnya.");
-        }
+        // Kondisi 2: Sheet 'paket_pekerjaan_sd'
+        else if (typeof currentActiveSheet !== 'undefined' && currentActiveSheet === 'paket_pekerjaan_sd') {
             if (hLower === 'paket_id') {
                 input = document.createElement('input');
                 input.type = "text";
                 input.name = h;
                 input.readOnly = true;
                 input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-400 cursor-not-allowed font-bold";
-                input.value = rowData && rowData[h] ? rowData[h] : "PKT-" + currentUser.username + "-" + Math.floor(Date.now() / 1000);
+                input.value = activeRowData && activeRowData[h] ? activeRowData[h] : "PKT-" + currentUser.username + "-" + Math.floor(Date.now() / 1000);
             } else if (hLower === 'npsn') {
                 input = document.createElement('input');
                 input.type = "text";
@@ -1508,13 +1491,13 @@ function openModalForm(rowData = null) {
                             let opt = document.createElement('option');
                             opt.value = mName;
                             opt.innerText = mName;
-                            if (rowData && rowData[h] === mName) opt.selected = true;
+                            if (activeRowData && activeRowData[h] === mName) opt.selected = true;
                             input.appendChild(opt);
                         }
                     });
                 }
             } else if (hLower === 'pagu' || hLower.includes('pagu')) {
-                let rawVal = rowData && rowData[h] !== undefined ? rowData[h] : "";
+                let rawVal = activeRowData && activeRowData[h] !== undefined ? activeRowData[h] : "";
                 let initialNum = rawVal !== "" ? Number(String(rawVal).replace(/[^0-9]/g, '')) : "";
 
                 let wrapper = document.createElement('div');
@@ -1556,8 +1539,8 @@ function openModalForm(rowData = null) {
                 if (currentUser) {
                     autoVal = currentUser[keyName] || (currentUser.sekolah ? currentUser.sekolah[keyName] : "");
                 }
-                if ((!autoVal || autoVal === "undefined" || autoVal === "-") && rowData) {
-                    autoVal = rowData[h];
+                if ((!autoVal || autoVal === "undefined" || autoVal === "-") && activeRowData) {
+                    autoVal = activeRowData[h];
                 }
                 
                 input.value = (autoVal && autoVal !== "undefined" && autoVal !== "" && !autoVal.includes("Harap isi")) 
@@ -1569,7 +1552,7 @@ function openModalForm(rowData = null) {
                 input.name = h;
                 input.id = "inputTanggalMulai";
                 input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-                input.value = typeof convertToInputDate === 'function' ? convertToInputDate(rowData && rowData[h] ? rowData[h] : new Date().toISOString().split('T')[0]) : "";
+                input.value = typeof convertToInputDate === 'function' ? convertToInputDate(activeRowData && activeRowData[h] ? activeRowData[h] : new Date().toISOString().split('T')[0]) : "";
                 if (typeof hitungTanggalSelesai === 'function') input.onchange = hitungTanggalSelesai;
             } else if (hLower === 'lama_hari') {
                 input = document.createElement('input');
@@ -1577,7 +1560,7 @@ function openModalForm(rowData = null) {
                 input.name = h;
                 input.id = "inputLamaHari";
                 input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-                input.value = rowData && rowData[h] ? rowData[h] : "90";
+                input.value = activeRowData && activeRowData[h] ? activeRowData[h] : "90";
                 if (typeof hitungTanggalSelesai === 'function') input.oninput = hitungTanggalSelesai;
             } else if (hLower === 'tgl_selesai' || hLower === 'tanggal_selesai') {
                 input = document.createElement('input');
@@ -1586,21 +1569,20 @@ function openModalForm(rowData = null) {
                 input.id = "inputTanggalSelesai";
                 input.readOnly = true;
                 input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-blue-300 cursor-not-allowed";
-                input.value = typeof convertToInputDate === 'function' ? convertToInputDate(rowData && rowData[h] ? rowData[h] : "") : "";
+                input.value = typeof convertToInputDate === 'function' ? convertToInputDate(activeRowData && activeRowData[h] ? activeRowData[h] : "") : "";
                 if (typeof hitungTanggalSelesai === 'function') setTimeout(hitungTanggalSelesai, 200);
             } else {
                 input = document.createElement('input');
                 input.type = "text";
                 input.name = h;
                 input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-                input.value = rowData ? (rowData[h] !== undefined ? rowData[h] : "") : "";
+                input.value = activeRowData ? (activeRowData[h] !== undefined ? activeRowData[h] : "") : "";
             }
 
             if (input && !div.contains(input)) {
                 div.appendChild(input);
             }
-        }
-    
+        } 
         // Kondisi 3: Sheet 'laporan_progres'
         else if (typeof currentActiveSheet !== 'undefined' && currentActiveSheet === 'laporan_progres') {
             if (hLower.includes('foto_dokumentasi') || hLower.includes('foto')) {
@@ -1616,7 +1598,7 @@ function openModalForm(rowData = null) {
                 hiddenValInput.type = "hidden";
                 hiddenValInput.name = h;
                 hiddenValInput.id = "valInput_" + h;
-                hiddenValInput.value = rowData ? (rowData[h] !== undefined ? rowData[h] : "") : "";
+                hiddenValInput.value = activeRowData ? (activeRowData[h] !== undefined ? activeRowData[h] : "") : "";
 
                 let btnUpload = document.createElement('label');
                 btnUpload.htmlFor = "fileInput_" + h;
@@ -1626,7 +1608,7 @@ function openModalForm(rowData = null) {
                 let metaInfo = document.createElement('div');
                 metaInfo.className = "text-[11px] text-blue-300 space-y-0.5 mt-1";
                 metaInfo.id = "metaInfo_" + h;
-                metaInfo.innerText = rowData && rowData[h] ? "File tersimpan: " + rowData[h] : "Belum ada foto dipilih (Metadata EXIF tanggal & GPS akan otomatis diekstrak).";
+                metaInfo.innerText = activeRowData && activeRowData[h] ? "File tersimpan: " + activeRowData[h] : "Belum ada foto dipilih (Metadata EXIF tanggal & GPS akan otomatis diekstrak).";
 
                 let manualFallbackContainer = document.createElement('div');
                 manualFallbackContainer.className = "hidden mt-2 p-2 bg-amber-950/40 border border-amber-500/40 rounded-lg text-[11px] text-amber-200 space-y-1";
@@ -1715,7 +1697,7 @@ function openModalForm(rowData = null) {
                 input.name = h;
                 input.readOnly = true;
                 input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-400 cursor-not-allowed font-bold";
-                input.value = rowData && rowData[h] ? rowData[h] : "LAP-" + currentUser.username + "-" + Math.floor(Date.now() / 1000);
+                input.value = activeRowData && activeRowData[h] ? activeRowData[h] : "LAP-" + currentUser.username + "-" + Math.floor(Date.now() / 1000);
             } else if (hLower === 'paket_id') {
                 input = document.createElement('select');
                 input.name = h;
@@ -1734,7 +1716,7 @@ function openModalForm(rowData = null) {
                             let opt = document.createElement('option');
                             opt.value = pId;
                             opt.innerText = `${pId} - ${pName}`;
-                            if (rowData && rowData[h] === pId) opt.selected = true;
+                            if (activeRowData && activeRowData[h] === pId) opt.selected = true;
                             input.appendChild(opt);
                         }
                     });
@@ -1763,7 +1745,7 @@ function openModalForm(rowData = null) {
                     let opt = document.createElement('option');
                     opt.value = labelMinggu;
                     opt.innerText = labelMinggu;
-                    if (rowData && rowData[h] === labelMinggu) opt.selected = true;
+                    if (activeRowData && activeRowData[h] === labelMinggu) opt.selected = true;
                     input.appendChild(opt);
                 }
             } else if (hLower === 'tanggal_lapor') {
@@ -1771,7 +1753,7 @@ function openModalForm(rowData = null) {
                 input.type = "date";
                 input.name = h;
                 input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-                input.value = typeof convertToInputDate === 'function' ? convertToInputDate(rowData && rowData[h] ? rowData[h] : new Date().toISOString().split('T')[0]) : "";
+                input.value = typeof convertToInputDate === 'function' ? convertToInputDate(activeRowData && activeRowData[h] ? activeRowData[h] : new Date().toISOString().split('T')[0]) : "";
             } else if (hLower === 'target_kurva_s' || hLower === 'realisasi_fisik') {
                 input = document.createElement('input');
                 input.type = "number";
@@ -1781,27 +1763,27 @@ function openModalForm(rowData = null) {
                 input.name = h;
                 input.placeholder = "0 - 100";
                 input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-                input.value = rowData && rowData[h] !== undefined ? String(rowData[h]).replace('%', '') : "";
+                input.value = activeRowData && activeRowData[h] !== undefined ? String(activeRowData[h]).replace('%', '') : "";
             } else if (hLower === 'lokasi_koordinat') {
                 input = document.createElement('input');
                 input.type = "text";
                 input.name = h;
                 input.readOnly = true;
                 input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-300 cursor-not-allowed";
-                input.value = rowData && rowData[h] ? rowData[h] : "Otomatis dari metadata foto...";
+                input.value = activeRowData && activeRowData[h] ? activeRowData[h] : "Otomatis dari metadata foto...";
             } else if (hLower === 'penggunaan_anggaran') {
                 input = document.createElement('input');
                 input.type = "number";
                 input.name = h;
                 input.placeholder = "Nominal anggaran";
                 input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-                input.value = rowData && rowData[h] !== undefined ? Number(rowData[h]) : "";
+                input.value = activeRowData && activeRowData[h] !== undefined ? Number(activeRowData[h]) : "";
             } else {
                 input = document.createElement('input');
                 input.type = "text";
                 input.name = h;
                 input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-                input.value = rowData ? (rowData[h] !== undefined ? rowData[h] : "") : "";
+                input.value = activeRowData ? (activeRowData[h] !== undefined ? activeRowData[h] : "") : "";
             }
 
             if (input && !div.contains(input)) {
@@ -1814,7 +1796,7 @@ function openModalForm(rowData = null) {
             input.type = "text";
             input.name = h;
             input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-            input.value = rowData ? (rowData[h] !== undefined ? rowData[h] : "") : "";
+            input.value = activeRowData ? (activeRowData[h] !== undefined ? activeRowData[h] : "") : "";
             
             div.appendChild(input);
         }
@@ -1824,7 +1806,6 @@ function openModalForm(rowData = null) {
 
     modal.classList.remove('hidden');
     modal.classList.add('flex');
-}
 function hitungTanggalSelesai() {
     let mulaiInput = document.getElementById('inputTanggalMulai');
     let lamaInput = document.getElementById('inputLamaHari');
@@ -1981,6 +1962,29 @@ function hitungTanggalSelesai() {
         modal.classList.add('hidden');
         modal.classList.remove('flex');
     }
+
+    function switchTab(tabName) {
+    const formLogin = document.getElementById('formLogin');
+    const formRegister = document.getElementById('formRegister');
+    const tabLogin = document.getElementById('tabLogin');
+    const tabRegister = document.getElementById('tabRegister');
+
+    if (!formLogin || !formRegister || !tabLogin || !tabRegister) return;
+
+    if (tabName === 'login') {
+        formLogin.classList.remove('hidden');
+        formRegister.classList.add('hidden');
+        
+        tabLogin.className = "flex-1 pb-3 font-semibold text-amber-400 border-b-2 border-amber-400 transition-all text-sm cursor-pointer";
+        tabRegister.className = "flex-1 pb-3 font-semibold text-blue-300/60 border-b-2 border-transparent transition-all text-sm cursor-pointer";
+    } else {
+        formLogin.classList.add('hidden');
+        formRegister.classList.remove('hidden');
+        
+        tabRegister.className = "flex-1 pb-3 font-semibold text-amber-400 border-b-2 border-amber-400 transition-all text-sm cursor-pointer";
+        tabLogin.className = "flex-1 pb-3 font-semibold text-blue-300/60 border-b-2 border-transparent transition-all text-sm cursor-pointer";
+    }
+}
 </script>
 </body>
 </html>
