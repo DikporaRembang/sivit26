@@ -685,6 +685,58 @@ body {
         display: none !important;
     }
 }
+
+/* =========================================================
+   LOADING OVERLAY
+   ========================================================= */
+
+#sivitLoading {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(248, 250, 252, 0.55);
+    backdrop-filter: blur(2px);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.18s ease, visibility 0.18s ease;
+}
+
+#sivitLoading.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.sivit-loading-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 15px;
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid var(--sivit-border);
+    border-radius: 12px;
+    box-shadow: var(--sivit-shadow);
+    color: var(--sivit-text-soft);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.sivit-loading-spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid #dbeafe;
+    border-top-color: var(--sivit-primary);
+    border-radius: 50%;
+    animation: sivitSpin 0.7s linear infinite;
+}
+
+@keyframes sivitSpin {
+    to {
+        transform: rotate(360deg);
+    }
+}
 </style>
 </head>
 <body class="bg-gradient-to-br from-blue-950 via-blue-900 to-slate-900 min-h-screen text-white font-sans antialiased flex flex-col justify-between">
@@ -1337,14 +1389,29 @@ async function handleRegister(e) {
             ];
         }
 
-        menus.forEach(m => {
-            let btn = document.createElement('button');
-            btn.className = "w-full flex items-center space-x-2.5 px-3 py-2 rounded-xl text-left font-semibold text-blue-200 hover:bg-blue-900/60 hover:text-amber-400 transition-all text-xs cursor-pointer";
-            btn.innerHTML = `<i class="fa-solid ${m.icon} w-4 text-center"></i><span>${m.name}</span>`;
-            btn.onclick = () => loadTableData(m.sheet, m.name);
-            container.appendChild(btn);
-        });
-    }
+            menus.forEach(m => {
+                let btn = document.createElement('button');
+                btn.className = "w-full flex items-center space-x-2.5 px-3 py-2 rounded-xl text-left font-semibold text-blue-200 hover:bg-blue-900/60 hover:text-amber-400 transition-all text-xs cursor-pointer";
+                btn.innerHTML = `
+                    <i class="fa-solid ${m.icon} w-4 text-center"></i>
+                    <span>${m.name}</span>
+    `            ;
+                // Tandai menu yang sedang aktif
+                if (m.sheet === currentActiveSheet) {
+                    btn.classList.add('active');
+                }
+                btn.onclick = () => {
+                    // Hapus status aktif dari semua menu
+                    container.querySelectorAll('button').forEach(item => {
+                        item.classList.remove('active');
+                    });
+                    // Tandai menu yang diklik
+                    btn.classList.add('active');
+                    // Muat data
+                    loadTableData(m.sheet, m.name);
+                };
+                container.appendChild(btn);
+            });
 
     async function loadTableData(sheetName, title) {
         currentActiveSheet = sheetName;
