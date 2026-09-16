@@ -1759,6 +1759,48 @@ async function handleRegister(e) {
                         btnRiwayat.innerHTML = `<i class="fa-solid fa-clock-rotate-left mr-1"></i> Riwayat Pagu`;
                         btnRiwayat.onclick = () => bukaRiwayatPagu(row.npsn || currentUser.username, row.paket_id);
                         tdAct.appendChild(btnRiwayat);
+
+                        // ==========================================
+                        // VERIFIKASI PAGU OLEH DINAS
+                        // ==========================================
+                        if (
+                            currentUser.role === 'DINAS' &&
+                            sheetName === 'paket_pekerjaan_sd'
+                            ) {
+                            let statusPagu = String(
+                                row.status_pagu || ''
+                            ).trim().toUpperCase();
+                            if (statusPagu === 'DIAJUKAN') {
+                                let btnApprovePagu = document.createElement('button');
+                                btnApprovePagu.className =
+                                    "px-2.5 py-1 bg-emerald-100 hover:bg-emerald-200 " +
+                                    "text-emerald-800 rounded-lg text-[11px] font-bold " +
+                                    "border border-emerald-300 mr-1 cursor-pointer";
+                                btnApprovePagu.innerHTML =
+                                    `<i class="fa-solid fa-check mr-1"></i> Setujui`;
+                                btnApprovePagu.onclick = () => {
+                                    verifikasiPaguDinas(
+                                        row.paket_id,
+                                        'DISETUJUI'
+                                    );
+                                };
+                                tdAct.appendChild(btnApprovePagu);
+                                let btnRejectPagu = document.createElement('button');
+                                btnRejectPagu.className =
+                                    "px-2.5 py-1 bg-red-100 hover:bg-red-200 " +
+                                    "text-red-800 rounded-lg text-[11px] font-bold " +
+                                    "border border-red-300 mr-1 cursor-pointer";
+                                btnRejectPagu.innerHTML =
+                                    `<i class="fa-solid fa-xmark mr-1"></i> Tolak`;
+                                btnRejectPagu.onclick = () => {
+                                    verifikasiPaguDinas(
+                                        row.paket_id,
+                                        'DITOLAK'
+                                    );
+                                };
+                                tdAct.appendChild(btnRejectPagu);
+                            }
+                        }
                     }
 
                     if (currentUser.role === 'DINAS' && sheetName === 'laporan_progres') {
@@ -2817,6 +2859,48 @@ function hitungTanggalSelesai() {
         }
     }
 
+    async function verifikasiPaguDinas(paketId, keputusan) {
+        let label =
+            keputusan === 'DISETUJUI'
+                ? 'MENYETUJUI'
+                : 'MENOLAK';
+        let konfirmasi = confirm(
+            'Apakah Anda yakin ingin ' +
+            label +
+            ' PAGU USULAN paket ' +
+            paketId +
+            '?'
+        );
+        if (!konfirmasi) return;
+        try {
+            let res = await fetch(WEB_APP_URL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'verifikasiPagu',
+                    role: currentUser.role,
+                    paketId: paketId,
+                    keputusan: keputusan
+                })
+            });
+        let result = await res.json();
+        alert(result.pesan);
+        if (result.status === 'success') {
+            // Muat ulang data paket
+                await loadTableData(
+                    'paket_pekerjaan_sd',
+                    'Data Paket Pekerjaan SD'
+                );
+            }
+        } catch (err) {
+            console.error(
+                'Error verifikasi PAGU:',
+                err
+            );
+            alert(
+                'Gagal melakukan verifikasi PAGU.'
+            );
+        }
+    }
     async function bukaRiwayatPagu(npsn, paketId) {
         let modal = document.getElementById('modalRiwayatPagu');
         let tbody = document.getElementById('riwayatTableBody');
