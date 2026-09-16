@@ -2703,59 +2703,35 @@ async function handleFormSubmit(e) {
     let inputs = form.querySelectorAll('input, select, textarea');
 
     inputs.forEach(inp => {
-
         if (!inp.name || inp.name === 'formRowIndex') return;
 
-        let fieldName = inp.name.toLowerCase();
-
-        // Foto Dokumentasi
-        if (
-            inp.name === 'foto_dokumentasi' &&
-            (inp.dataset.base64 || inp.value)
-        ) {
+        if (inp.name === 'foto_dokumentasi' && (inp.dataset.base64 || inp.value)) {
             formDataObj[inp.name] = (inp.dataset.base64 || inp.value);
             return;
         }
 
-        // Sekolah - Paket Pekerjaan (Field Dikendalikan Sistem)
-        if (
-            currentUser &&
-            currentUser.role === 'SEKOLAH' &&
-            currentActiveSheet === 'paket_pekerjaan_sd'
-        ) {
-            if (fieldName === 'pagu' || fieldName === 'status_pagu' || fieldName === 'perencana' || fieldName === 'pengawas') {
+        if (currentUser && currentUser.role === 'SEKOLAH' && currentActiveSheet === 'paket_pekerjaan_sd') {
+            if (inp.name === 'pagu' || inp.name === 'status_pagu' || inp.name === 'perencana' || inp.name === 'pengawas') {
                 return;
             }
         }
 
-        // Pagu Usulan: Format angka murni
-        if (fieldName === 'pagu_usulan') {
-            let cleanValue = String(inp.value || '').replace(/[^0-9]/g, '');
-            formDataObj[inp.name] = cleanValue !== '' ? Number(cleanValue) : 0;
-            return;
-        }
-
         if (inp.type === 'file') return;
-
         formDataObj[inp.name] = inp.value;
     });
 
-    // Profil & Tim Teknis Sekolah -> Status Diajukan Kembali
-    if (
-        currentUser &&
-        currentUser.role === 'SEKOLAH' &&
-        currentActiveSheet === 'users'
-    ) {
+    if (currentUser && currentUser.role === 'SEKOLAH' && currentActiveSheet === 'users') {
         formDataObj['status'] = 'DIAJUKAN';
     }
 
+    // Penentuan action backend yang tepat
     let actionName = 'saveData';
-    if (
-        currentActiveSheet === 'paket_pekerjaan_sd' &&
-        currentUser &&
-        currentUser.role === 'SEKOLAH'
-    ) {
-        actionName = 'simpanPaketPekerjaan';
+    if (currentUser && currentUser.role === 'SEKOLAH') {
+        if (currentActiveSheet === 'paket_pekerjaan_sd') {
+            actionName = 'simpanPaketPekerjaan';
+        } else if (currentActiveSheet === 'laporan_progres') {
+            actionName = 'simpanLaporanProgres';
+        }
     }
 
     let btnSave = document.getElementById('btnSaveModal');
@@ -2776,7 +2752,6 @@ async function handleFormSubmit(e) {
         });
 
         let result = await res.json();
-        console.log("Hasil simpan:", result);
         alert(result.pesan);
 
         if (result.status === 'success') {
