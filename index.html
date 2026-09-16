@@ -465,26 +465,34 @@
     async function handleRegister(e) {
         e.preventDefault();
 
-        const npsn = document.getElementById('regNpsn').value.trim();
-        const nama = document.getElementById('regNamaSekolah').value.trim();
-        const pass = document.getElementById('regPass').value;
+        const form = document.getElementById('formRegister');
+        const npsnEl = document.getElementById('regNpsn');
+        const namaEl = document.getElementById('regNamaSekolah');
+        const passEl = document.getElementById('regPass');
 
-        if (!npsn) {
-            alert('NPSN wajib diisi.');
+        const npsn = npsnEl ? npsnEl.value.trim() : '';
+        const namaSekolah = namaEl ? namaEl.value.trim() : '';
+        const password = passEl ? passEl.value : '';
+
+        if (!npsn || !namaSekolah || !password) {
+            alert('NPSN, nama sekolah, dan password wajib diisi.');
             return;
         }
 
-        if (!nama) {
-            alert('NPSN belum ditemukan dalam database Dinas. Pastikan NPSN benar dan coba lagi.');
-            return;
-        }
-
-        if (pass.length < 6) {
+        if (password.length < 6) {
             alert('Password minimal 6 karakter.');
             return;
         }
 
+        const submitButton = form ? form.querySelector('button[type="submit"]') : null;
+        const oldButtonText = submitButton ? submitButton.innerHTML : '';
+
         try {
+            if (submitButton) {
+                submitButton.disabled = true;
+                submitButton.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Memproses...';
+            }
+
             const res = await fetch(WEB_APP_URL, {
                 method: 'POST',
                 headers: {
@@ -493,37 +501,51 @@
                 body: JSON.stringify({
                     action: 'register',
                     npsn: npsn,
-                    nama_sekolah: nama,
-                    password: pass
+                    nama_sekolah: namaSekolah,
+                    password: password
                 })
             });
+
+            const raw = await res.text();
+            console.log('Respons register mentah:', raw);
 
             if (!res.ok) {
                 throw new Error('HTTP Error ' + res.status);
             }
 
-            const data = await res.json();
+            let data;
+            try {
+                data = JSON.parse(raw);
+            } catch (parseError) {
+                throw new Error('Respons server bukan JSON yang valid.');
+            }
 
             console.log('Respons register:', data);
 
-            const status = String(data.status || '').toLowerCase();
-            const message = data.pesan || 'Server tidak mengirimkan pesan.';
+            // Backend SIVIT26 mengembalikan { status: { success, message } }.
+            // Tetap mendukung format lama { success, pesan }.
+            const result = data && data.status && typeof data.status === 'object'
+                ? data.status
+                : data || {};
+
+            const success = result.success === true || result.status === 'success';
+            const message = result.message || result.pesan || data.pesan || 'Server tidak mengirimkan pesan.';
 
             alert(message);
 
-            if (status === 'success') {
-                document.getElementById('formRegister').reset();
-                document.getElementById('regNamaSekolah').value = '';
-
+            if (success) {
+                if (form) form.reset();
+                if (namaEl) namaEl.value = '';
                 switchTab('login');
             }
-
         } catch (err) {
             console.error('Register Error:', err);
-
-            alert(
-                'Gagal terhubung ke server. Pastikan URL Web App benar dan deployment sudah diperbarui.'
-            );
+            alert('Gagal memproses pendaftaran: ' + err.message);
+        } finally {
+            if (submitButton) {
+                submitButton.disabled = false;
+                submitButton.innerHTML = oldButtonText;
+            }
         }
     }
     
