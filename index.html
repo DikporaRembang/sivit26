@@ -462,92 +462,90 @@
         }
     }
 
-    async function handleRegister(e) {
-        e.preventDefault();
+async function handleRegister(e) {
+    e.preventDefault();
 
-        const form = document.getElementById('formRegister');
-        const npsnEl = document.getElementById('regNpsn');
-        const namaEl = document.getElementById('regNamaSekolah');
-        const passEl = document.getElementById('regPass');
+    const npsn =
+        document.getElementById('regNpsn').value.trim();
 
-        const npsn = npsnEl ? npsnEl.value.trim() : '';
-        const namaSekolah = namaEl ? namaEl.value.trim() : '';
-        const password = passEl ? passEl.value : '';
+    const nama =
+        document.getElementById('regNamaSekolah').value.trim();
 
-        if (!npsn || !namaSekolah || !password) {
-            alert('NPSN, nama sekolah, dan password wajib diisi.');
-            return;
-        }
+    const pass =
+        document.getElementById('regPass').value.trim();
 
-        if (password.length < 6) {
-            alert('Password minimal 6 karakter.');
-            return;
-        }
+    // ==========================================
+    // VALIDASI DASAR
+    // ==========================================
 
-        const submitButton = form ? form.querySelector('button[type="submit"]') : null;
-        const oldButtonText = submitButton ? submitButton.innerHTML : '';
-
-        try {
-            if (submitButton) {
-                submitButton.disabled = true;
-                submitButton.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Memproses...';
-            }
-
-            const res = await fetch(WEB_APP_URL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'text/plain;charset=utf-8'
-                },
-                body: JSON.stringify({
-                    action: 'register',
-                    npsn: npsn,
-                    nama_sekolah: namaSekolah,
-                    password: password
-                })
-            });
-
-            const raw = await res.text();
-            console.log('Respons register mentah:', raw);
-
-            if (!res.ok) {
-                throw new Error('HTTP Error ' + res.status);
-            }
-
-            let data;
-            try {
-                data = JSON.parse(raw);
-            } catch (parseError) {
-                throw new Error('Respons server bukan JSON yang valid.');
-            }
-
-            console.log('Respons register:', data);
-
-            // Backend SIVIT26 mengembalikan { status: { success, message } }.
-            // Tetap mendukung format lama { success, pesan }.
-            const result = data && data.status && typeof data.status === 'object'
-                ? data.status
-                : data || {};
-
-            const success = result.success === true || result.status === 'success';
-            const message = result.message || result.pesan || data.pesan || 'Server tidak mengirimkan pesan.';
-
-            alert(message);
-
-            if (success) {
-                if (form) form.reset();
-                if (namaEl) namaEl.value = '';
-                switchTab('login');
-            }
-        } catch (err) {
-            console.error('Register Error:', err);
-            alert('Gagal memproses pendaftaran: ' + err.message);
-        } finally {
-            if (submitButton) {
-                submitButton.disabled = false;
-                submitButton.innerHTML = oldButtonText;
-            }
-        }
+    if (!npsn) {
+        alert('NPSN wajib diisi.');
+        return;
     }
+
+    if (!nama) {
+        alert('NPSN belum terverifikasi dengan database Dinas.');
+        return;
+    }
+
+    if (!pass) {
+        alert('Password wajib diisi.');
+        return;
+    }
+
+    if (pass.length < 6) {
+        alert('Password minimal 6 karakter.');
+        return;
+    }
+
+    try {
+
+        const res = await fetch(WEB_APP_URL, {
+            method: 'POST',
+            body: JSON.stringify({
+                action: 'register',
+
+                // Identitas sekolah
+                npsn: npsn,
+
+                // Backend menerima nama_lengkap
+                // tetapi akan tetap mengambil nama
+                // resmi dari master sekolah.
+                nama_lengkap: nama,
+
+                // Password
+                password: pass
+            })
+        });
+
+        const data = await res.json();
+
+        alert(
+            data.pesan ||
+            'Pendaftaran telah diproses.'
+        );
+
+        if (data.status === 'success') {
+
+            // Kosongkan password
+            document.getElementById('regPass').value = '';
+
+            // Kembali ke login
+            switchTab('login');
+        }
+
+    } catch (err) {
+
+        console.error(
+            'Error registrasi:',
+            err
+        );
+
+        alert(
+            'Gagal mengirim pendaftaran ke server.'
+        );
+    }
+}
     
     function logout() {
         localStorage.removeItem('sivit_user');
