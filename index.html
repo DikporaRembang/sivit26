@@ -15,16 +15,677 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <style>
-        #tableBody td {
-            color: #000000 !important;
-            font-weight: 700 !important;
-        }
-        @media print {
-            body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
-            .no-print { display: none; }
-        }
-    </style>
+<style>
+/* =========================================================
+   SIVIT26 — LIGHT MODERN UI THEME
+   PATCH UI-1
+   Tidak mengubah JavaScript, redaksi, maupun logo.
+   ========================================================= */
+
+:root {
+    --sivit-primary: #2563eb;
+    --sivit-primary-dark: #1d4ed8;
+    --sivit-primary-soft: #eff6ff;
+
+    --sivit-bg: #f6f8fb;
+    --sivit-surface: #ffffff;
+    --sivit-surface-soft: #f8fafc;
+
+    --sivit-text: #1e293b;
+    --sivit-text-soft: #64748b;
+    --sivit-border: #e2e8f0;
+
+    --sivit-success: #16a34a;
+    --sivit-warning: #f59e0b;
+    --sivit-danger: #dc2626;
+
+    --sivit-shadow:
+        0 4px 18px rgba(15, 23, 42, 0.06);
+    --sivit-shadow-lg:
+        0 12px 35px rgba(15, 23, 42, 0.10);
+}
+
+/* =========================================================
+   GLOBAL
+   ========================================================= */
+
+html,
+body {
+    background: var(--sivit-bg) !important;
+    color: var(--sivit-text) !important;
+}
+
+body {
+    min-height: 100vh;
+    font-family:
+        Inter,
+        ui-sans-serif,
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif !important;
+}
+
+/* =========================================================
+   LOGIN / AUTH
+   ========================================================= */
+
+#authContainer {
+    background:
+        radial-gradient(
+            circle at top left,
+            rgba(37, 99, 235, 0.08),
+            transparent 35%
+        ),
+        radial-gradient(
+            circle at bottom right,
+            rgba(59, 130, 246, 0.06),
+            transparent 35%
+        ),
+        var(--sivit-bg) !important;
+}
+
+#authContainer > div {
+    background: rgba(255, 255, 255, 0.96) !important;
+    border: 1px solid var(--sivit-border) !important;
+    box-shadow: var(--sivit-shadow-lg) !important;
+    color: var(--sivit-text) !important;
+    backdrop-filter: blur(10px);
+}
+
+/* Logo login tetap sama */
+#authContainer img {
+    object-fit: contain;
+}
+
+/* Judul SIVIT26 */
+#authContainer h1 {
+    color: var(--sivit-primary) !important;
+}
+
+/* Deskripsi aplikasi */
+#authContainer p {
+    color: var(--sivit-text-soft) !important;
+}
+
+/* Kotak informasi Dinas */
+#authContainer .mt-3 {
+    background: var(--sivit-primary-soft) !important;
+    border-color: #bfdbfe !important;
+    color: var(--sivit-text) !important;
+}
+
+#authContainer .mt-3 p:first-child {
+    color: var(--sivit-primary-dark) !important;
+}
+
+#authContainer .mt-3 p:last-child {
+    color: var(--sivit-text-soft) !important;
+}
+
+/* Tab login/register */
+#authContainer .border-b {
+    border-color: var(--sivit-border) !important;
+}
+
+#tabLogin,
+#tabRegister {
+    color: var(--sivit-text-soft) !important;
+}
+
+#tabLogin {
+    color: var(--sivit-primary) !important;
+    border-color: var(--sivit-primary) !important;
+}
+
+#tabRegister:hover {
+    color: var(--sivit-primary) !important;
+}
+
+/* Label */
+#authContainer label {
+    color: var(--sivit-text) !important;
+}
+
+/* Input login & register */
+#authContainer input {
+    background: #ffffff !important;
+    color: var(--sivit-text) !important;
+    border-color: var(--sivit-border) !important;
+}
+
+#authContainer input::placeholder {
+    color: #94a3b8 !important;
+}
+
+#authContainer input:focus {
+    border-color: var(--sivit-primary) !important;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12) !important;
+}
+
+/* Input readonly */
+#authContainer input[readonly] {
+    background: var(--sivit-surface-soft) !important;
+    color: var(--sivit-text-soft) !important;
+}
+
+/* Tombol utama login/register */
+#formLogin button[type="submit"],
+#formRegister button[type="submit"] {
+    background: var(--sivit-primary) !important;
+    color: #ffffff !important;
+    border: none !important;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.20) !important;
+}
+
+#formLogin button[type="submit"]:hover,
+#formRegister button[type="submit"]:hover {
+    background: var(--sivit-primary-dark) !important;
+}
+
+/* Tombol mata password */
+#authContainer button:not([type="submit"]) {
+    color: var(--sivit-text-soft) !important;
+}
+
+#authContainer button:not([type="submit"]):hover {
+    color: var(--sivit-primary) !important;
+}
+
+/* =========================================================
+   DASHBOARD HEADER
+   ========================================================= */
+
+#dashboardContainer > header {
+    background: #ffffff !important;
+    border-bottom: 1px solid var(--sivit-border) !important;
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.05) !important;
+    color: var(--sivit-text) !important;
+}
+
+#dashboardContainer > header h2 {
+    color: var(--sivit-primary) !important;
+}
+
+#dashboardContainer > header p {
+    color: var(--sivit-text-soft) !important;
+}
+
+/* Nama user */
+#userNameDisplay {
+    color: var(--sivit-text) !important;
+}
+
+#userNpsnDisplay {
+    color: var(--sivit-primary) !important;
+}
+
+/* Tombol notifikasi */
+#dashboardContainer header button {
+    transition: all 0.2s ease;
+}
+
+#dashboardContainer header button:not([onclick="logout()"]) {
+    background: var(--sivit-primary-soft) !important;
+    color: var(--sivit-primary) !important;
+    border-color: #bfdbfe !important;
+}
+
+#dashboardContainer header button:not([onclick="logout()"]):hover {
+    background: #dbeafe !important;
+}
+
+/* Tombol keluar */
+#dashboardContainer header button[onclick="logout()"] {
+    background: #fee2e2 !important;
+    color: #b91c1c !important;
+    border-color: #fecaca !important;
+    box-shadow: none !important;
+}
+
+#dashboardContainer header button[onclick="logout()"]:hover {
+    background: #fecaca !important;
+}
+
+/* =========================================================
+   NOTIFICATION DROPDOWN
+   ========================================================= */
+
+#notifDropdown {
+    background: #ffffff !important;
+    color: var(--sivit-text) !important;
+    border-color: var(--sivit-border) !important;
+    box-shadow: var(--sivit-shadow-lg) !important;
+}
+
+#notifDropdown .border-b {
+    border-color: var(--sivit-border) !important;
+}
+
+#notifDropdown span:first-child {
+    color: var(--sivit-primary) !important;
+}
+
+#notifDropdown .text-blue-300 {
+    color: var(--sivit-text-soft) !important;
+}
+
+#notifListContainer {
+    color: var(--sivit-text) !important;
+}
+
+/* =========================================================
+   SIDEBAR
+   ========================================================= */
+
+#dashboardContainer aside {
+    background: #ffffff !important;
+    border-right: 1px solid var(--sivit-border) !important;
+    box-shadow: 2px 0 10px rgba(15, 23, 42, 0.03) !important;
+}
+
+#dashboardContainer aside p:first-child {
+    color: var(--sivit-primary) !important;
+}
+
+/* Menu dinamis */
+#sidebarMenuContainer {
+    color: var(--sivit-text) !important;
+}
+
+#sidebarMenuContainer button,
+#sidebarMenuContainer a {
+    color: var(--sivit-text-soft) !important;
+    background: transparent !important;
+    border-color: transparent !important;
+    border-radius: 10px !important;
+    transition: all 0.18s ease !important;
+}
+
+#sidebarMenuContainer button:hover,
+#sidebarMenuContainer a:hover {
+    background: var(--sivit-primary-soft) !important;
+    color: var(--sivit-primary) !important;
+}
+
+/* Item menu aktif */
+#sidebarMenuContainer .active,
+#sidebarMenuContainer button.active,
+#sidebarMenuContainer a.active {
+    background: var(--sivit-primary-soft) !important;
+    color: var(--sivit-primary-dark) !important;
+}
+
+/* Logo/footer sidebar */
+#dashboardContainer aside .border-t {
+    border-color: var(--sivit-border) !important;
+}
+
+#dashboardContainer aside .text-amber-400 {
+    color: var(--sivit-primary) !important;
+}
+
+#dashboardContainer aside .text-slate-300 {
+    color: var(--sivit-text-soft) !important;
+}
+
+/* =========================================================
+   MAIN AREA
+   ========================================================= */
+
+#dashboardContainer main {
+    background: var(--sivit-bg) !important;
+}
+
+/* =========================================================
+   IDENTITAS SEKOLAH
+   ========================================================= */
+
+#sekolahIdentitasCard {
+    background: #ffffff !important;
+    color: var(--sivit-text) !important;
+    border: 1px solid var(--sivit-border) !important;
+    box-shadow: var(--sivit-shadow) !important;
+}
+
+#sekolahIdentitasCard .border-b {
+    border-color: var(--sivit-border) !important;
+}
+
+#sekolahIdentitasCard h4,
+#sekolahIdentitasCard .text-amber-400 {
+    color: var(--sivit-primary) !important;
+}
+
+#sekolahIdentitasCard .text-slate-300 {
+    color: var(--sivit-text-soft) !important;
+}
+
+#sekolahIdentitasCard .text-white {
+    color: var(--sivit-text) !important;
+}
+
+#sekolahIdentitasCard span {
+    background: #dcfce7 !important;
+    color: #15803d !important;
+    border-color: #bbf7d0 !important;
+}
+
+/* =========================================================
+   GIS MAP
+   ========================================================= */
+
+#gisMapContainer {
+    background: #ffffff !important;
+    border-color: var(--sivit-border) !important;
+    box-shadow: var(--sivit-shadow) !important;
+}
+
+#gisMapContainer h4 {
+    color: var(--sivit-text) !important;
+}
+
+#gisMapContainer h4 i {
+    color: var(--sivit-primary) !important;
+}
+
+#gisMapContainer span {
+    color: var(--sivit-text-soft) !important;
+}
+
+/* =========================================================
+   FILTER DINAS
+   ========================================================= */
+
+#filterDinasContainer {
+    background: #ffffff !important;
+    color: var(--sivit-text) !important;
+    border: 1px solid var(--sivit-border) !important;
+    box-shadow: var(--sivit-shadow) !important;
+}
+
+#filterDinasContainer h4 {
+    color: var(--sivit-primary) !important;
+}
+
+#filterDinasContainer label {
+    color: var(--sivit-text) !important;
+}
+
+#filterDinasContainer select {
+    background: #ffffff !important;
+    color: var(--sivit-text) !important;
+    border-color: var(--sivit-border) !important;
+}
+
+#filterDinasContainer select:focus {
+    border-color: var(--sivit-primary) !important;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.10) !important;
+}
+
+/* =========================================================
+   CONTENT / TABLE CARD
+   ========================================================= */
+
+#printableArea {
+    background: #ffffff !important;
+    border-color: var(--sivit-border) !important;
+    box-shadow: var(--sivit-shadow) !important;
+}
+
+#contentTitle {
+    color: var(--sivit-text) !important;
+}
+
+#contentSubtitle {
+    color: var(--sivit-text-soft) !important;
+}
+
+/* =========================================================
+   KURVA S
+   ========================================================= */
+
+#kurvaSContainer {
+    background: var(--sivit-surface-soft) !important;
+    border-color: var(--sivit-border) !important;
+}
+
+#kurvaSContainer h4 {
+    color: var(--sivit-text) !important;
+}
+
+#kurvaSContainer h4 i {
+    color: var(--sivit-primary) !important;
+}
+
+#kurvaSContainer button {
+    background: var(--sivit-primary) !important;
+    color: #ffffff !important;
+    border-color: var(--sivit-primary) !important;
+}
+
+#kurvaSContainer button:hover {
+    background: var(--sivit-primary-dark) !important;
+}
+
+/* =========================================================
+   TABLE
+   ========================================================= */
+
+#tableHead {
+    background: var(--sivit-primary) !important;
+    color: #ffffff !important;
+    border-bottom-color: #bfdbfe !important;
+}
+
+#tableBody td {
+    color: #0f172a !important;
+    font-weight: 600 !important;
+}
+
+#tableBody tr {
+    transition: background 0.15s ease;
+}
+
+#tableBody tr:hover {
+    background: #f8fafc !important;
+}
+
+/* =========================================================
+   MODAL
+   ========================================================= */
+
+#dataModal,
+#verifikasi-modal {
+    background: rgba(15, 23, 42, 0.42) !important;
+    backdrop-filter: blur(5px);
+}
+
+#dataModal > div,
+#verifikasi-modal > div {
+    background: #ffffff !important;
+    color: var(--sivit-text) !important;
+    border-color: var(--sivit-border) !important;
+    box-shadow: var(--sivit-shadow-lg) !important;
+}
+
+#modalTitle,
+#verifikasi-modal h3 {
+    color: var(--sivit-primary) !important;
+}
+
+#dataModal .border-b,
+#dataModal .border-t,
+#verifikasi-modal .border-b {
+    border-color: var(--sivit-border) !important;
+}
+
+#dataModal label,
+#verifikasi-modal label {
+    color: var(--sivit-text) !important;
+}
+
+#dataModal input,
+#dataModal select,
+#dataModal textarea,
+#verifikasi-modal input,
+#verifikasi-modal select,
+#verifikasi-modal textarea {
+    background: #ffffff !important;
+    color: var(--sivit-text) !important;
+    border-color: var(--sivit-border) !important;
+}
+
+#dataModal input:focus,
+#dataModal select:focus,
+#dataModal textarea:focus,
+#verifikasi-modal input:focus,
+#verifikasi-modal select:focus,
+#verifikasi-modal textarea:focus {
+    border-color: var(--sivit-primary) !important;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.10) !important;
+}
+
+/* Tombol batal */
+#dataModal button[type="button"] {
+    background: #f1f5f9 !important;
+    color: var(--sivit-text-soft) !important;
+    border: 1px solid var(--sivit-border) !important;
+}
+
+#dataModal button[type="button"]:hover {
+    background: #e2e8f0 !important;
+}
+
+/* Tombol simpan */
+#btnSaveModal {
+    background: var(--sivit-primary) !important;
+    color: #ffffff !important;
+}
+
+#btnSaveModal:hover {
+    background: var(--sivit-primary-dark) !important;
+}
+
+/* Tombol close modal */
+#dataModal button,
+#verifikasi-modal button {
+    transition: all 0.18s ease;
+}
+
+/* =========================================================
+   FORM DINAMIS
+   ========================================================= */
+
+#formFieldsContainer input,
+#formFieldsContainer select,
+#formFieldsContainer textarea {
+    border-color: var(--sivit-border) !important;
+    background: #ffffff !important;
+    color: var(--sivit-text) !important;
+}
+
+#formFieldsContainer input:focus,
+#formFieldsContainer select:focus,
+#formFieldsContainer textarea:focus {
+    border-color: var(--sivit-primary) !important;
+    outline: none !important;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.10) !important;
+}
+
+/* Field read-only */
+#formFieldsContainer input[readonly] {
+    background: #f8fafc !important;
+    color: var(--sivit-text-soft) !important;
+}
+
+/* =========================================================
+   BUTTON UMUM YANG DIBUAT DINAMIS
+   ========================================================= */
+
+#actionButtonContainer button {
+    transition: all 0.18s ease !important;
+}
+
+/* =========================================================
+   STATUS COLORS
+   ========================================================= */
+
+.text-amber-400,
+.text-amber-300,
+.text-amber-500 {
+    color: var(--sivit-warning) !important;
+}
+
+.text-red-400,
+.text-red-500,
+.text-red-600 {
+    color: var(--sivit-danger) !important;
+}
+
+/* =========================================================
+   SCROLLBAR MODERN
+   ========================================================= */
+
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 768px) {
+
+    #dashboardContainer > header {
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+    }
+
+    #dashboardContainer main {
+        padding: 1rem !important;
+    }
+
+    #printableArea {
+        padding: 1rem !important;
+        border-radius: 14px !important;
+    }
+
+    #authContainer > div {
+        padding: 1.5rem !important;
+    }
+}
+
+/* =========================================================
+   PRINT
+   ========================================================= */
+
+@media print {
+    body {
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+    }
+
+    .no-print {
+        display: none !important;
+    }
+}
+</style>
 </head>
 <body class="bg-gradient-to-br from-blue-950 via-blue-900 to-slate-900 min-h-screen text-white font-sans antialiased flex flex-col justify-between">
 
