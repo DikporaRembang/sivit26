@@ -1742,7 +1742,7 @@ async function handleRegister(e) {
 
         if (showActionColumn) {
             let thAct = document.createElement('th');
-            thAct.className = "p-3 text-right";
+            thAct.className = "p-3 text-center whitespace-nowrap w-1";
             thAct.innerText = "AKSI";
             trHead.appendChild(thAct);
         }
@@ -1800,7 +1800,10 @@ async function handleRegister(e) {
             if (showActionColumn) {
                 let tdAct = document.createElement('td');
                 tdAct.className = "p-3 text-right space-x-1";
-
+                // Buat kontainer flex agar tombol tersusun rapat & rapi
+                let btnGroup = document.createElement('div');
+                btnGroup.className = "inline-flex items-center justify-center gap-1.5";
+                tdAct.appendChild(btnGroup);
                 if (sheetName === 'sekolah_pending') {
                     let btnApprove = document.createElement('button');
                     btnApprove.className = "px-2.5 py-1 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 rounded-lg text-[11px] font-bold border border-emerald-300 cursor-pointer";
