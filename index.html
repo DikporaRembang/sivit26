@@ -2390,7 +2390,7 @@ currentHeaders.forEach(h => {
                 div.appendChild(wrapper);
 
 
-            } else if (hLower === 'status_pagu') {
+ } else if (hLower === 'status_pagu') {
 
                 // ==============================
                 // STATUS PAGU — READ ONLY
@@ -2407,7 +2407,6 @@ currentHeaders.forEach(h => {
 
                 input.value = val || "DIAJUKAN";
 
-                // Jangan ikut dikirim dari form.
                 // Status akan ditentukan oleh backend.
                 input.dataset.systemField = "true";
 
@@ -2694,6 +2693,7 @@ currentHeaders.forEach(h => {
     modal.classList.remove('hidden');
     modal.classList.add('flex');
 }
+
 function hitungTanggalSelesai() {
     let mulaiInput = document.getElementById('inputTanggalMulai');
     let lamaInput = document.getElementById('inputLamaHari');
@@ -2711,345 +2711,241 @@ function hitungTanggalSelesai() {
         }
     }
 }
-    function closeModal() {
-        let modal = document.getElementById('dataModal');
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
-    }
 
-    async function handleFormSubmit(e) {
-        e.preventDefault();
+function closeModal() {
+    let modal = document.getElementById('dataModal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+}
 
-        let form = e.target;
-        let rowIndex = document.getElementById('formRowIndex').value;
-        let formDataObj = {};
+async function handleFormSubmit(e) {
+    e.preventDefault();
 
-        let inputs = form.querySelectorAll('input, select, textarea');
+    let form = e.target;
+    let rowIndex = document.getElementById('formRowIndex').value;
+    let formDataObj = {};
 
-        inputs.forEach(inp => {
+    let inputs = form.querySelectorAll('input, select, textarea');
 
-            if (!inp.name || inp.name === 'formRowIndex') return;
+    inputs.forEach(inp => {
 
-            let fieldName = inp.name.toLowerCase();
+        if (!inp.name || inp.name === 'formRowIndex') return;
 
-            // ==========================================
-            // FOTO DOKUMENTASI
-            // ==========================================
-            if (
-                inp.name === 'foto_dokumentasi' &&
+        let fieldName = inp.name.toLowerCase();
+
+        // Foto Dokumentasi
+        if (
+            inp.name === 'foto_dokumentasi' &&
             (inp.dataset.base64 || inp.value)
-            ) {
-                formDataObj[inp.name] = (inp.dataset.base64 || inp.value);
-                return;
-            }
+        ) {
+            formDataObj[inp.name] = (inp.dataset.base64 || inp.value);
+            return;
+        }
 
-            // ==========================================
-            // SEKOLAH - PAKET PEKERJAAN
-            // FIELD YANG DIKENDALIKAN SISTEM
-            // ==========================================
-            if (
-                currentUser &&
-                currentUser.role === 'SEKOLAH' &&
-                currentActiveSheet === 'paket_pekerjaan_sd'
-            ) {
-
-                // PAGU DISETUJUI OLEH DINAS
-                if (fieldName === 'pagu') {
-                    return;
-                }
-
-                // STATUS PAGU DITENTUKAN BACKEND
-                if (fieldName === 'status_pagu') {
-                    return;
-                }
-
-                // PERENCANA OTOMATIS DARI TIM TEKNIS
-                if (fieldName === 'perencana') {
-                    return;
-                }
-
-                // PENGAWAS OTOMATIS DARI TIM TEKNIS
-                if (fieldName === 'pengawas') {
-                    return;
-                }
-            }
-
-            // ==========================================
-            // PAGU USULAN
-            // "100.000.000" → 100000000
-            // ==========================================
-            if (fieldName === 'pagu_usulan') {
-
-                let cleanValue = String(inp.value || '')
-                    .replace(/[^0-9]/g, '');
-
-                formDataObj[inp.name] =
-                    cleanValue !== ''
-                        ? Number(cleanValue)
-                        : 0;
-
-                return;
-            }
-
-            // ==========================================
-            // FIELD FILE
-            // ==========================================
-            if (inp.type === 'file') {
-                return;
-            }
-
-            // ==========================================
-            // FIELD LAIN
-            // ==========================================
-            formDataObj[inp.name] = inp.value;
-        });
-
-
-        // ==========================================
-        // PROFIL & TIM TEKNIS
-        // SEKOLAH → STATUS KEMBALI DIAJUKAN
-        // ==========================================
+        // Sekolah - Paket Pekerjaan (Field Dikendalikan Sistem)
         if (
             currentUser &&
             currentUser.role === 'SEKOLAH' &&
-            currentActiveSheet === 'users'
+            currentActiveSheet === 'paket_pekerjaan_sd'
         ) {
-            formDataObj['status'] = 'DIAJUKAN';
-        }
-
-        // ==========================================
-        // TENTUKAN ACTION
-        // ==========================================
-        let actionName = 'saveData';
-
-        if (
-            currentActiveSheet === 'paket_pekerjaan_sd' &&
-            currentUser &&
-            currentUser.role === 'SEKOLAH'
-        ) {
-            actionName = 'simpanPaketPekerjaan';
-        }
-
-        // ==========================================
-        // TOMBOL SIMPAN
-        // ==========================================
-        let btnSave = document.getElementById('btnSaveModal');
-
-        btnSave.innerText = "Menyimpan...";
-        btnSave.disabled = true;
-
-
-        // ==========================================
-        // KIRIM DATA KE GOOGLE APPS SCRIPT
-        // ==========================================
-        try {
-
-            let res = await fetch(WEB_APP_URL, {
-                method: 'POST',
-                body: JSON.stringify({
-
-                    action: actionName,
-
-                    sheet: currentActiveSheet,
-
-                    role: currentUser.role,
-
-                    npsn: currentUser.username,
-
-                    rowIndex: rowIndex
-                        ? Number(rowIndex)
-                        : null,
-
-                    formData: formDataObj
-                })
-            });
-
-
-            // ==========================================
-            // BACA HASIL DARI SERVER
-            // ==========================================
-            let result = await res.json();
-
-            console.log("Hasil simpan:", result);
-
-            alert(result.pesan);
-
-            // ==========================================
-            // JIKA BERHASIL
-            // ==========================================
-            if (result.status === 'success') {
-
-                closeModal();
-
-                loadTableData(currentActiveSheet);
+            if (fieldName === 'pagu' || fieldName === 'status_pagu' || fieldName === 'perencana' || fieldName === 'pengawas') {
+                return;
             }
-
-
-        } catch (err) {
-
-            console.error(
-                "Error handleFormSubmit:",
-                err
-            );
-
-            alert(
-                'Gagal menyimpan data ke server.'
-            );
-
-
-        } finally {
-
-            btnSave.innerText = "Simpan Data";
-            btnSave.disabled = false;
         }
-    }
-   
-    async function deleteRowData(rowIndex) {
-        if (!confirm("Apakah Anda yakin ingin menghapus baris data ini?")) return;
 
-        try {
-            let res = await fetch(WEB_APP_URL, {
-                method: 'POST',
-                body: JSON.stringify({
-                    action: 'deleteData',
-                    sheet: currentActiveSheet,
-                    rowIndex: rowIndex
-                })
-            });
-            let result = await res.json();
-            alert(result.pesan);
-            if (result.status === 'success') {
-                loadTableData(currentActiveSheet);
-            }
-        } catch (err) {
-            alert('Gagal menghapus data.');
+        // Pagu Usulan: Format angka murni
+        if (fieldName === 'pagu_usulan') {
+            let cleanValue = String(inp.value || '').replace(/[^0-9]/g, '');
+            formDataObj[inp.name] = cleanValue !== '' ? Number(cleanValue) : 0;
+            return;
         }
+
+        if (inp.type === 'file') return;
+
+        formDataObj[inp.name] = inp.value;
+    });
+
+    // Profil & Tim Teknis Sekolah -> Status Diajukan Kembali
+    if (
+        currentUser &&
+        currentUser.role === 'SEKOLAH' &&
+        currentActiveSheet === 'users'
+    ) {
+        formDataObj['status'] = 'DIAJUKAN';
     }
 
-    async function verifikasiPaguDinas(paketId, keputusan) {
-        let label =
-            keputusan === 'DISETUJUI'
-                ? 'MENYETUJUI'
-                : 'MENOLAK';
-        let konfirmasi = confirm(
-            'Apakah Anda yakin ingin ' +
-            label +
-            ' PAGU USULAN paket ' +
-            paketId +
-            '?'
-        );
-        if (!konfirmasi) return;
-        try {
-            let res = await fetch(WEB_APP_URL, {
-                method: 'POST',
-                body: JSON.stringify({
-                    action: 'verifikasiPagu',
-                    role: currentUser.role,
-                    paketId: paketId,
-                    keputusan: keputusan
-                })
-            });
+    let actionName = 'saveData';
+    if (
+        currentActiveSheet === 'paket_pekerjaan_sd' &&
+        currentUser &&
+        currentUser.role === 'SEKOLAH'
+    ) {
+        actionName = 'simpanPaketPekerjaan';
+    }
+
+    let btnSave = document.getElementById('btnSaveModal');
+    btnSave.innerText = "Menyimpan...";
+    btnSave.disabled = true;
+
+    try {
+        let res = await fetch(WEB_APP_URL, {
+            method: 'POST',
+            body: JSON.stringify({
+                action: actionName,
+                sheet: currentActiveSheet,
+                role: currentUser.role,
+                npsn: currentUser.username,
+                rowIndex: rowIndex ? Number(rowIndex) : null,
+                formData: formDataObj
+            })
+        });
+
+        let result = await res.json();
+        console.log("Hasil simpan:", result);
+        alert(result.pesan);
+
+        if (result.status === 'success') {
+            closeModal();
+            loadTableData(currentActiveSheet);
+        }
+    } catch (err) {
+        console.error("Error handleFormSubmit:", err);
+        alert('Gagal menyimpan data ke server.');
+    } finally {
+        btnSave.innerText = "Simpan Data";
+        btnSave.disabled = false;
+    }
+}
+
+async function deleteRowData(rowIndex) {
+    if (!confirm("Apakah Anda yakin ingin menghapus baris data ini?")) return;
+
+    try {
+        let res = await fetch(WEB_APP_URL, {
+            method: 'POST',
+            body: JSON.stringify({
+                action: 'deleteData',
+                sheet: currentActiveSheet,
+                rowIndex: rowIndex
+            })
+        });
         let result = await res.json();
         alert(result.pesan);
         if (result.status === 'success') {
-            // Muat ulang data paket
-                await loadTableData(
-                    'paket_pekerjaan_sd',
-                    'Data Paket Pekerjaan SD'
-                );
-            }
-        } catch (err) {
-            console.error(
-                'Error verifikasi PAGU:',
-                err
-            );
-            alert(
-                'Gagal melakukan verifikasi PAGU.'
-            );
+            loadTableData(currentActiveSheet);
         }
+    } catch (err) {
+        alert('Gagal menghapus data.');
     }
-    async function bukaRiwayatPagu(npsn, paketId) {
-        let modal = document.getElementById('modalRiwayatPagu');
-        let tbody = document.getElementById('riwayatTableBody');
-        let infoNamaSekolah = document.getElementById('infoNamaSekolah');
-        let infoNamaMenu = document.getElementById('infoNamaMenu');
+}
 
-        tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-blue-300">Memuat riwayat perubahan pagu...</td></tr>`;
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
+async function verifikasiPaguDinas(paketId, keputusan) {
+    let label = keputusan === 'DISETUJUI' ? 'MENYETUJUI' : 'MENOLAK';
+    let konfirmasi = confirm('Apakah Anda yakin ingin ' + label + ' PAGU USULAN paket ' + paketId + '?');
+    if (!konfirmasi) return;
 
-        try {
-            let res = await fetch(`${WEB_APP_URL}?action=getData&sheet=riwayat_pagu&role=${currentUser.role}&npsn=${encodeURIComponent(npsn)}`);
-            let result = await res.json();
-            if (result.status === 'success') {
-                let dataRiwayat = (result.data || []).filter(r => String(r.paket_id || '').trim() === String(paketId).trim());
-                
-                let foundUser = usersList.find(u => String(u.username || u.npsn || '').trim() === String(npsn).trim());
-                infoNamaSekolah.innerText = foundUser ? `${npsn} - ${foundUser.nama_pengguna || foundUser.nama_sekolah}` : `NPSN: ${npsn}`;
-
-                let foundPaket = paketPekerjaanList.find(p => String(p.paket_id || '').trim() === String(paketId).trim());
-                infoNamaMenu.innerText = foundPaket ? `Menu Pekerjaan: ${foundPaket.nama_menu} (ID: ${paketId})` : `ID Paket: ${paketId}`;
-
-                tbody.innerHTML = "";
-                if (dataRiwayat.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-blue-300">Belum ada riwayat perubahan pagu untuk paket ini.</td></tr>`;
-                    return;
-                }
-
-                dataRiwayat.forEach((r, idx) => {
-                    let tr = document.createElement('tr');
-                    tr.className = "hover:bg-blue-800/30";
-                    let selisih = Number(r.pagu_baru || 0) - Number(r.pagu_lama || 0);
-                    let selisihStr = (selisih > 0 ? "+" : "") + "Rp " + selisih.toLocaleString('id-ID');
-                    let selisihColor = selisih > 0 ? "text-emerald-400" : (selisih < 0 ? "text-red-400" : "text-slate-300");
-
-                    tr.innerHTML = `
-                        <td class="p-2.5 text-center">${idx + 1}</td>
-                        <td class="p-2.5">${r.tanggal || r.timestamp || '-'}</td>
-                        <td class="p-2.5 text-right">Rp ${Number(r.pagu_lama || 0).toLocaleString('id-ID')}</td>
-                        <td class="p-2.5 text-right font-bold text-amber-300">Rp ${Number(r.pagu_baru || 0).toLocaleString('id-ID')}</td>
-                        <td class="p-2.5 text-center font-semibold ${selisihColor}">${selisihStr}</td>
-                        <td class="p-2.5">${r.keterangan || '-'}</td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-            } else {
-                tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-red-400">Gagal memuat data riwayat.</td></tr>`;
-            }
-        } catch (e) {
-            tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-red-400">Terjadi kesalahan koneksi.</td></tr>`;
+    try {
+        let res = await fetch(WEB_APP_URL, {
+            method: 'POST',
+            body: JSON.stringify({
+                action: 'verifikasiPagu',
+                role: currentUser.role,
+                paketId: paketId,
+                keputusan: keputusan
+            })
+        });
+        let result = await res.json();
+        alert(result.pesan);
+        if (result.status === 'success') {
+            await loadTableData('paket_pekerjaan_sd', 'Data Paket Pekerjaan SD');
         }
-    } // <--- PENUTUP UNTUK FUNGSI showRiwayatPagu (Pastikan ini ada!)
-    
-    function closeRiwayatModal() {
-        let modal = document.getElementById('modalRiwayatPagu');
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
+    } catch (err) {
+        console.error('Error verifikasi PAGU:', err);
+        alert('Gagal melakukan verifikasi PAGU.');
     }
+}
 
-    function switchTab(tabName) {
-        const formLogin = document.getElementById('formLogin');
-        const formRegister = document.getElementById('formRegister');
-        const tabLogin = document.getElementById('tabLogin');
-        const tabRegister = document.getElementById('tabRegister');
+async function bukaRiwayatPagu(npsn, paketId) {
+    let modal = document.getElementById('modalRiwayatPagu');
+    let tbody = document.getElementById('riwayatTableBody');
+    let infoNamaSekolah = document.getElementById('infoNamaSekolah');
+    let infoNamaMenu = document.getElementById('infoNamaMenu');
 
-        if (!formLogin || !formRegister || !tabLogin || !tabRegister) return;
+    tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-blue-300">Memuat riwayat perubahan pagu...</td></tr>`;
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
 
-        if (tabName === 'login') {
-            formLogin.classList.remove('hidden');
-            formRegister.classList.add('hidden');
+    try {
+        let res = await fetch(`${WEB_APP_URL}?action=getData&sheet=riwayat_pagu&role=${currentUser.role}&npsn=${encodeURIComponent(npsn)}`);
+        let result = await res.json();
+        if (result.status === 'success') {
+            let dataRiwayat = (result.data || []).filter(r => String(r.paket_id || '').trim() === String(paketId).trim());
             
-            tabLogin.className = "flex-1 pb-3 font-semibold text-amber-400 border-b-2 border-amber-400 transition-all text-sm cursor-pointer";
-            tabRegister.className = "flex-1 pb-3 font-semibold text-blue-300/60 border-b-2 border-transparent transition-all text-sm cursor-pointer";
+            let foundUser = usersList.find(u => String(u.username || u.npsn || '').trim() === String(npsn).trim());
+            infoNamaSekolah.innerText = foundUser ? `${npsn} - ${foundUser.nama_pengguna || foundUser.nama_sekolah}` : `NPSN: ${npsn}`;
+
+            let foundPaket = paketPekerjaanList.find(p => String(p.paket_id || '').trim() === String(paketId).trim());
+            infoNamaMenu.innerText = foundPaket ? `Menu Pekerjaan: ${foundPaket.nama_menu} (ID: ${paketId})` : `ID Paket: ${paketId}`;
+
+            tbody.innerHTML = "";
+            if (dataRiwayat.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-blue-300">Belum ada riwayat perubahan pagu untuk paket ini.</td></tr>`;
+                return;
+            }
+
+            dataRiwayat.forEach((r, idx) => {
+                let tr = document.createElement('tr');
+                tr.className = "hover:bg-blue-800/30";
+                let selisih = Number(r.pagu_baru || 0) - Number(r.pagu_lama || 0);
+                let selisihStr = (selisih > 0 ? "+" : "") + "Rp " + selisih.toLocaleString('id-ID');
+                let selisihColor = selisih > 0 ? "text-emerald-400" : (selisih < 0 ? "text-red-400" : "text-slate-300");
+
+                tr.innerHTML = `
+                    <td class="p-2.5 text-center">${idx + 1}</td>
+                    <td class="p-2.5">${r.tanggal || r.timestamp || '-'}</td>
+                    <td class="p-2.5 text-right">Rp ${Number(r.pagu_lama || 0).toLocaleString('id-ID')}</td>
+                    <td class="p-2.5 text-right font-bold text-amber-300">Rp ${Number(r.pagu_baru || 0).toLocaleString('id-ID')}</td>
+                    <td class="p-2.5 text-center font-semibold ${selisihColor}">${selisihStr}</td>
+                    <td class="p-2.5">${r.keterangan || '-'}</td>
+                `;
+                tbody.appendChild(tr);
+            });
         } else {
-            formLogin.classList.add('hidden');
-            formRegister.classList.remove('hidden');
-            
-            tabRegister.className = "flex-1 pb-3 font-semibold text-amber-400 border-b-2 border-amber-400 transition-all text-sm cursor-pointer";
-            tabLogin.className = "flex-1 pb-3 font-semibold text-blue-300/60 border-b-2 border-transparent transition-all text-sm cursor-pointer";
+            tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-red-400">Gagal memuat data riwayat.</td></tr>`;
         }
+    } catch (e) {
+        tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-red-400">Terjadi kesalahan koneksi.</td></tr>`;
     }
+}
 
+function closeRiwayatModal() {
+    let modal = document.getElementById('modalRiwayatPagu');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+}
+
+function switchTab(tabName) {
+    const formLogin = document.getElementById('formLogin');
+    const formRegister = document.getElementById('formRegister');
+    const tabLogin = document.getElementById('tabLogin');
+    const tabRegister = document.getElementById('tabRegister');
+
+    if (!formLogin || !formRegister || !tabLogin || !tabRegister) return;
+
+    if (tabName === 'login') {
+        formLogin.classList.remove('hidden');
+        formRegister.classList.add('hidden');
+        
+        tabLogin.className = "flex-1 pb-3 font-semibold text-amber-400 border-b-2 border-amber-400 transition-all text-sm cursor-pointer";
+        tabRegister.className = "flex-1 pb-3 font-semibold text-blue-300/60 border-b-2 border-transparent transition-all text-sm cursor-pointer";
+    } else {
+        formLogin.classList.add('hidden');
+        formRegister.classList.remove('hidden');
+        
+        tabRegister.className = "flex-1 pb-3 font-semibold text-amber-400 border-b-2 border-amber-400 transition-all text-sm cursor-pointer";
+        tabLogin.className = "flex-1 pb-3 font-semibold text-blue-300/60 border-b-2 border-transparent transition-all text-sm cursor-pointer";
+    }
+}
 </script>
 </body>
 </html>
