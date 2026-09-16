@@ -2958,6 +2958,159 @@ function switchTab(tabName) {
         tabLogin.className = "flex-1 pb-3 font-semibold text-blue-300/60 border-b-2 border-transparent transition-all text-sm cursor-pointer";
     }
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    
+    // A. SIMULASI / INISIALISASI CURRENTUSER (Sesuaikan dengan data login aplikasi Anda)
+    // Contoh: currentUser = { npsn: "12345678", nama: "SDN 1 Rembang", role: "SEKOLAH", statusAktif: true };
+    window.currentUser = window.currentUser || { 
+        npsn: "20301234", 
+        nama: "SDN Contoh Rembang", 
+        role: "SEKOLAH", 
+        statusAktif: true 
+    };
+
+    // Validasi Role SEKOLAH & Status Profil Aktif
+    if (window.currentUser.role === 'SEKOLAH') {
+        if (!window.currentUser.statusAktif) {
+            alert('Akun sekolah Anda belum aktif atau diblokir.');
+            document.getElementById('formLaporanCard').style.display = 'none';
+            return;
+        }
+        // Auto-fill NPSN & Nama Sekolah
+        document.getElementById('npsn-sekolah').value = window.currentUser.npsn;
+        document.getElementById('nama-sekolah').value = window.currentUser.nama;
+    }
+
+    // B. VALIDASI RENTANG ANGKA (0 - 100) & OTOMATIS TAMBAH SIMBOL %
+    ['target-kurva-s', 'realisasi-fisik'].forEach(id => {
+        const input = document.getElementById(id);
+        if (input) {
+            input.addEventListener('input', function(e) {
+                let val = this.value.replace(/[^0-9]/g, ''); // Hanya angka
+                if (val !== '') {
+                    let num = parseInt(val, 10);
+                    if (num > 100) num = 100; // Maksimal 100
+                    this.value = num + '%';
+                } else {
+                    this.value = '';
+                }
+            });
+        }
+    });
+
+    // C. PEMFORMATAN ANGKA PENGGUNAAN ANGGARAN (Pemisah Ribuan Titik .)
+    const inputAnggaran = document.getElementById('penggunaan-anggaran');
+    if (inputAnggaran) {
+        inputAnggaran.addEventListener('input', function(e) {
+            let angkaBersih = this.value.replace(/[^0-9]/g, '');
+            if (angkaBersih !== '') {
+                this.value = Number(angkaBersih).toLocaleString('id-ID');
+            } else {
+                this.value = '';
+            }
+        });
+    }
+
+    // D. EKSTRAKSI METADATA EXIF DARI FOTO (Tanggal & Koordinat GPS)
+    const inputFile = document.getElementById('file-foto');
+    if (inputFile) {
+        inputFile.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            // Set tanggal default ke hari ini sebagai cadangan
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('tanggal-laporan').value = today;
+            document.getElementById('koordinat-lokasi').value = "Mengambil koordinat...";
+
+            EXIF.getData(file, function() {
+                // 1. Ambil Tanggal Asli dari EXIF (DateTimeOriginal)
+                let exifDate = EXIF.getTag(this, "DateTimeOriginal");
+                if (exifDate) {
+                    // Format EXIF biasanya "YYYY:MM:DD HH:MM:SS" diubah ke "YYYY-MM-DD"
+                    let formattedDate = exifDate.split(' ')[0].replace(/:/g, '-');
+                    document.getElementById('tanggal-laporan').value = formattedDate;
+                }
+
+                // 2. Ambil Koordinat GPS dari EXIF
+                let lat = EXIF.getTag(this, "GPSLatitude");
+                let latRef = EXIF.getTag(this, "GPSLatitudeRef");
+                let lon = EXIF.getTag(this, "GPSLongitude");
+                let lonRef = EXIF.getTag(this, "GPSLongitudeRef");
+
+                if (lat && lon) {
+                    let latitude = convertDMSToDD(lat, latRef);
+                    let longitude = convertDMSToDD(lon, lonRef);
+                    document.getElementById('koordinat-lokasi').value = `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
+                } else {
+                    document.getElementById('koordinat-lokasi').value = "GPS tidak ditemukan di foto (Manual/Default)";
+                }
+            });
+        });
+    }
+
+    // Fungsi pembantu konversi koordinat GPS EXIF (DMS ke Decimal Degrees)
+    function convertDMSToDD(dms, ref) {
+        let dd = dms[0].numerator / dms[0].denominator +
+                 (dms[1].numerator / dms[1].denominator) / 60 +
+                 (dms[2].numerator / dms[2].denominator) / 3600;
+        if (ref === "S" || ref === "W") {
+            dd = dd * -1;
+        }
+        return dd;
+    }
+
+    // E. SUBMIT FORM KE BACKEND GOOGLE APPS SCRIPT
+    const formTambah = document.getElementById('formTambahLaporan');
+    if (formTambah) {
+        formTambah.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // Kumpulkan data payload
+            const payload = {
+                action: 'tambahLaporanBaru',
+                npsn: document.getElementById('npsn-sekolah').value,
+                namaSekolah: document.getElementById('nama-sekolah').value,
+                targetKurvaS: document.getElementById('target-kurva-s').value,
+                realisasiFisik: document.getElementById('realisasi-fisik').value,
+                penggunaanAnggaran: document.getElementById('penggunaan-anggaran').value.replace(/\./g, ''), // Hapus titik format
+                koordinat: document.getElementById('koordinat-lokasi').value,
+                tanggal: document.getElementById('tanggal-laporan').value,
+                status: document.getElementById('status-verifikasi-laporan').value, // DIAJUKAN
+                catatanDinas: "" // Dikunci/dikosongkan dari sisi sekolah
+            };
+
+            const submitBtn = this.querySelector('button[type="submit"]');
+            submitBtn.innerText = 'Mengirim Laporan...';
+            submitBtn.disabled = true;
+
+            // Kirim via fetch ke Google Apps Script Web App
+            fetch(WEB_APP_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(() => {
+                alert('Laporan progres berhasil diajukan!');
+                formTambah.reset();
+                // Kembalikan nilai default NPSN setelah reset
+                document.getElementById('npsn-sekolah').value = window.currentUser.npsn;
+                document.getElementById('nama-sekolah').value = window.currentUser.nama;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Gagal mengirim laporan. Periksa koneksi Anda.');
+            })
+            .finally(() => {
+                submitBtn.innerText = 'Kirim Laporan Progres';
+                submitBtn.disabled = false;
+            });
+        });
+    }
+
+});
 </script>
 </body>
 </html>
