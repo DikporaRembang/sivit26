@@ -1722,7 +1722,6 @@ async function handleRegister(e) {
         if (sheetName === 'sekolah' && currentUser.role === 'SEKOLAH') showActionColumn = false;
         if (sheetName === 'kurva_s' || sheetName === 'peta_gis') showActionColumn = false;
     
-        // Izinkan role SEKOLAH melihat kolom aksi khusus di sheet users miliknya sendiri
         if (currentUser.role === 'SEKOLAH' && sheetName === 'users') {
             showActionColumn = true;
         }
@@ -1755,6 +1754,7 @@ async function handleRegister(e) {
             return;
         }
 
+        // --- PERULANGAN DATA DIMULAI DI SINI (Variabel 'row' aktif di dalam blok ini) ---
         data.forEach((row, idx) => {
             let tr = document.createElement('tr');
             tr.className = "hover:bg-blue-50 transition-colors border-b border-slate-200";
@@ -1801,7 +1801,6 @@ async function handleRegister(e) {
                 let tdAct = document.createElement('td');
                 tdAct.className = "p-3 text-center whitespace-nowrap";
                 
-                // Kontainer flex agar tombol berbaris horizontal ke samping
                 let btnGroup = document.createElement('div');
                 btnGroup.className = "inline-flex flex-row items-center justify-center gap-1.5";
                 tdAct.appendChild(btnGroup);
@@ -1832,45 +1831,19 @@ async function handleRegister(e) {
                         btnRiwayat.onclick = () => bukaRiwayatPagu(row.npsn || currentUser.username, row.paket_id);
                         btnGroup.appendChild(btnRiwayat);
 
-                        // ==========================================
-                        // VERIFIKASI PAGU OLEH DINAS
-                        // ==========================================
-                        if (
-                            currentUser.role === 'DINAS' &&
-                            sheetName === 'paket_pekerjaan_sd'
-                            ) {
-                            let statusPagu = String(
-                                row.status_pagu || ''
-                            ).trim().toUpperCase();
+                        if (currentUser.role === 'DINAS' && sheetName === 'paket_pekerjaan_sd') {
+                            let statusPagu = String(row.status_pagu || '').trim().toUpperCase();
                             if (statusPagu === 'DIAJUKAN') {
                                 let btnApprovePagu = document.createElement('button');
-                                btnApprovePagu.className =
-                                    "px-2.5 py-1 bg-emerald-100 hover:bg-emerald-200 " +
-                                    "text-emerald-800 rounded-lg text-[11px] font-bold " +
-                                    "border border-emerald-300 cursor-pointer shadow-xs";
-                                btnApprovePagu.innerHTML =
-                                    `<i class="fa-solid fa-check mr-1"></i> Setujui`;
-                                btnApprovePagu.onclick = () => {
-                                    verifikasiPaguDinas(
-                                        row.paket_id,
-                                        'DISETUJUI'
-                                    );
-                                };
+                                btnApprovePagu.className = "px-2.5 py-1 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 rounded-lg text-[11px] font-bold border border-emerald-300 cursor-pointer shadow-xs";
+                                btnApprovePagu.innerHTML = `<i class="fa-solid fa-check mr-1"></i> Setujui`;
+                                btnApprovePagu.onclick = () => verifikasiPaguDinas(row.paket_id, 'DISETUJUI');
                                 btnGroup.appendChild(btnApprovePagu);
 
                                 let btnRejectPagu = document.createElement('button');
-                                btnRejectPagu.className =
-                                    "px-2.5 py-1 bg-red-100 hover:bg-red-200 " +
-                                    "text-red-800 rounded-lg text-[11px] font-bold " +
-                                    "border border-red-300 cursor-pointer shadow-xs";
-                                btnRejectPagu.innerHTML =
-                                    `<i class="fa-solid fa-xmark mr-1"></i> Tolak`;
-                                btnRejectPagu.onclick = () => {
-                                    verifikasiPaguDinas(
-                                        row.paket_id,
-                                        'DITOLAK'
-                                    );
-                                };
+                                btnRejectPagu.className = "px-2.5 py-1 bg-red-100 hover:bg-red-200 text-red-800 rounded-lg text-[11px] font-bold border border-red-300 cursor-pointer shadow-xs";
+                                btnRejectPagu.innerHTML = `<i class="fa-solid fa-xmark mr-1"></i> Tolak`;
+                                btnRejectPagu.onclick = () => verifikasiPaguDinas(row.paket_id, 'DITOLAK');
                                 btnGroup.appendChild(btnRejectPagu);
                             }
                         }
@@ -1888,16 +1861,12 @@ async function handleRegister(e) {
                     let allowEdit = true;
                     if (currentUser.role === 'SEKOLAH' && sheetName === 'users') {
                         let rowIdentifier = String(row.username || row.npsn || "").trim();
-                        if (rowIdentifier !== String(currentUser.username).trim()) {
-                            allowEdit = false;
-                        }
+                        if (rowIdentifier !== String(currentUser.username).trim()) allowEdit = false;
                     }
 
                     if (currentUser.role === 'SEKOLAH' && sheetName === 'laporan_progres') {
                         let statusVerif = String(row.status_verifikasi || '').trim();
-                        if (statusVerif !== 'DITOLAK' && statusVerif !== 'REJECTED') {
-                            allowEdit = false;
-                        }
+                        if (statusVerif !== 'DITOLAK' && statusVerif !== 'REJECTED') allowEdit = false;
                     }
 
                     if (currentUser.role === 'DINAS' && sheetName === 'laporan_progres') {
@@ -1926,7 +1895,7 @@ async function handleRegister(e) {
 
                     if (currentUser.role === 'DINAS' && sheetName !== 'users') {
                         let btnDel = document.createElement('button');
-                        btnDel.className = "px-2.5 py-1 bg-red-100 hover:bg-red-200 text-red-800 rounded-lg text-[11px] font-bold border border-red-300 cursor-pointer shadow-xs";
+                        btnDel.className = "px-2.5 py-1 bg-red-100 hover:bg-red-200 text-red-800 rounded-lg text-[11px] font-bold border border-red-300 ml-1 cursor-pointer shadow-xs";
                         btnDel.innerHTML = `<i class="fa-solid fa-trash"></i>`;
                         btnDel.onclick = () => deleteRowData(row._rowIndex);
                         btnGroup.appendChild(btnDel);
@@ -1937,7 +1906,7 @@ async function handleRegister(e) {
             bodyEl.appendChild(tr);
         });
     }
-
+    
 async function cetakLaporanResmi(paketId, npsn) {
         const paket = paketPekerjaanList.find(p => String(p.paket_id || p.id_paket || '').trim() === String(paketId).trim());
         if (!paket) {
