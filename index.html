@@ -462,57 +462,85 @@
         }
     }
 
-    async function handleRegister(e) {
-        e.preventDefault();
+async function handleRegister(e) {
+    e.preventDefault();
 
-        const npsn = document.getElementById('regNpsn').value.trim();
-        const nama = document.getElementById('regNamaSekolah').value.trim();
-        const pass = document.getElementById('regPass').value;
+    const npsn = document.getElementById('regNpsn').value.trim();
+    const nama = document.getElementById('regNamaSekolah').value.trim();
+    const pass = document.getElementById('regPass').value;
 
-        if (!npsn) {
-            alert('NPSN wajib diisi.');
-            return;
-        }
-
-        if (!nama) {
-            alert('NPSN belum ditemukan dalam database Dinas. Pastikan NPSN benar dan coba lagi.');
-            return;
-        }
-
-        if (pass.length < 6) {
-            alert('Password minimal 6 karakter.');
-            return;
-        }
-
-        try {
-            const res = await fetch(WEB_APP_URL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'text/plain;charset=utf-8'
-                },
-                body: JSON.stringify({
-                    action: 'register',
-                    npsn: npsn,
-                    nama_sekolah: nama,
-                    password: pass
-                })
-            });
-
-            const data = await res.json();
-
-            alert(data.pesan || data.message || 'Proses selesai.');
-
-            if (data.status === 'success') {
-                document.getElementById('formRegister').reset();
-                document.getElementById('regNamaSekolah').value = '';
-                switchTab('login');
-            }
-
-        } catch (err) {
-            console.error(err);
-            alert('Gagal terhubung ke server. Pastikan URL Web App benar dan deployment sudah diperbarui.');
-        }
+    if (!npsn) {
+        alert('NPSN wajib diisi.');
+        return;
     }
+
+    if (!nama) {
+        alert('NPSN belum ditemukan dalam database Dinas. Pastikan NPSN benar dan coba lagi.');
+        return;
+    }
+
+    if (pass.length < 6) {
+        alert('Password minimal 6 karakter.');
+        return;
+    }
+
+    try {
+        const res = await fetch(WEB_APP_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'text/plain;charset=utf-8'
+            },
+            body: JSON.stringify({
+                action: 'register',
+                npsn: npsn,
+                nama_sekolah: nama,
+                password: pass
+            })
+        });
+
+        if (!res.ok) {
+            throw new Error('HTTP Error ' + res.status);
+        }
+
+        const data = await res.json();
+
+        console.log('Respons register:', data);
+
+        // Menentukan status dari beberapa kemungkinan format respons
+        const status = String(
+            data.status ??
+            data.result ??
+            (data.success === true ? 'success' : '') ??
+            ''
+        ).toLowerCase();
+
+        const message =
+            data.pesan ||
+            data.message ||
+            data.msg ||
+            'Respons dari server tidak memiliki pesan.';
+
+        alert(message);
+
+        if (
+            status === 'success' ||
+            status === 'berhasil' ||
+            data.success === true
+        ) {
+            document.getElementById('formRegister').reset();
+            document.getElementById('regNamaSekolah').value = '';
+
+            switchTab('login');
+        }
+
+    } catch (err) {
+        console.error('Register Error:', err);
+        alert(
+            'Gagal terhubung ke server. Pastikan URL Web App benar dan deployment sudah diperbarui.'
+        );
+    }
+}
+    
     function logout() {
         localStorage.removeItem('sivit_user');
         currentUser = null;
