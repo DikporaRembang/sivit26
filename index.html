@@ -844,6 +844,68 @@ body {
         </div>
     </header>
 
+    <!-- Form Tambah Laporan oleh Sekolah -->
+    <div class="card shadow-sm mb-4" id="formLaporanCard">
+        <div class="card-header bg-success text-white">Form Pengajuan Laporan Progres Fisik (Sekolah)</div>
+        <div class="card-body">
+            <form id="formTambahLaporan">
+                <!-- NPSN & Nama Sekolah (Auto-fill dari currentUser) -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">NPSN Sekolah</label>
+                        <input type="text" class="form-control" id="npsn-sekolah" readonly required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Nama Sekolah</label>
+                        <input type="text" class="form-control" id="nama-sekolah" readonly required>
+                    </div>
+                </div>
+
+                <!-- Target Kurva S & Realisasi Fisik (0 - 100 dengan simbol %) -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Target Kurva S (%)</label>
+                        <input type="text" class="form-control" id="target-kurva-s" placeholder="Contoh: 75" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Realisasi Fisik (%)</label>
+                        <input type="text" class="form-control" id="realisasi-fisik" placeholder="Contoh: 70" required>
+                    </div>
+                </div>
+
+                <!-- Penggunaan Anggaran (Pemisah Ribuan Titik .) -->
+                <div class="mb-3">
+                    <label class="form-label">Penggunaan Anggaran (Rp)</label>
+                    <input type="text" class="form-control" id="penggunaan-anggaran" placeholder="Contoh: 15.000.000" required>
+                </div>
+
+                <!-- Unggah Foto & Ekstraksi EXIF (Tanggal & Koordinat GPS) -->
+                <div class="mb-3">
+                    <label class="form-label">Unggah Foto Dokumentasi (Otomatis Baca EXIF)</label>
+                    <input type="file" class="form-control" id="file-foto" accept="image/*" required>
+                    <div class="form-text text-muted">Tanggal dan koordinat lokasi akan diambil otomatis dari metadata foto.</div>
+                </div>
+
+                <!-- Input Koordinat & Tanggal (Hidden / Readonly untuk verifikasi sistem) -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Koordinat Lokasi (GPS)</label>
+                        <input type="text" class="form-control" id="koordinat-lokasi" placeholder="Otomatis dari EXIF / Manual" readonly>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Tanggal Foto / Laporan</label>
+                        <input type="text" class="form-control" id="tanggal-laporan" readonly>
+                    </div>
+                </div>
+
+                <!-- Status dipatok DIAJUKAN dan Catatan Dinas dikunci/dikosongkan -->
+                <input type="hidden" id="status-verifikasi-laporan" value="DIAJUKAN">
+
+                <button type="submit" class="btn btn-success w-100">Kirim Laporan Progres</button>
+            </form>
+        </div>
+    </div>    
+
     <div class="flex-1 flex max-w-7xl w-full mx-auto">
         <aside class="w-64 bg-slate-900 border-r border-blue-950 p-4 hidden md:flex flex-col justify-between shadow-sm">
             <div class="space-y-1">
