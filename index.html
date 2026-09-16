@@ -326,7 +326,7 @@
     
 <!-- ================= SCRIPT UTAMA ================= -->
 <script>
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx6dJW7nVV3crcdSXjeriMhYsBKdZibMNn-7tvpo7L4eGBCCKOIithMCQB3cjTtegz64A/exec";
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz7IhGBaYj0BW9gOJAFb75-aw1x2T_3_RTV9CTX8tY9eAwSL9Re3hPfCEQa1ZGR2dz_IQ/exec";
         
     let currentUser = null;
     let currentActiveSheet = '';
@@ -389,7 +389,7 @@
                                     <p class="text-blue-100 font-medium mb-1">${n.pesan}</p>
                                     <span class="text-[9px] text-amber-300 font-semibold"><i class="fa-regular fa-clock mr-1"></i>${n.waktu || '-'}</span>
                                 </div>
-                                ${n.id ? `<button onclick="eksekusiDanHapusNotifikasi('${n.id}')" class="mt-2 self-end px-2 py-1 bg-amber-500 hover:bg-amber-400 text-blue-950 font-bold rounded text-[10px] cursor-pointer"><i class="fa-solid fa-check mr-1"></i> Selesai / Eksekusi</button>` : ''}
+                                ${(n.id || n.id_notif) ? `<button onclick="eksekusiDanHapusNotifikasi('${n.id || n.id_notif}')" class="mt-2 self-end px-2 py-1 bg-amber-500 hover:bg-amber-400 text-blue-950 font-bold rounded text-[10px] cursor-pointer"><i class="fa-solid fa-check mr-1"></i> Selesai / Eksekusi</button>` : ''}
                             `;
                             container.appendChild(div);
                         });
@@ -1908,9 +1908,9 @@ function hitungTanggalSelesai() {
             // ==========================================
             if (
                 inp.name === 'foto_dokumentasi' &&
-            inp.dataset.base64
+            (inp.dataset.base64 || inp.value)
             ) {
-                formDataObj[inp.name] = inp.dataset.base64;
+                formDataObj[inp.name] = (inp.dataset.base64 || inp.value);
                 return;
             }
 
