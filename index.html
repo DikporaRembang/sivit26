@@ -2911,27 +2911,57 @@ async function handleFormSubmit(e) {
     inputs.forEach(inp => {
         if (!inp.name || inp.name === 'formRowIndex') return;
 
-        if (inp.name === 'foto_dokumentasi' && (inp.dataset.base64 || inp.value)) {
-            formDataObj[inp.name] = (inp.dataset.base64 || inp.value);
+        if (
+            inp.name === 'foto_dokumentasi' &&
+            (inp.dataset.base64 || inp.value)
+        ) {
+            formDataObj[inp.name] = inp.dataset.base64 || inp.value;
             return;
         }
 
-        if (currentUser && currentUser.role === 'SEKOLAH' && currentActiveSheet === 'paket_pekerjaan_sd') {
-            if (inp.name === 'pagu' || inp.name === 'status_pagu' || inp.name === 'perencana' || inp.name === 'pengawas') {
+        // Field berikut diisi oleh backend, bukan oleh sekolah
+        if (
+            currentUser &&
+            currentUser.role === 'SEKOLAH' &&
+            currentActiveSheet === 'paket_pekerjaan_sd'
+        ) {
+            if (
+                inp.name === 'pagu' ||
+                inp.name === 'status_pagu' ||
+                inp.name === 'perencana' ||
+                inp.name === 'pengawas' ||
+                inp.name === 'npsn'
+            ) {
                 return;
             }
         }
 
         if (inp.type === 'file') return;
+
         formDataObj[inp.name] = inp.value;
     });
 
-    if (currentUser && currentUser.role === 'SEKOLAH' && currentActiveSheet === 'users') {
-        formDataObj['status'] = 'DIAJUKAN';
+    // Status pengajuan akun sekolah
+    if (
+        currentUser &&
+        currentUser.role === 'SEKOLAH' &&
+        currentActiveSheet === 'users'
+    ) {
+        formDataObj.status = 'DIAJUKAN';
     }
 
-    // Penentuan action backend yang tepat
+    // Pastikan NPSN berasal dari akun sekolah yang sedang login
+    if (
+        currentUser &&
+        currentUser.role === 'SEKOLAH' &&
+        currentActiveSheet === 'paket_pekerjaan_sd'
+    ) {
+        formDataObj.npsn = String(currentUser.username || '').trim();
+    }
+
+    // Penentuan action backend
     let actionName = 'saveData';
+
     if (currentUser && currentUser.role === 'SEKOLAH') {
         if (currentActiveSheet === 'paket_pekerjaan_sd') {
             actionName = 'simpanPaketPekerjaan';
@@ -2941,35 +2971,52 @@ async function handleFormSubmit(e) {
     }
 
     let btnSave = document.getElementById('btnSaveModal');
-    btnSave.innerText = "Menyimpan...";
-    btnSave.disabled = true;
+
+    if (btnSave) {
+        btnSave.innerText = 'Menyimpan...';
+        btnSave.disabled = true;
+    }
 
     try {
         let res = await fetch(WEB_APP_URL, {
             method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
             body: JSON.stringify({
                 action: actionName,
                 sheet: currentActiveSheet,
                 role: currentUser.role,
+
+                // Identitas akun sekolah
+                username: currentUser.username,
                 npsn: currentUser.username,
+
                 rowIndex: rowIndex ? Number(rowIndex) : null,
+
+                // Data formulir
                 formData: formDataObj
             })
         });
 
         let result = await res.json();
-        alert(result.pesan);
+
+        alert(result.pesan || 'Proses selesai.');
 
         if (result.status === 'success') {
             closeModal();
             loadTableData(currentActiveSheet);
         }
+
     } catch (err) {
-        console.error("Error handleFormSubmit:", err);
+        console.error('Error handleFormSubmit:', err);
         alert('Gagal menyimpan data ke server.');
+
     } finally {
-        btnSave.innerText = "Simpan Data";
-        btnSave.disabled = false;
+        if (btnSave) {
+            btnSave.innerText = 'Simpan Data';
+            btnSave.disabled = false;
+        }
     }
 }
 
