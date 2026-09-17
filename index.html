@@ -1888,11 +1888,16 @@ async function handleRegister(e) {
         if (sheetName === 'peta_gis') {
             mapEl.classList.remove('hidden');
             printableAreaEl.style.display = 'none';
-            await initLeafletMap();
+
+            try {
+                await initLeafletMap();
+            } catch (err) {
+                console.error("Gagal memuat peta GIS:", err);
+            } finally {
+                hideLoading();
+            }
+
             return;
-        } else {
-            mapEl.classList.add('hidden');
-            printableAreaEl.style.display = 'block';
         }
 
         let headEl = document.getElementById('tableHead');
@@ -1961,6 +1966,7 @@ async function handleRegister(e) {
     async function initLeafletMap() {
         if (!leafletMap) {
             leafletMap = L.map('map').setView([-6.706, 111.345], 11);
+
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 maxZoom: 19,
                 attribution: '&copy; OpenStreetMap contributors'
@@ -1970,11 +1976,15 @@ async function handleRegister(e) {
         }
 
         try {
-            let res = await fetch(`${WEB_APP_URL}?action=getData&sheet=laporan_progres&role=DINAS&npsn=`);
+            let res = await fetch(
+                `${WEB_APP_URL}?action=getData&sheet=laporan_progres&role=DINAS&npsn=`
+            );
+
             let result = await res.json();
+
             if (result.status === 'success') {
                 let listLaporan = result.data || [];
-                
+
                 leafletMap.eachLayer((layer) => {
                     if (layer instanceof L.Marker) {
                         leafletMap.removeLayer(layer);
@@ -1982,8 +1992,10 @@ async function handleRegister(e) {
                 });
 
                 let markersCount = 0;
+
                 listLaporan.forEach(item => {
                     let koordinatStr = item.lokasi_koordinat || '';
+
                     if (koordinatStr && koordinatStr.includes(',')) {
                         let parts = koordinatStr.split(',');
                         let lat = parseFloat(parts[0].trim());
@@ -1991,10 +2003,14 @@ async function handleRegister(e) {
 
                         if (!isNaN(lat) && !isNaN(lon)) {
                             markersCount++;
+
                             let marker = L.marker([lat, lon]).addTo(leafletMap);
+
                             marker.bindPopup(`
                                 <div class="text-xs space-y-1">
-                                    <p class="font-bold text-blue-900">NPSN: ${item.npsn || '-'}</p>
+                                    <p class="font-bold text-blue-900">
+                                        NPSN: ${item.npsn || '-'}
+                                    </p>
                                     <p><strong>Minggu:</strong> ${item.minggu_ke || '-'}</p>
                                     <p><strong>Realisasi Fisik:</strong> ${item.realisasi_fisik || 0}%</p>
                                     <p><strong>Status:</strong> ${item.status_verifikasi || 'DIAJUKAN'}</p>
@@ -2005,14 +2021,19 @@ async function handleRegister(e) {
                 });
 
                 if (markersCount === 0) {
-                    alert("Belum ada data koordinat GPS valid yang ditemukan dari laporan progres sekolah.");
+                    console.warn(
+                        "Belum ada data koordinat GPS valid yang ditemukan."
+                    );
                 }
+            } else {
+                throw new Error(result.message || "Data GIS gagal dimuat.");
             }
+
         } catch (e) {
             console.error("Gagal memuat titik koordinat peta:", e);
+            throw e;
         }
     }
-
     function filterDataDinasAndPaket() {
         if (!currentUser || currentUser.role !== 'DINAS') return;
 
