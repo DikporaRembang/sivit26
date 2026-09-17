@@ -1483,6 +1483,20 @@ async function handleRegister(e) {
         }
     async function loadTableData(sheetName, title) {
         currentActiveSheet = sheetName;
+
+        const formLaporanCard = document.getElementById('formLaporanCard');
+
+        if (formLaporanCard) {
+            if (
+                currentUser.role === 'SEKOLAH' &&
+                sheetName === 'laporan_progres'
+            ) {
+                formLaporanCard.style.display = 'block';
+            } else {
+                formLaporanCard.style.display = 'none';
+            }
+        }
+
         let displayTitle = title;
         if (!displayTitle) {
             if (sheetName === 'paket_pekerjaan_sd') displayTitle = currentUser.role === 'DINAS' ? 'Data Paket Pekerjaan SD' : 'Paket Pekerjaan Saya';
