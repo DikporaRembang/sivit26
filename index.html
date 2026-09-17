@@ -647,6 +647,65 @@ body {
 }
 
 /* =========================================================
+   DASHBOARD / FEED LEBIH LEBAR
+   ========================================================= */
+
+#dashboardContainer {
+    width: 100% !important;
+    max-width: none !important;
+}
+
+#dashboardContainer > main,
+#dashboardContainer main {
+    width: 100% !important;
+    max-width: none !important;
+    padding-left: 1.5rem !important;
+    padding-right: 1.5rem !important;
+}
+
+#dashboardContainer .max-w-7xl,
+#dashboardContainer .max-w-6xl,
+#dashboardContainer .max-w-5xl {
+    width: 100% !important;
+    max-width: none !important;
+}
+
+/* Area feed/konten utama */
+#feedContainer,
+#contentContainer,
+#mainContent,
+.dashboard-content {
+    width: 100% !important;
+    max-width: none !important;
+}
+
+/* Tabel agar memanfaatkan lebar layar */
+.overflow-x-auto {
+    width: 100% !important;
+}
+
+table {
+    min-width: 100% !important;
+}
+
+/* Pada layar besar, beri ruang kerja yang lebih luas */
+@media (min-width: 1280px) {
+    #dashboardContainer > main {
+        padding-left: 2rem !important;
+        padding-right: 2rem !important;
+    }
+}
+
+/* Pada layar kecil tetap responsif */
+@media (max-width: 768px) {
+    #dashboardContainer > main,
+    #dashboardContainer main {
+        padding-left: 0.75rem !important;
+        padding-right: 0.75rem !important;
+    }
+}
+
+/* =========================================================
    RESPONSIVE
    ========================================================= */
 
