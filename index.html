@@ -2980,24 +2980,75 @@ function closeModal() {
 }
 
 function showLoading(message = 'Memproses data...') {
-    const loading = document.getElementById('sivitLoading');
-    const loadingText = document.getElementById('sivitLoadingText');
+
+    const loading =
+        document.getElementById('sivitLoading');
+
+    const loadingText =
+        document.getElementById('sivitLoadingText');
+
+
+    if (!loading) return;
+
+
+    // -----------------------------------------
+    // UPDATE TEKS
+    // -----------------------------------------
 
     if (loadingText) {
         loadingText.textContent = message;
     }
 
-    if (loading) {
-        loading.classList.add('show');
-    }
+
+    // -----------------------------------------
+    // RESET ANIMASI
+    // -----------------------------------------
+
+    loading.classList.remove('hide-animation');
+
+    loading.classList.remove('show');
+
+
+    // Paksa browser menghitung ulang layout
+    // agar animasi masuk selalu dimulai ulang.
+
+    void loading.offsetWidth;
+
+
+    // -----------------------------------------
+    // TAMPILKAN LOADING
+    // -----------------------------------------
+
+    loading.classList.add('show');
 }
 
-function hideLoading() {
-    const loading = document.getElementById('sivitLoading');
 
-    if (loading) {
+function hideLoading() {
+
+    const loading =
+        document.getElementById('sivitLoading');
+
+
+    if (!loading) return;
+
+
+    // -----------------------------------------
+    // ANIMASI KELUAR
+    // -----------------------------------------
+
+    loading.classList.add('hide-animation');
+
+
+    // -----------------------------------------
+    // HAPUS SHOW SETELAH ANIMASI SELESAI
+    // -----------------------------------------
+
+    setTimeout(function() {
+
         loading.classList.remove('show');
-    }
+        loading.classList.remove('hide-animation');
+
+    }, 220);
 }
     
 async function handleFormSubmit(e) {
