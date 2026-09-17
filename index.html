@@ -3562,16 +3562,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Kumpulkan data payload
             const payload = {
-                action: 'tambahLaporanBaru',
-                npsn: document.getElementById('npsn-sekolah').value,
-                namaSekolah: document.getElementById('nama-sekolah').value,
-                targetKurvaS: document.getElementById('target-kurva-s').value,
-                realisasiFisik: document.getElementById('realisasi-fisik').value,
-                penggunaanAnggaran: document.getElementById('penggunaan-anggaran').value.replace(/\./g, ''), // Hapus titik format
-                koordinat: document.getElementById('koordinat-lokasi').value,
-                tanggal: document.getElementById('tanggal-laporan').value,
-                status: document.getElementById('status-verifikasi-laporan').value, // DIAJUKAN
-                catatanDinas: "" // Dikunci/dikosongkan dari sisi sekolah
+                action: 'simpanLaporanProgres', // <--- Disamakan dengan backend
+                formData: {
+                    npsn: document.getElementById('npsn-sekolah').value,
+                    nama_sekolah: document.getElementById('nama-sekolah').value,
+                    target_kurva_s: document.getElementById('target-kurva-s').value,
+                    realisasi_fisik: document.getElementById('realisasi-fisik').value,
+                    penggunaan_anggaran: document.getElementById('penggunaan-anggaran').value.replace(/\./g, ''),
+                    lokasi_koordinat: document.getElementById('koordinat-lokasi').value,
+                    tanggal_lapor: document.getElementById('tanggal-laporan').value,
+                    status_verifikasi: document.getElementById('status-verifikasi-laporan').value,
+                    catatan_dinas: ""
+                }
             };
 
             const submitBtn = this.querySelector('button[type="submit"]');
@@ -3580,19 +3582,24 @@ document.addEventListener('DOMContentLoaded', function() {
             if (typeof showLoading === 'function') {
                 showLoading('Mengirim laporan progres...');
             }
-            // Kirim via fetch ke Google Apps Script Web App
+
+            // Kirim via fetch ke Google Apps Script Web App (Tanpa mode no-cors)
             fetch(WEB_APP_URL, {
                 method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify(payload)
             })
-            .then(() => {
-                alert('Laporan progres berhasil diajukan!');
-                formTambah.reset();
-                // Kembalikan nilai default NPSN setelah reset
-                document.getElementById('npsn-sekolah').value = window.currentUser.npsn;
-                document.getElementById('nama-sekolah').value = window.currentUser.nama;
+            .then(res => res.json())
+            .then(result => {
+                alert(result.pesan || 'Proses selesai.');
+                if (result.status === 'success') {
+                    formTambah.reset();
+                    document.getElementById('npsn-sekolah').value = window.currentUser.npsn;
+                    document.getElementById('nama-sekolah').value = window.currentUser.nama;
+                    if (typeof loadTableData === 'function' && currentActiveSheet) {
+                        loadTableData(currentActiveSheet);
+                    }
+                }
             })
             .catch(error => {
                 console.error('Error:', error);
