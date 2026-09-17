@@ -3380,7 +3380,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const submitBtn = this.querySelector('button[type="submit"]');
             submitBtn.innerText = 'Mengirim Laporan...';
             submitBtn.disabled = true;
-
+            if (typeof showLoading === 'function') {
+                showLoading('Mengirim laporan progres...');
+            }
             // Kirim via fetch ke Google Apps Script Web App
             fetch(WEB_APP_URL, {
                 method: 'POST',
@@ -3400,6 +3402,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 alert('Gagal mengirim laporan. Periksa koneksi Anda.');
             })
             .finally(() => {
+                if (typeof hideLoading === 'function') {
+                    hideLoading();
+                }
                 submitBtn.innerText = 'Kirim Laporan Progres';
                 submitBtn.disabled = false;
             });
