@@ -1885,6 +1885,45 @@ async function handleRegister(e) {
             kurvaEl.classList.add('hidden');
         }
 
+
+        /* =========================================================
+           GIS — PETA HANYA MUNCUL PADA SUBMENU peta_gis
+           ========================================================= */
+
+        // Sembunyikan peta secara default pada setiap submenu
+        mapEl.classList.add('hidden');
+        printableAreaEl.style.display = 'block';
+
+        if (sheetName === 'peta_gis') {
+            mapEl.classList.remove('hidden');
+            printableAreaEl.style.display = 'none';
+
+            try {
+                await initLeafletMap();
+            } catch (err) {
+                console.error("Gagal memuat peta GIS:", err);
+            } finally {
+                hideLoading();
+            }
+
+            return;
+        }
+        if (currentUser.role === 'DINAS' && (sheetName === 'paket_pekerjaan_sd' || sheetName === 'laporan_progres' || sheetName === 'kurva_s')) {
+            filterDinasEl.classList.remove('hidden');
+            populateDinasFilterOptions();
+        } else {
+            filterDinasEl.classList.add('hidden');
+        }
+
+        if (sheetName === 'kurva_s') {
+            kurvaEl.classList.remove('hidden');
+            printableAreaEl.style.display = 'block';
+            await loadReferenceTables();
+            renderKurvaSChart();
+        } else {
+            kurvaEl.classList.add('hidden');
+        }
+
         if (sheetName === 'peta_gis') {
             mapEl.classList.remove('hidden');
             printableAreaEl.style.display = 'none';
