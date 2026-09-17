@@ -3264,18 +3264,15 @@ async function handleFormSubmit(e) {
     try {
         let res = await fetch(WEB_APP_URL, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
             body: JSON.stringify({
                 action: actionName,
                 sheet: currentActiveSheet,
                 role: currentUser ? currentUser.role : '',
 
-                // Identitas akun sekolah
                 username: currentUser
                     ? currentUser.username
                     : '',
+
                 npsn: currentUser
                     ? currentUser.username
                     : '',
@@ -3284,7 +3281,6 @@ async function handleFormSubmit(e) {
                     ? Number(rowIndex)
                     : null,
 
-                // Data formulir
                 formData: formDataObj
             })
         });
@@ -3313,7 +3309,7 @@ async function handleFormSubmit(e) {
     } catch (err) {
         console.error('Error handleFormSubmit:', err);
         alert(
-            'Gagal menyimpan data ke server. Silakan coba lagi.'
+            'Gagal menyimpan data ke server:\n' + err.message
         );
 
     } finally {
