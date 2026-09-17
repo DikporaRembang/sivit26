@@ -1012,8 +1012,12 @@ body {
 
 <div id="sivitLoading">
     <div class="sivit-loading-box">
-        <div class="sivit-loading-spinner"></div>
-        <span id="sivitLoadingText">Memproses data...</span>
+        <div class="sivit-loading-logo-wrap">
+        <div class="sivit-loading-ring"></div>
+        <img src="bidangsd.png" alt="Logo" class="sivit-loading-logo" onerror="this.style.display='none'">
+        </div>
+        <div id="sivitLoadingText" class="sivit-loading-text">Memproses data</div>
+        <div class="sivit-loading-subtext">SIVIT26 Kabupaten Rembang 2026</div>
     </div>
 </div>
 
@@ -1759,6 +1763,9 @@ async function handleRegister(e) {
             });
         }
     async function loadTableData(sheetName, title) {
+      // Tampilkan loading sebelum proses dimulai
+        showLoading('Sedang memuat data...'); 
+        
         currentActiveSheet = sheetName;
 
         const formLaporanCard = document.getElementById('formLaporanCard');
@@ -1875,6 +1882,9 @@ async function handleRegister(e) {
             }
         } catch (err) {
             bodyEl.innerHTML = `<tr><td colspan="10" class="text-center p-4 text-red-500 text-xs">Kesalahan jaringan saat mengambil data.</td></tr>`;
+        } finally {
+            // Sembunyikan loading baik saat sukses maupun gagal
+            hideLoading();
         }
     }
 
