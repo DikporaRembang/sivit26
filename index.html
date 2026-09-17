@@ -1468,17 +1468,28 @@ body {
     }
 
     function eksekusiDanHapusNotifikasi(idNotifikasi) {
-        fetch(`${WEB_APP_URL}?action=hapusNotifikasi&id=${idNotifikasi}`)
-            .then(response => response.json())
-            .then(result => {
-                if (result.status === "success") {
-                    let targetPenerima = (currentUser && currentUser.role === 'DINAS') ? 'DINAS' : (currentUser ? currentUser.username : '');
-                    loadNotifikasi(targetPenerima); 
-                }
-            })
-            .catch(error => console.error("Error:", error));
+      fetch(
+        `${WEB_APP_URL}?action=hapusNotifikasi&id=${encodeURIComponent(idNotifikasi)}`
+      )
+        .then(response => response.json())
+        .then(result => {
+          console.log('Hasil hapus notifikasi:', result);
+
+          if (result.status === "success") {
+            let targetPenerima =
+              currentUser && currentUser.role === 'DINAS'
+                ? 'DINAS'
+                : (currentUser ? currentUser.username : '');
+
+            loadNotifikasi(targetPenerima);
+          } else {
+            alert(result.message || 'Notifikasi gagal diselesaikan.');
+          }
+        })
+        .catch(error => {
+          console.error('Error hapus notifikasi:', error);
+        });
     }
-        
     document.getElementById('regNpsn').addEventListener('blur', function() {
         let npsn = this.value.trim();
         if (!npsn) return;
