@@ -865,6 +865,13 @@ body {
 </head>
 <body class="bg-gradient-to-br from-blue-950 via-blue-900 to-slate-900 min-h-screen text-white font-sans antialiased flex flex-col justify-between">
 
+<div id="sivitLoading">
+    <div class="sivit-loading-box">
+        <div class="sivit-loading-spinner"></div>
+        <span id="sivitLoadingText">Memproses data...</span>
+    </div>
+</div>
+
 <!-- ================= AUTH CONTAINER ================= -->
 <div id="authContainer" class="flex-1 flex flex-col items-center justify-center p-4">
     <div class="max-w-md w-full bg-blue-900/40 backdrop-blur-md rounded-2xl shadow-2xl p-8 border border-amber-400/30">
@@ -2899,32 +2906,62 @@ function closeModal() {
     modal.classList.remove('flex');
 }
 
+function showLoading(message = 'Memproses data...') {
+    const loading = document.getElementById('sivitLoading');
+    const loadingText = document.getElementById('sivitLoadingText');
+
+    if (loadingText) {
+        loadingText.textContent = message;
+    }
+
+    if (loading) {
+        loading.classList.add('show');
+    }
+}
+
+function hideLoading() {
+    const loading = document.getElementById('sivitLoading');
+
+    if (loading) {
+        loading.classList.remove('show');
+    }
+}
+    
 async function handleFormSubmit(e) {
     e.preventDefault();
 
     let form = e.target;
-    let rowIndex = document.getElementById('formRowIndex').value;
+    let rowIndexElement = document.getElementById('formRowIndex');
+    let rowIndex = rowIndexElement ? rowIndexElement.value : '';
     let formDataObj = {};
+
+    const isSekolah = currentUser && currentUser.role === 'SEKOLAH';
+    const isPaketPekerjaan =
+        currentActiveSheet === 'paket_pekerjaan_sd';
+
+    // =========================================================
+    // 1. MEMBACA DATA FORMULIR
+    // =========================================================
 
     let inputs = form.querySelectorAll('input, select, textarea');
 
     inputs.forEach(inp => {
-        if (!inp.name || inp.name === 'formRowIndex') return;
+        if (!inp.name || inp.name === 'formRowIndex') {
+            return;
+        }
 
+        // Foto dokumentasi Base64
         if (
             inp.name === 'foto_dokumentasi' &&
             (inp.dataset.base64 || inp.value)
         ) {
-            formDataObj[inp.name] = inp.dataset.base64 || inp.value;
+            formDataObj[inp.name] =
+                inp.dataset.base64 || inp.value;
             return;
         }
 
-        // Field berikut diisi oleh backend, bukan oleh sekolah
-        if (
-            currentUser &&
-            currentUser.role === 'SEKOLAH' &&
-            currentActiveSheet === 'paket_pekerjaan_sd'
-        ) {
+        // Field berikut diisi oleh backend
+        if (isSekolah && isPaketPekerjaan) {
             if (
                 inp.name === 'pagu' ||
                 inp.name === 'status_pagu' ||
@@ -2936,39 +2973,71 @@ async function handleFormSubmit(e) {
             }
         }
 
-        if (inp.type === 'file') return;
+        // File input tidak dikirim langsung
+        if (inp.type === 'file') {
+            return;
+        }
 
         formDataObj[inp.name] = inp.value;
     });
 
-    // Status pengajuan akun sekolah
+    // =========================================================
+    // 2. STATUS PENGAJUAN AKUN SEKOLAH
+    // =========================================================
+
     if (
-        currentUser &&
-        currentUser.role === 'SEKOLAH' &&
+        isSekolah &&
         currentActiveSheet === 'users'
     ) {
         formDataObj.status = 'DIAJUKAN';
     }
 
-    // Pastikan NPSN berasal dari akun sekolah yang sedang login
-    if (
-        currentUser &&
-        currentUser.role === 'SEKOLAH' &&
-        currentActiveSheet === 'paket_pekerjaan_sd'
-    ) {
-        formDataObj.npsn = String(currentUser.username || '').trim();
+    // =========================================================
+    // 3. NPSN DARI AKUN SEKOLAH YANG LOGIN
+    // =========================================================
+
+    if (isSekolah && isPaketPekerjaan) {
+        const usernameLogin = String(
+            currentUser.username || ''
+        ).trim();
+
+        if (!usernameLogin) {
+            alert('NPSN akun sekolah tidak ditemukan.');
+            return;
+        }
+
+        if (
+            usernameLogin.toUpperCase() === 'ADMIN' ||
+            usernameLogin.toUpperCase() === 'DINAS'
+        ) {
+            alert(
+                'Akun DINAS/ADMIN tidak dapat menyimpan paket pekerjaan sekolah.'
+            );
+            return;
+        }
+
+        formDataObj.npsn = usernameLogin;
     }
 
-    // Penentuan action backend
+    // =========================================================
+    // 4. PENENTUAN ACTION BACKEND
+    // =========================================================
+
     let actionName = 'saveData';
 
-    if (currentUser && currentUser.role === 'SEKOLAH') {
+    if (isSekolah) {
         if (currentActiveSheet === 'paket_pekerjaan_sd') {
             actionName = 'simpanPaketPekerjaan';
-        } else if (currentActiveSheet === 'laporan_progres') {
+        } else if (
+            currentActiveSheet === 'laporan_progres'
+        ) {
             actionName = 'simpanLaporanProgres';
         }
     }
+
+    // =========================================================
+    // 5. PERSIAPAN TOMBOL DAN LOADING
+    // =========================================================
 
     let btnSave = document.getElementById('btnSaveModal');
 
@@ -2976,6 +3045,14 @@ async function handleFormSubmit(e) {
         btnSave.innerText = 'Menyimpan...';
         btnSave.disabled = true;
     }
+
+    if (typeof showLoading === 'function') {
+        showLoading('Menyimpan data...');
+    }
+
+    // =========================================================
+    // 6. KIRIM DATA KE BACKEND
+    // =========================================================
 
     try {
         let res = await fetch(WEB_APP_URL, {
@@ -2986,33 +3063,61 @@ async function handleFormSubmit(e) {
             body: JSON.stringify({
                 action: actionName,
                 sheet: currentActiveSheet,
-                role: currentUser.role,
+                role: currentUser ? currentUser.role : '',
 
                 // Identitas akun sekolah
-                username: currentUser.username,
-                npsn: currentUser.username,
+                username: currentUser
+                    ? currentUser.username
+                    : '',
+                npsn: currentUser
+                    ? currentUser.username
+                    : '',
 
-                rowIndex: rowIndex ? Number(rowIndex) : null,
+                rowIndex: rowIndex
+                    ? Number(rowIndex)
+                    : null,
 
                 // Data formulir
                 formData: formDataObj
             })
         });
 
+        // Cek status HTTP
+        if (!res.ok) {
+            throw new Error(
+                `Server mengembalikan status HTTP ${res.status}`
+            );
+        }
+
         let result = await res.json();
 
         alert(result.pesan || 'Proses selesai.');
 
         if (result.status === 'success') {
-            closeModal();
-            loadTableData(currentActiveSheet);
+            if (typeof closeModal === 'function') {
+                closeModal();
+            }
+
+            if (typeof loadTableData === 'function') {
+                loadTableData(currentActiveSheet);
+            }
         }
 
     } catch (err) {
         console.error('Error handleFormSubmit:', err);
-        alert('Gagal menyimpan data ke server.');
+        alert(
+            'Gagal menyimpan data ke server. Silakan coba lagi.'
+        );
 
     } finally {
+        // =====================================================
+        // 7. KEMBALIKAN KONDISI NORMAL
+        // =====================================================
+
+        if (typeof hideLoading === 'function') {
+            hideLoading();
+        }
+
         if (btnSave) {
             btnSave.innerText = 'Simpan Data';
             btnSave.disabled = false;
