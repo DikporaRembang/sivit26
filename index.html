@@ -3651,7 +3651,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     nama_sekolah: document.getElementById('nama-sekolah').value,
                     target_kurva_s: document.getElementById('target-kurva-s').value,
                     realisasi_fisik: document.getElementById('realisasi-fisik').value,
-                    penggunaan_anggaran: document.getElementById('penggunaan-anggaran').value.replace(/\./g, ''),
+                    penggunaan_anggaran: document.getElementById('penggunaan-anggaran').value.replace(/[^0-9]/g, ''),
                     lokasi_koordinat: document.getElementById('koordinat-lokasi').value,
                     tanggal_lapor: document.getElementById('tanggal-laporan').value,
                     status_verifikasi: 'DIAJUKAN',
