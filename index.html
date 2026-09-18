@@ -3525,28 +3525,26 @@ function switchTab(tabName) {
     }
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-    
-    // A. SIMULASI / INISIALISASI CURRENTUSER (Sesuaikan dengan data login aplikasi Anda)
-    // Contoh: currentUser = { npsn: "12345678", nama: "SDN 1 Rembang", role: "SEKOLAH", statusAktif: true };
-    window.currentUser = window.currentUser || { 
-        npsn: "20301234", 
-        nama: "SDN Contoh Rembang", 
-        role: "SEKOLAH", 
-        statusAktif: true 
-    };
+// Validasi Role SEKOLAH & Status Profil Aktif
+if (currentUser && currentUser.role === 'SEKOLAH') {
+    const npsnSekolah =
+        currentUser.sekolah?.npsn ||
+        currentUser.npsn ||
+        currentUser.username ||
+        '';
 
-    // Validasi Role SEKOLAH & Status Profil Aktif
-    if (window.currentUser.role === 'SEKOLAH') {
-        if (!window.currentUser.statusAktif) {
-            alert('Akun sekolah Anda belum aktif atau diblokir.');
-            document.getElementById('formLaporanCard').style.display = 'none';
-            return;
-        }
-        // Auto-fill NPSN & Nama Sekolah
-        document.getElementById('npsn-sekolah').value = window.currentUser.npsn;
-        document.getElementById('nama-sekolah').value = window.currentUser.nama;
+    const namaSekolah =
+        currentUser.sekolah?.nama_sekolah ||
+        currentUser.nama_pengguna ||
+        '';
+
+    if (!npsnSekolah) {
+        console.warn('NPSN sekolah belum tersedia pada data pengguna login.');
     }
+
+    document.getElementById('npsn-sekolah').value = npsnSekolah;
+    document.getElementById('nama-sekolah').value = namaSekolah;
+}
 
     // B. VALIDASI RENTANG ANGKA (0 - 100) & OTOMATIS TAMBAH SIMBOL %
     ['target-kurva-s', 'realisasi-fisik'].forEach(id => {
@@ -3667,8 +3665,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 alert(result.pesan || 'Proses selesai.');
                 if (result.status === 'success') {
                     formTambah.reset();
-                    document.getElementById('npsn-sekolah').value = window.currentUser.npsn;
-                    document.getElementById('nama-sekolah').value = window.currentUser.nama;
+                    document.getElementById('npsn-sekolah').value =
+                    currentUser?.sekolah?.npsn ||
+                    currentUser?.npsn ||
+                    currentUser?.username ||
+                    '';
+
+                    document.getElementById('nama-sekolah').value =
+                    currentUser?.sekolah?.nama_sekolah ||
+                    currentUser?.nama_pengguna ||
+                    '';
                     if (typeof loadTableData === 'function' && currentActiveSheet) {
                         loadTableData(currentActiveSheet);
                     }
