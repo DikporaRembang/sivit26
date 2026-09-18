@@ -3535,16 +3535,28 @@ function switchTab(tabName) {
     }
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-    
-    // A. SIMULASI / INISIALISASI CURRENTUSER (Sesuaikan dengan data login aplikasi Anda)
-    // Contoh: currentUser = { npsn: "12345678", nama: "SDN 1 Rembang", role: "SEKOLAH", statusAktif: true };
-    window.currentUser = window.currentUser || { 
-        npsn: "20301234", 
-        nama: "SDN Contoh Rembang", 
-        role: "SEKOLAH", 
-        statusAktif: true 
-    };
+    document.addEventListener('DOMContentLoaded', function () {
+        const savedUser = localStorage.getItem('sivit_user');
+
+        if (savedUser) {
+            try {
+                currentUser = JSON.parse(savedUser);
+
+                if (currentUser && currentUser.username) {
+                    initDashboard();
+                    return;
+                }
+            } catch (err) {
+                console.error('Data sesi tidak valid:', err);
+                localStorage.removeItem('sivit_user');
+            }
+        }
+
+        currentUser = null;
+
+        document.getElementById('authContainer').classList.remove('hidden');
+        document.getElementById('dashboardContainer').classList.add('hidden');
+    });
 
     // Validasi Role SEKOLAH & Status Profil Aktif
     if (window.currentUser.role === 'SEKOLAH') {
