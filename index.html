@@ -1630,7 +1630,7 @@ async function handleRegister(e) {
             if (saved) {
                 currentUser = JSON.parse(saved);
 
-                if (currentUser && currentUser.npsn) {
+               if (currentUser && currentUser.username) {
                     initDashboard();
                 } else {
                     localStorage.removeItem('sivit_user');
