@@ -1531,57 +1531,91 @@ table {
         }
     }
 
-    async function handleRegister(e) {
-        e.preventDefault();
+async function handleRegister(e) {
+    e.preventDefault();
 
-        const npsn = document.getElementById('regNpsn').value.trim();
-        const pass = document.getElementById('regPass').value.trim();
+    const npsn =
+        document.getElementById('regNpsn').value.trim();
 
-        if (!npsn) {
-            alert('NPSN wajib diisi.');
-            return;
-        }
+    const nama =
+        document.getElementById('regNamaSekolah').value.trim();
 
-        if (!pass) {
-            alert('Password wajib diisi.');
-            return;
-        }
+    const pass =
+        document.getElementById('regPass').value.trim();
 
-        if (pass.length < 6) {
-            alert('Password minimal 6 karakter.');
-            return;
-        }
+    // ==========================================
+    // VALIDASI DASAR
+    // ==========================================
 
-        try {
-            const res = await fetch(WEB_APP_URL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'text/plain;charset=utf-8'
-                },
-                body: JSON.stringify({
-                    action: 'register',
-                    npsn: npsn,
-                    password: pass
-                })
-            });
-
-            const data = await res.json();
-
-            alert(data.pesan || 'Pendaftaran telah diproses.');
-
-            if (data.status === 'success') {
-                document.getElementById('regNpsn').value = '';
-                document.getElementById('regNamaSekolah').value = '';
-                document.getElementById('regPass').value = '';
-
-                switchTab('login');
-            }
-
-        } catch (err) {
-            console.error('Error registrasi:', err);
-            alert('Gagal mengirim pendaftaran ke server.');
-        }
+    if (!npsn) {
+        alert('NPSN wajib diisi.');
+        return;
     }
+
+    if (!nama) {
+        alert('NPSN belum terverifikasi dengan database Dinas.');
+        return;
+    }
+
+    if (!pass) {
+        alert('Password wajib diisi.');
+        return;
+    }
+
+    if (pass.length < 6) {
+        alert('Password minimal 6 karakter.');
+        return;
+    }
+
+    try {
+
+        const res = await fetch(WEB_APP_URL, {
+            method: 'POST',
+            body: JSON.stringify({
+                action: 'register',
+
+                // Identitas sekolah
+                npsn: npsn,
+
+                // Backend menerima nama_lengkap
+                // tetapi akan tetap mengambil nama
+                // resmi dari master sekolah.
+                nama_lengkap: nama,
+
+                // Password
+                password: pass
+            })
+        });
+
+        const data = await res.json();
+
+        alert(
+            data.pesan ||
+            'Pendaftaran telah diproses.'
+        );
+
+        if (data.status === 'success') {
+
+            // Kosongkan password
+            document.getElementById('regPass').value = '';
+
+            // Kembali ke login
+            switchTab('login');
+        }
+
+    } catch (err) {
+
+        console.error(
+            'Error registrasi:',
+            err
+        );
+
+        alert(
+            'Gagal mengirim pendaftaran ke server.'
+        );
+    }
+}
+    
     function logout() {
         localStorage.removeItem('sivit_user');
         currentUser = null;
@@ -1752,6 +1786,19 @@ table {
                 };
                 container.appendChild(btn);
             });
+
+            // Petunjuk penggunaan SIVIT26 — dibuka di tab baru sebagai PDF, bukan diunduh.
+            const panduanLink = document.createElement('a');
+            panduanLink.href = 'https://raw.githubusercontent.com/DikporaRembang/sivit26/main/Panduan_Penggunaan_SIVIT26_2026.pdf';
+            panduanLink.target = '_blank';
+            panduanLink.rel = 'noopener noreferrer';
+            panduanLink.className = 'mt-3 w-full flex items-center space-x-2.5 px-3 py-2 rounded-xl text-left font-semibold text-amber-300 hover:bg-blue-900/60 hover:text-amber-200 transition-all text-xs cursor-pointer border-t border-blue-950 pt-3';
+            panduanLink.innerHTML = `
+                <i class="fa-solid fa-book-open w-4 text-center"></i>
+                <span>Petunjuk Penggunaan</span>
+            `;
+            panduanLink.title = 'Buka Panduan Penggunaan SIVIT26 2026';
+            container.appendChild(panduanLink);
         }
     async function loadTableData(sheetName, title) {
       // Tampilkan loading sebelum proses dimulai
@@ -3654,37 +3701,7 @@ if (currentUser && currentUser.role === 'SEKOLAH') {
             });
         });
     }
-function switchTab(tabName) {
-    const formLogin = document.getElementById('formLogin');
-    const formRegister = document.getElementById('formRegister');
-    const tabLogin = document.getElementById('tabLogin');
-    const tabRegister = document.getElementById('tabRegister');
 
-    if (!formLogin || !formRegister || !tabLogin || !tabRegister) {
-        return;
-    }
-
-    if (tabName === 'login') {
-        formLogin.classList.remove('hidden');
-        formRegister.classList.add('hidden');
-
-        tabLogin.className =
-            "flex-1 pb-3 font-semibold text-amber-400 border-b-2 border-amber-400 transition-all text-sm cursor-pointer";
-
-        tabRegister.className =
-            "flex-1 pb-3 font-semibold text-blue-300/60 border-b-2 border-transparent transition-all text-sm cursor-pointer";
-
-    } else {
-        formLogin.classList.add('hidden');
-        formRegister.classList.remove('hidden');
-
-        tabRegister.className =
-            "flex-1 pb-3 font-semibold text-amber-400 border-b-2 border-amber-400 transition-all text-sm cursor-pointer";
-
-        tabLogin.className =
-            "flex-1 pb-3 font-semibold text-blue-300/60 border-b-2 border-transparent transition-all text-sm cursor-pointer";
-    }
-}
 </script>
 </body>
 </html>
