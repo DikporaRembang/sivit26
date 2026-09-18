@@ -1120,16 +1120,6 @@ table {
             <button type="submit" class="w-full bg-amber-500 hover:bg-amber-400 text-blue-950 font-bold py-2.5 rounded-xl transition-all text-sm shadow-md shadow-amber-500/20 cursor-pointer">Masuk Sistem</button>
         </form>
 
-        <div class="mt-4 text-center">
-            <button
-                type="button"
-                onclick="bukaTutorial()"
-                class="text-xs text-amber-300 hover:text-amber-200 underline underline-offset-4 transition-all cursor-pointer">
-                <i class="fa-solid fa-book-open mr-1"></i>
-                Baca Tutorial Penggunaan SIVIT26
-            </button>
-        </div>
-
         <form id="formRegister" onsubmit="handleRegister(event)" class="space-y-4 hidden">
             <div>
                 <label class="block text-xs font-semibold uppercase tracking-wider text-blue-200 mb-1">NPSN Sekolah (ID Utama)</label>
@@ -3535,28 +3525,16 @@ function switchTab(tabName) {
     }
 }
 
-    document.addEventListener('DOMContentLoaded', function () {
-        const savedUser = localStorage.getItem('sivit_user');
-
-        if (savedUser) {
-            try {
-                currentUser = JSON.parse(savedUser);
-
-                if (currentUser && currentUser.username) {
-                    initDashboard();
-                    return;
-                }
-            } catch (err) {
-                console.error('Data sesi tidak valid:', err);
-                localStorage.removeItem('sivit_user');
-            }
-        }
-
-        currentUser = null;
-
-        document.getElementById('authContainer').classList.remove('hidden');
-        document.getElementById('dashboardContainer').classList.add('hidden');
-    });
+document.addEventListener('DOMContentLoaded', function() {
+    
+    // A. SIMULASI / INISIALISASI CURRENTUSER (Sesuaikan dengan data login aplikasi Anda)
+    // Contoh: currentUser = { npsn: "12345678", nama: "SDN 1 Rembang", role: "SEKOLAH", statusAktif: true };
+    window.currentUser = window.currentUser || { 
+        npsn: "20301234", 
+        nama: "SDN Contoh Rembang", 
+        role: "SEKOLAH", 
+        statusAktif: true 
+    };
 
     // Validasi Role SEKOLAH & Status Profil Aktif
     if (window.currentUser.role === 'SEKOLAH') {
@@ -3566,30 +3544,9 @@ function switchTab(tabName) {
             return;
         }
         // Auto-fill NPSN & Nama Sekolah
-        const inputNpsn = document.getElementById('npsn-sekolah');
-        const inputNamaSekolah = document.getElementById('nama-sekolah');
-
-        const npsnLogin = String(
-            window.currentUser.npsn ||
-            window.currentUser.username ||
-            ''
-        ).trim();
-
-        const namaSekolahLogin = String(
-            window.currentUser.nama ||
-            window.currentUser.nama_pengguna ||
-    ''
-        ).trim();
-
-        if (inputNpsn) {
-            inputNpsn.value = npsnLogin;
-            inputNpsn.readOnly = true;
-        }
-
-        if (inputNamaSekolah) {
-            inputNamaSekolah.value = namaSekolahLogin;
-            inputNamaSekolah.readOnly = true;
-        }
+        document.getElementById('npsn-sekolah').value = window.currentUser.npsn;
+        document.getElementById('nama-sekolah').value = window.currentUser.nama;
+    }
 
     // B. VALIDASI RENTANG ANGKA (0 - 100) & OTOMATIS TAMBAH SIMBOL %
     ['target-kurva-s', 'realisasi-fisik'].forEach(id => {
@@ -3680,15 +3637,15 @@ function switchTab(tabName) {
             const payload = {
                 action: 'simpanLaporanProgres', // <--- Disamakan dengan backend
                 formData: {
-                    npsn: window.currentUser.npsn,
+                    npsn: document.getElementById('npsn-sekolah').value,
                     nama_sekolah: document.getElementById('nama-sekolah').value,
                     target_kurva_s: document.getElementById('target-kurva-s').value,
                     realisasi_fisik: document.getElementById('realisasi-fisik').value,
-                    penggunaan_anggaran: document.getElementById('penggunaan-anggaran').value.replace(/[^0-9]/g, ''),
+                    penggunaan_anggaran: document.getElementById('penggunaan-anggaran').value.replace(/\./g, ''),
                     lokasi_koordinat: document.getElementById('koordinat-lokasi').value,
                     tanggal_lapor: document.getElementById('tanggal-laporan').value,
-                    status_verifikasi: 'DIAJUKAN',
-                    catatan_dinas: ''
+                    status_verifikasi: document.getElementById('status-verifikasi-laporan').value,
+                    catatan_dinas: ""
                 }
             };
 
@@ -3732,13 +3689,6 @@ function switchTab(tabName) {
     }
 
 });
-
-    function bukaTutorial() {
-        window.open(
-            'https://github.com/DikporaRembang/sivit26/blob/main/Panduan_Penggunaan_SIVIT26_2026.pdf',
-            '_blank'
-        );
-    }
 </script>
 </body>
 </html>
