@@ -1120,6 +1120,16 @@ table {
             <button type="submit" class="w-full bg-amber-500 hover:bg-amber-400 text-blue-950 font-bold py-2.5 rounded-xl transition-all text-sm shadow-md shadow-amber-500/20 cursor-pointer">Masuk Sistem</button>
         </form>
 
+        <div class="mt-4 text-center">
+            <button
+                type="button"
+                onclick="bukaTutorial()"
+                class="text-xs text-amber-300 hover:text-amber-200 underline underline-offset-4 transition-all cursor-pointer">
+                <i class="fa-solid fa-book-open mr-1"></i>
+                Baca Tutorial Penggunaan SIVIT26
+            </button>
+        </div>
+
         <form id="formRegister" onsubmit="handleRegister(event)" class="space-y-4 hidden">
             <div>
                 <label class="block text-xs font-semibold uppercase tracking-wider text-blue-200 mb-1">NPSN Sekolah (ID Utama)</label>
@@ -3689,6 +3699,12 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
 });
+
+    function bukaTutorial() {
+        const urlTutorial = 'URL_PDF_TUTORIAL_ANDA';
+
+        window.open(urlTutorial, '_blank');
+    }
 </script>
 </body>
 </html>
