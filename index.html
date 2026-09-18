@@ -1384,6 +1384,34 @@ table {
     
 <!-- ================= SCRIPT UTAMA ================= -->
 <script>
+    // =========================
+    // TAB HALAMAN MASUK / DAFTAR
+    // =========================
+    // Didefinisikan pada window agar onclick="switchTab(...)" di HTML selalu dapat mengaksesnya.
+    window.switchTab = function(tabName) {
+        const formLogin = document.getElementById('formLogin');
+        const formRegister = document.getElementById('formRegister');
+        const tabLogin = document.getElementById('tabLogin');
+        const tabRegister = document.getElementById('tabRegister');
+
+        if (!formLogin || !formRegister || !tabLogin || !tabRegister) return;
+
+        const activeClass = 'flex-1 pb-3 font-semibold text-amber-400 border-b-2 border-amber-400 transition-all text-sm cursor-pointer';
+        const inactiveClass = 'flex-1 pb-3 font-semibold text-blue-300/60 border-b-2 border-transparent transition-all text-sm cursor-pointer';
+
+        if (tabName === 'register') {
+            formLogin.classList.add('hidden');
+            formRegister.classList.remove('hidden');
+            tabLogin.className = inactiveClass;
+            tabRegister.className = activeClass;
+        } else {
+            formLogin.classList.remove('hidden');
+            formRegister.classList.add('hidden');
+            tabLogin.className = activeClass;
+            tabRegister.className = inactiveClass;
+        }
+    };
+
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwjTCHPCC5g0YZYygso8LPGSkpWjWF8PJ2F9WXYkMyWD2sTVCDqIFDS2PzdnzRECIkoaQ/exec";
         
     let currentUser = null;
@@ -1532,89 +1560,51 @@ table {
     }
 
 async function handleRegister(e) {
-    e.preventDefault();
+        e.preventDefault();
 
-    const npsn =
-        document.getElementById('regNpsn').value.trim();
+        const npsn = document.getElementById('regNpsn').value.trim();
+        const pass = document.getElementById('regPass').value.trim();
 
-    const nama =
-        document.getElementById('regNamaSekolah').value.trim();
-
-    const pass =
-        document.getElementById('regPass').value.trim();
-
-    // ==========================================
-    // VALIDASI DASAR
-    // ==========================================
-
-    if (!npsn) {
-        alert('NPSN wajib diisi.');
-        return;
-    }
-
-    if (!nama) {
-        alert('NPSN belum terverifikasi dengan database Dinas.');
-        return;
-    }
-
-    if (!pass) {
-        alert('Password wajib diisi.');
-        return;
-    }
-
-    if (pass.length < 6) {
-        alert('Password minimal 6 karakter.');
-        return;
-    }
-
-    try {
-
-        const res = await fetch(WEB_APP_URL, {
-            method: 'POST',
-            body: JSON.stringify({
-                action: 'register',
-
-                // Identitas sekolah
-                npsn: npsn,
-
-                // Backend menerima nama_lengkap
-                // tetapi akan tetap mengambil nama
-                // resmi dari master sekolah.
-                nama_lengkap: nama,
-
-                // Password
-                password: pass
-            })
-        });
-
-        const data = await res.json();
-
-        alert(
-            data.pesan ||
-            'Pendaftaran telah diproses.'
-        );
-
-        if (data.status === 'success') {
-
-            // Kosongkan password
-            document.getElementById('regPass').value = '';
-
-            // Kembali ke login
-            switchTab('login');
+        if (!npsn) {
+            alert('NPSN wajib diisi.');
+            return;
         }
 
-    } catch (err) {
+        if (!pass) {
+            alert('Password wajib diisi.');
+            return;
+        }
 
-        console.error(
-            'Error registrasi:',
-            err
-        );
+        if (pass.length < 6) {
+            alert('Password minimal 6 karakter.');
+            return;
+        }
 
-        alert(
-            'Gagal mengirim pendaftaran ke server.'
-        );
+        try {
+            const res = await fetch(WEB_APP_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({
+                    action: 'register',
+                    npsn: npsn,
+                    password: pass
+                })
+            });
+
+            const data = await res.json();
+            alert(data.pesan || 'Pendaftaran telah diproses.');
+
+            if (data.status === 'success') {
+                document.getElementById('regNpsn').value = '';
+                document.getElementById('regNamaSekolah').value = '';
+                document.getElementById('regPass').value = '';
+                window.switchTab('login');
+            }
+        } catch (err) {
+            console.error('Error registrasi:', err);
+            alert('Gagal mengirim pendaftaran ke server.');
+        }
     }
-}
     
     function logout() {
         localStorage.removeItem('sivit_user');
@@ -1787,7 +1777,7 @@ async function handleRegister(e) {
                 container.appendChild(btn);
             });
 
-            // Petunjuk penggunaan SIVIT26 — dibuka di tab baru sebagai PDF, bukan diunduh.
+            // Petunjuk Penggunaan SIVIT26 2026 — buka PDF di tab baru, tanpa atribut download.
             const panduanLink = document.createElement('a');
             panduanLink.href = 'https://raw.githubusercontent.com/DikporaRembang/sivit26/main/Panduan_Penggunaan_SIVIT26_2026.pdf';
             panduanLink.target = '_blank';
