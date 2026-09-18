@@ -3554,9 +3554,30 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         // Auto-fill NPSN & Nama Sekolah
-        document.getElementById('npsn-sekolah').value = window.currentUser.npsn;
-        document.getElementById('nama-sekolah').value = window.currentUser.nama;
-    }
+        const inputNpsn = document.getElementById('npsn-sekolah');
+        const inputNamaSekolah = document.getElementById('nama-sekolah');
+
+        const npsnLogin = String(
+            window.currentUser.npsn ||
+            window.currentUser.username ||
+            ''
+        ).trim();
+
+        const namaSekolahLogin = String(
+            window.currentUser.nama ||
+            window.currentUser.nama_pengguna ||
+    ''
+        ).trim();
+
+        if (inputNpsn) {
+            inputNpsn.value = npsnLogin;
+            inputNpsn.readOnly = true;
+        }
+
+        if (inputNamaSekolah) {
+            inputNamaSekolah.value = namaSekolahLogin;
+            inputNamaSekolah.readOnly = true;
+        }
 
     // B. VALIDASI RENTANG ANGKA (0 - 100) & OTOMATIS TAMBAH SIMBOL %
     ['target-kurva-s', 'realisasi-fisik'].forEach(id => {
