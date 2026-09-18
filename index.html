@@ -1777,7 +1777,7 @@ async function handleRegister(e) {
                 container.appendChild(btn);
             });
 
-            // Petunjuk Penggunaan SIVIT26 2026 — buka PDF di tab baru.
+            // Petunjuk Penggunaan SIVIT26 2026 — buka PDF di tab baru, tanpa atribut download.
             const panduanLink = document.createElement('a');
             panduanLink.href = 'https://dikporarembang.github.io/sivit26/Panduan_Penggunaan_SIVIT26_2026.pdf';
             panduanLink.target = '_blank';
@@ -1866,36 +1866,6 @@ async function handleRegister(e) {
 
             return;
         }
-        if (currentUser.role === 'DINAS' && (sheetName === 'paket_pekerjaan_sd' || sheetName === 'laporan_progres' || sheetName === 'kurva_s')) {
-            filterDinasEl.classList.remove('hidden');
-            populateDinasFilterOptions();
-        } else {
-            filterDinasEl.classList.add('hidden');
-        }
-
-        if (sheetName === 'kurva_s') {
-            kurvaEl.classList.remove('hidden');
-            printableAreaEl.style.display = 'block';
-            await loadReferenceTables();
-            renderKurvaSChart();
-        } else {
-            kurvaEl.classList.add('hidden');
-        }
-
-        if (sheetName === 'peta_gis') {
-            mapEl.classList.remove('hidden');
-            printableAreaEl.style.display = 'none';
-
-            try {
-                await initLeafletMap();
-            } catch (err) {
-                console.error("Gagal memuat peta GIS:", err);
-            } finally {
-                hideLoading();
-            }
-
-            return;
-        }
 
         let headEl = document.getElementById('tableHead');
         let bodyEl = document.getElementById('tableBody');
@@ -1946,14 +1916,25 @@ async function handleRegister(e) {
                 }
 
                 renderTable(currentHeaders, currentData, sheetName);
+
+                // Setelah data selesai dimuat, ganti status loading dengan informasi ringkas.
+                const subtitleEl = document.getElementById('contentSubtitle');
+                if (subtitleEl) {
+                    subtitleEl.innerText = `${currentData.length} data berhasil dimuat.`;
+                }
+
                 if (sheetName === 'kurva_s') {
                     renderKurvaSChart();
                 }
             } else {
                 bodyEl.innerHTML = `<tr><td colspan="10" class="text-center p-4 text-red-500 text-xs">${result.message || 'Gagal memuat data'}</td></tr>`;
+                const subtitleEl = document.getElementById('contentSubtitle');
+                if (subtitleEl) subtitleEl.innerText = result.message || 'Gagal memuat data.';
             }
         } catch (err) {
             bodyEl.innerHTML = `<tr><td colspan="10" class="text-center p-4 text-red-500 text-xs">Kesalahan jaringan saat mengambil data.</td></tr>`;
+            const subtitleEl = document.getElementById('contentSubtitle');
+            if (subtitleEl) subtitleEl.innerText = 'Kesalahan jaringan saat mengambil data.';
         } finally {
             // Sembunyikan loading baik saat sukses maupun gagal
             hideLoading();
