@@ -1952,6 +1952,52 @@ async function handleRegister(e) {
                     populateDinasFilterOptions();
                 }
 
+                // Untuk Laporan Progres, pastikan nama_menu tersedia
+                // walaupun backend hanya mengembalikan paket_id.
+                if (sheetName === 'laporan_progres') {
+                    try {
+                        const paketRole = currentUser.role || 'SEKOLAH';
+                        const paketNpsn = paketRole === 'DINAS'
+                            ? ''
+                            : String(currentUser.username || '').trim();
+
+                        const resPaketRef = await fetch(
+                            `${WEB_APP_URL}?action=getData&sheet=paket_pekerjaan_sd&role=${paketRole}&npsn=${encodeURIComponent(paketNpsn)}`
+                        );
+                        const resultPaketRef = await resPaketRef.json();
+
+                        if (resultPaketRef.status === 'success') {
+                            paketPekerjaanList = resultPaketRef.data || [];
+                        }
+                    } catch (errPaketRef) {
+                        console.warn('Referensi nama_menu paket tidak berhasil dimuat:', errPaketRef);
+                    }
+
+                    const paketMapNamaMenu = new Map(
+                        (paketPekerjaanList || []).map(p => [
+                            String(p.paket_id || p.id_paket || '').trim(),
+                            String(p.nama_menu || '').trim()
+                        ])
+                    );
+
+                    currentData = currentData.map(row => {
+                        const paketIdKey = String(
+                            row.paket_id || row.id_paket || ''
+                        ).trim();
+
+                        const namaMenu = String(
+                            row.nama_menu || row.menu || ''
+                        ).trim() || (paketMapNamaMenu.get(paketIdKey) || '');
+
+                        return {
+                            ...row,
+                            nama_menu: namaMenu
+                        };
+                    });
+
+                    originalServerData = [...currentData];
+                }
+
                 renderTable(currentHeaders, currentData, sheetName);
 
                 // Setelah data selesai dimuat, ganti status loading dengan informasi ringkas.
@@ -2201,13 +2247,32 @@ async function handleRegister(e) {
             showActionColumn = true;
         }
 
+        // Laporan Progres perlu menampilkan NAMA MENU PEKERJAAN
+        // agar paket_id tidak berdiri sendiri dan mudah dikenali.
+        let displayHeaders = [...headers];
+
+        if (
+            sheetName === 'laporan_progres' &&
+            !displayHeaders.some(h => String(h).toLowerCase() === 'nama_menu')
+        ) {
+            const paketIdIndex = displayHeaders.findIndex(
+                h => String(h).toLowerCase() === 'paket_id'
+            );
+
+            if (paketIdIndex >= 0) {
+                displayHeaders.splice(paketIdIndex + 1, 0, 'nama_menu');
+            } else {
+                displayHeaders.splice(0, 0, 'nama_menu');
+            }
+        }
+
         let trHead = document.createElement('tr');
         let thNo = document.createElement('th');
         thNo.className = "p-3 text-center w-12";
         thNo.innerText = "NO";
         trHead.appendChild(thNo);
 
-        headers.forEach(h => {
+        displayHeaders.forEach(h => {
             let th = document.createElement('th');
             th.className = "p-3";
             th.innerText = h.replace(/_/g, ' ').toUpperCase();
@@ -2224,7 +2289,7 @@ async function handleRegister(e) {
 
         if (data.length === 0) {
             let tr = document.createElement('tr');
-            tr.innerHTML = `<td colspan="${headers.length + (showActionColumn ? 1 : 0)}" class="p-4 text-center text-slate-500 text-xs font-medium">Belum ada record data</td>`;
+            tr.innerHTML = `<td colspan="${displayHeaders.length + (showActionColumn ? 1 : 0)}" class="p-4 text-center text-slate-500 text-xs font-medium">Belum ada record data</td>`;
             bodyEl.appendChild(tr);
             return;
         }
@@ -2239,7 +2304,7 @@ async function handleRegister(e) {
             tdNo.innerText = idx + 1;
             tr.appendChild(tdNo);
 
-            headers.forEach(h => {
+            displayHeaders.forEach(h => {
                 let td = document.createElement('td');
                 td.className = "p-3 text-slate-900 text-xs truncate max-w-xs font-bold";
                 let val = row[h] !== undefined ? row[h] : "";
