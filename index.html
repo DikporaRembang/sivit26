@@ -1527,16 +1527,63 @@ table {
         }
     }
 
-    function toggleNotifDropdown() {
-        let dropdown = document.getElementById('notifDropdown');
-        dropdown.classList.toggle('hidden');
+    let notifRefreshTimer = null;
+    let notifRefreshInFlight = false;
+    const NOTIF_REFRESH_INTERVAL_MS = 15000;
+
+    function getNotifRecipient() {
+        return currentUser && currentUser.role === 'DINAS'
+            ? 'DINAS'
+            : (currentUser ? currentUser.username : '');
     }
 
-    function loadNotifikasi(penerima) {
+    function stopNotifikasiRealtime() {
+        if (notifRefreshTimer) {
+            clearInterval(notifRefreshTimer);
+            notifRefreshTimer = null;
+        }
+    }
+
+    function startNotifikasiRealtime() {
+        stopNotifikasiRealtime();
+
+        if (!currentUser || !currentUser.token) return;
+
+        const penerima = getNotifRecipient();
+        if (!penerima) return;
+
+        notifRefreshTimer = setInterval(function() {
+            if (!currentUser || !currentUser.token) {
+                stopNotifikasiRealtime();
+                return;
+            }
+            loadNotifikasi(penerima, { silent: true });
+        }, NOTIF_REFRESH_INTERVAL_MS);
+    }
+
+    function toggleNotifDropdown() {
+        let dropdown = document.getElementById('notifDropdown');
+        if (!dropdown) return;
+
+        const willOpen = dropdown.classList.contains('hidden');
+        dropdown.classList.toggle('hidden');
+
+        if (willOpen && currentUser) {
+            loadNotifikasi(getNotifRecipient(), { silent: true });
+        }
+    }
+
+    function loadNotifikasi(penerima, options) {
+        options = options || {};
         let container = document.getElementById('notifListContainer');
         fetch(`${WEB_APP_URL}?token=${encodeURIComponent(currentUser?.token || "")}&action=getNotifikasi&penerima=${encodeURIComponent(penerima)}`)
             .then(res => res.json())
             .then(response => {
+                if (handleSessionExpired(response)) {
+                    stopNotifikasiRealtime();
+                    return;
+                }
+
                 if(response.status === 'success') {
                     let listNotif = response.data || [];
                     let badge = document.getElementById('notifBadge');
@@ -1596,7 +1643,9 @@ table {
             })
             .catch(error => {
                 console.error("Gagal memuat notifikasi", error);
-                container.innerHTML = `<div class="p-4 text-center text-red-400">Gagal memuat notifikasi.</div>`;
+                if (!options.silent && container) {
+                    container.innerHTML = `<div class="p-4 text-center text-red-400">Gagal memuat notifikasi.</div>`;
+                }
             });
     }
 
@@ -1614,7 +1663,7 @@ table {
                 ? 'DINAS'
                 : (currentUser ? currentUser.username : '');
 
-            loadNotifikasi(targetPenerima);
+            loadNotifikasi(targetPenerima, { silent: true });
           } else {
             alert(result.message || 'Notifikasi gagal diselesaikan.');
           }
@@ -1740,6 +1789,7 @@ async function handleRegister(e) {
         } catch (err) {
             console.warn('Logout server gagal:', err);
         } finally {
+            stopNotifikasiRealtime();
             localStorage.removeItem('sivit_user');
             currentUser = null;
             document.getElementById('authContainer').classList.remove('hidden');
@@ -1847,6 +1897,7 @@ async function handleRegister(e) {
 
       let targetPenerima = (currentUser.role === 'DINAS') ? 'DINAS' : currentUser.username;
       loadNotifikasi(targetPenerima);
+      startNotifikasiRealtime();
 
       if (currentUser.role === 'SEKOLAH' && currentUser.sekolah) {
         document.getElementById('sekolahIdentitasCard').classList.remove('hidden');
@@ -2248,24 +2299,9 @@ async function handleRegister(e) {
                     renderKurvaSChart();
                 }
             } else {
-                const errorMessage =
-                    result.pesan ||
-                    result.message ||
-                    'Gagal memuat data.';
-
-                bodyEl.innerHTML =
-                    `<tr>
-                        <td colspan="10" class="text-center p-4 text-red-500 text-xs">
-                            ${escapeHtml(errorMessage)}
-                        </td>
-                    </tr>`;
-
+                bodyEl.innerHTML = `<tr><td colspan="10" class="text-center p-4 text-red-500 text-xs">${result.message || 'Gagal memuat data'}</td></tr>`;
                 const subtitleEl = document.getElementById('contentSubtitle');
-                if (subtitleEl) {
-                    subtitleEl.innerText = errorMessage;
-                }
-
-                console.error('SIVIT26 getData error:', result);
+                if (subtitleEl) subtitleEl.innerText = result.message || 'Gagal memuat data.';
             }
         } catch (err) {
             bodyEl.innerHTML = `<tr><td colspan="10" class="text-center p-4 text-red-500 text-xs">Kesalahan jaringan saat mengambil data.</td></tr>`;
