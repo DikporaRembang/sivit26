@@ -1072,171 +1072,45 @@ table {
 
 
 /* =========================================================
-   SIVIT26 — FORMAL EDUCATION THEME + LIGHT SCREEN MOTION
-   PATCH 8.1.6-FE
-   CSS/UX only. Existing wording, slogans, logos and loading
-   animation are intentionally preserved.
+   MOBILE UI REFINEMENT — PATCH 8.1.5-MOBILE-1
+   Fokus tampilan mobile; tidak mengubah logika bisnis/backend.
    ========================================================= */
-:root {
-    --sivit-navy:#0f2747;
-    --sivit-blue:#1d4f91;
-    --sivit-blue-2:#2b6cb0;
-    --sivit-gold:#c79a3b;
-    --sivit-gold-soft:#f4ead1;
-    --sivit-paper:#f7f9fc;
-    --sivit-ink:#1e293b;
+@media (max-width: 767px) {
+  html, body { overflow-x:hidden !important; }
+  #authContainer { min-height:100dvh !important; padding:.75rem !important; }
+  #authContainer > div { width:100% !important; max-width:430px !important; padding:1.25rem !important; border-radius:18px !important; }
+  #dashboardContainer > header { min-height:58px !important; padding:.65rem .75rem !important; gap:.5rem !important; }
+  #dashboardContainer > header > div:first-child { min-width:0 !important; flex:1 1 auto !important; }
+  #dashboardContainer > header > div:first-child img { width:2rem !important; height:2rem !important; }
+  #dashboardContainer > header h2 { font-size:.72rem !important; white-space:nowrap !important; }
+  #dashboardContainer > header p { font-size:.58rem !important; white-space:nowrap !important; }
+  #dashboardContainer > header > div:last-child { gap:.35rem !important; flex:0 0 auto !important; }
+  #dashboardContainer > header button { min-width:40px !important; min-height:40px !important; }
+  #dashboardContainer header button[onclick="logout()"] { padding:.5rem !important; font-size:0 !important; }
+  #dashboardContainer header button[onclick="logout()"] i { margin:0 !important; font-size:.85rem !important; }
+  #notifDropdown { position:fixed !important; top:58px !important; right:.5rem !important; left:.5rem !important; width:auto !important; max-width:none !important; margin-top:.35rem !important; }
+  #notifListContainer { max-height:55dvh !important; }
+  #dashboardContainer main { min-width:0 !important; padding:.75rem !important; overflow-x:hidden !important; }
+  #dashboardContainer aside#sivitSidebar { display:none !important; position:fixed !important; z-index:10000 !important; inset:0 auto 0 0 !important; width:min(82vw,310px) !important; height:100dvh !important; overflow-y:auto !important; padding:1rem !important; box-shadow:12px 0 35px rgba(15,23,42,.28) !important; }
+  #dashboardContainer aside#sivitSidebar.sivit-mobile-open { display:flex !important; }
+  #dashboardContainer aside#sivitSidebar #sidebarMenuContainer button, #dashboardContainer aside#sivitSidebar #sidebarMenuContainer a { min-height:44px !important; display:flex !important; align-items:center !important; }
+  #sekolahIdentitasCard, #filterDinasContainer, #gisMapContainer, #printableArea { border-radius:14px !important; }
+  #dashboardContainer .grid.grid-cols-2 { grid-template-columns:minmax(0,1fr) !important; }
+  #dashboardContainer [id^="dashKpi"] { min-width:0 !important; overflow-wrap:anywhere !important; }
+  #dashboardContainer .overflow-x-auto { max-width:100% !important; overflow-x:auto !important; -webkit-overflow-scrolling:touch !important; }
+  #dashboardContainer table { min-width:max-content !important; }
+  #tableHead th, #tableBody td { white-space:nowrap !important; }
+  #dataModal, #verifikasi-modal { padding:.65rem !important; align-items:flex-end !important; }
+  #dataModal > div, #verifikasi-modal > div { width:100% !important; max-width:none !important; max-height:92dvh !important; overflow-y:auto !important; border-radius:18px !important; padding:1rem !important; }
+  #formFieldsContainer { max-height:58dvh !important; padding-right:0 !important; }
+  #formFieldsContainer input, #formFieldsContainer select, #formFieldsContainer textarea, #dataModal input, #dataModal select, #dataModal textarea, #verifikasi-modal input, #verifikasi-modal select, #verifikasi-modal textarea { min-height:44px !important; font-size:16px !important; }
+  #formFieldsContainer textarea, #dataModal textarea, #verifikasi-modal textarea { min-height:90px !important; }
+  #actionButtonContainer { display:grid !important; grid-template-columns:minmax(0,1fr) !important; gap:.5rem !important; }
+  #actionButtonContainer button, #btnSaveModal { width:100% !important; min-height:44px !important; }
+  #kurvaSContainer { overflow:hidden !important; }
+  #kurvaSContainer canvas { max-width:100% !important; }
 }
-
-/* Formal academic background: subtle, not decorative-heavy */
-body {
-    background:
-        radial-gradient(circle at 12% 8%, rgba(29,79,145,.07), transparent 26%),
-        radial-gradient(circle at 88% 92%, rgba(199,154,59,.055), transparent 24%),
-        linear-gradient(135deg,#f8fafc 0%,#eef3f8 100%) !important;
-    color:var(--sivit-ink) !important;
-}
-
-body::before {
-    content:"";
-    position:fixed;
-    inset:0;
-    pointer-events:none;
-    z-index:-1;
-    opacity:.34;
-    background-image:
-        linear-gradient(rgba(15,39,71,.025) 1px,transparent 1px),
-        linear-gradient(90deg,rgba(15,39,71,.025) 1px,transparent 1px);
-    background-size:32px 32px;
-}
-
-/* Login: official/government-school character */
-#authContainer {
-    position:relative;
-}
-#authContainer > div {
-    border-top:4px solid var(--sivit-gold) !important;
-    border-radius:20px !important;
-    box-shadow:0 18px 45px rgba(15,39,71,.12) !important;
-}
-#authContainer h1 {
-    letter-spacing:.08em !important;
-}
-#authContainer button[type="submit"] {
-    background:linear-gradient(135deg,var(--sivit-navy),var(--sivit-blue)) !important;
-    transition:transform .2s ease,box-shadow .2s ease,filter .2s ease !important;
-}
-#authContainer button[type="submit"]:hover {
-    transform:translateY(-1px);
-    box-shadow:0 8px 18px rgba(15,39,71,.18) !important;
-    filter:brightness(1.05);
-}
-
-/* Header */
-#dashboardContainer > header {
-    background:linear-gradient(135deg,#0b2342 0%,#143e70 62%,#1b4f8a 100%) !important;
-    border-bottom:3px solid rgba(199,154,59,.8) !important;
-    box-shadow:0 5px 20px rgba(15,39,71,.16) !important;
-}
-#dashboardContainer > header h2 {
-    letter-spacing:.07em !important;
-}
-
-/* Sidebar */
-#dashboardContainer aside {
-    background:linear-gradient(180deg,#102d50 0%,#0b223d 100%) !important;
-    border-right:1px solid rgba(199,154,59,.25) !important;
-}
-#sidebarMenuContainer button,
-#sidebarMenuContainer a {
-    border-radius:10px !important;
-    transition:background .18s ease,transform .18s ease,color .18s ease !important;
-}
-#sidebarMenuContainer button:hover,
-#sidebarMenuContainer a:hover {
-    transform:translateX(3px);
-    background:rgba(255,255,255,.08) !important;
-}
-
-/* Content cards */
-#dashboardContainer main > div,
-#dashboardDinasContainer > div,
-#contentContainer > div {
-    border-color:#dbe4ef !important;
-}
-
-/* Academic/government card treatment without changing content */
-.bg-white {
-    box-shadow:0 5px 18px rgba(15,39,71,.055) !important;
-}
-.rounded-xl,.rounded-2xl {
-    transition:box-shadow .22s ease,border-color .22s ease,transform .22s ease !important;
-}
-.rounded-xl:hover,.rounded-2xl:hover {
-    box-shadow:0 9px 25px rgba(15,39,71,.08) !important;
-}
-
-/* Gold accent used sparingly for institutional hierarchy */
-.border-amber-400,.border-amber-300 { border-color:rgba(199,154,59,.45) !important; }
-.text-amber-400,.text-amber-300,.text-amber-500 { color:var(--sivit-gold) !important; }
-
-/* Buttons: restrained, professional motion */
-button,
-a {
-    -webkit-tap-highlight-color:transparent;
-}
-button:not(:disabled) {
-    transition:transform .18s ease,box-shadow .18s ease,background-color .18s ease,color .18s ease,border-color .18s ease !important;
-}
-button:not(:disabled):active {
-    transform:translateY(1px) scale(.99);
-}
-
-/* Tables feel like official monitoring documents */
-table thead th {
-    letter-spacing:.02em;
-}
-tbody tr {
-    transition:background-color .16s ease !important;
-}
-tbody tr:hover {
-    background-color:rgba(29,79,145,.035) !important;
-}
-
-/* =========================================================
-   LIGHTWEIGHT SCREEN TRANSITIONS
-   Observer below only adds/removes a CSS class when the
-   existing auth/dashboard visibility changes.
-   ========================================================= */
-.sivit-screen-enter {
-    animation:sivitScreenEnter .28s cubic-bezier(.22,.61,.36,1) both;
-}
-.sivit-content-enter {
-    animation:sivitContentEnter .24s ease-out both;
-}
-@keyframes sivitScreenEnter {
-    from { opacity:0; transform:translateY(7px); }
-    to   { opacity:1; transform:translateY(0); }
-}
-@keyframes sivitContentEnter {
-    from { opacity:0; transform:translateY(4px); }
-    to   { opacity:1; transform:translateY(0); }
-}
-
-/* Modal / dropdown motion */
-[id*="Modal"], .modal, [role="dialog"] {
-    transform-origin:center top;
-}
-
-/* Respect accessibility preference */
-@media (prefers-reduced-motion:reduce) {
-    *,*::before,*::after {
-        animation-duration:.01ms !important;
-        animation-iteration-count:1 !important;
-        transition-duration:.01ms !important;
-        scroll-behavior:auto !important;
-    }
-}
-
+@media (min-width:768px) { #mobileMenuButton { display:none !important; } }
 </style>
 </head>
 <body class="bg-gradient-to-br from-blue-950 via-blue-900 to-slate-900 min-h-screen text-white font-sans antialiased flex flex-col justify-between">
@@ -1328,7 +1202,8 @@ tbody tr:hover {
                 <p class="text-[10px] text-blue-200 font-medium">Kabupaten Rembang 2026</p>
             </div>
         </div>
-        <div class="flex items-center space-x-4">
+        <div class="flex items-center space-x-2 sm:space-x-4">
+            <button id="mobileMenuButton" type="button" onclick="toggleMobileSidebar()" aria-label="Buka menu navigasi" aria-expanded="false" class="md:hidden p-2 bg-blue-900 hover:bg-blue-800 text-amber-400 rounded-lg text-xs border border-blue-800 cursor-pointer"><i class="fa-solid fa-bars text-sm"></i></button>
             <!-- Dropdown Notifikasi In-App -->
             <div class="relative">
                 <button onclick="toggleNotifDropdown()" class="relative p-2 bg-blue-900 hover:bg-blue-800 text-amber-400 rounded-lg text-xs transition-colors border border-blue-800 cursor-pointer">
@@ -1357,7 +1232,8 @@ tbody tr:hover {
     </header>
 
     <div class="flex-1 flex max-w-7xl w-full mx-auto">
-        <aside class="w-64 bg-slate-900 border-r border-blue-950 p-4 hidden md:flex flex-col justify-between shadow-sm">
+        <aside id="sivitSidebar" class="w-64 bg-slate-900 border-r border-blue-950 p-4 hidden md:flex flex-col justify-between shadow-sm">
+            <div class="flex items-center justify-between md:hidden mb-3"><p class="text-[10px] font-extrabold uppercase tracking-wider text-amber-400">Menu Navigasi</p><button type="button" onclick="toggleMobileSidebar(false)" aria-label="Tutup menu navigasi" class="p-2 rounded-lg text-slate-300 hover:text-white hover:bg-blue-900"><i class="fa-solid fa-xmark"></i></button></div>
             <div class="space-y-1">
                 <p class="text-[10px] font-extrabold uppercase tracking-wider text-amber-400 px-3 mb-2">Menu Navigasi</p>
                 <div id="sidebarMenuContainer" class="space-y-1 text-white font-bold text-xs"></div>
@@ -3281,42 +3157,7 @@ async function handleRegister(e) {
                 </head>
                 <body>
                     ${sections}
-                
-<script>
-/* PATCH 8.1.6-FE: isolated lightweight screen-motion helper.
-   Tidak mengubah alur aplikasi; hanya merespons perubahan visibility. */
-(function(){
-  'use strict';
-  function animateVisible(el){
-    if(!el || el.classList.contains('hidden')) return;
-    el.classList.remove('sivit-screen-enter');
-    void el.offsetWidth;
-    el.classList.add('sivit-screen-enter');
-  }
-  function animateContent(){
-    var el=document.getElementById('contentContainer') || document.getElementById('printableArea');
-    if(!el || el.classList.contains('hidden')) return;
-    el.classList.remove('sivit-content-enter');
-    void el.offsetWidth;
-    el.classList.add('sivit-content-enter');
-  }
-  function init(){
-    ['authContainer','dashboardContainer'].forEach(function(id){
-      var el=document.getElementById(id);
-      if(!el) return;
-      if(!el.classList.contains('hidden')) animateVisible(el);
-      new MutationObserver(function(){ animateVisible(el); }).observe(el,{attributes:true,attributeFilter:['class']});
-    });
-    var content=document.getElementById('contentContainer');
-    if(content){
-      new MutationObserver(function(){ animateContent(); }).observe(content,{childList:true,subtree:true});
-    }
-  }
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init,{once:true});
-  else init();
-})();
-</script>
-</body>
+                </body>
                 </html>
             `);
             printWindow.document.close();
@@ -6425,6 +6266,17 @@ if (currentUser && currentUser.role === 'SEKOLAH') {
         });
     }
 
+
+/* PATCH 8.1.5-MOBILE-1: mobile sidebar */
+function toggleMobileSidebar(forceState) {
+  const sidebar=document.getElementById('sivitSidebar');
+  if(!sidebar) return;
+  const open=typeof forceState==='boolean' ? forceState : !sidebar.classList.contains('sivit-mobile-open');
+  sidebar.classList.toggle('sivit-mobile-open',open);
+  const btn=document.getElementById('mobileMenuButton');
+  if(btn) btn.setAttribute('aria-expanded',open?'true':'false');
+}
+window.addEventListener('resize',function(){ if(window.innerWidth>=768) toggleMobileSidebar(false); });
 </script>
 </body>
 </html>
