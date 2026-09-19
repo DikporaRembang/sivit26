@@ -1070,47 +1070,6 @@ table {
     text-align: center;
 }
 
-
-/* =========================================================
-   MOBILE UI REFINEMENT — PATCH 8.1.5-MOBILE-1
-   Fokus tampilan mobile; tidak mengubah logika bisnis/backend.
-   ========================================================= */
-@media (max-width: 767px) {
-  html, body { overflow-x:hidden !important; }
-  #authContainer { min-height:100dvh !important; padding:.75rem !important; }
-  #authContainer > div { width:100% !important; max-width:430px !important; padding:1.25rem !important; border-radius:18px !important; }
-  #dashboardContainer > header { min-height:58px !important; padding:.65rem .75rem !important; gap:.5rem !important; }
-  #dashboardContainer > header > div:first-child { min-width:0 !important; flex:1 1 auto !important; }
-  #dashboardContainer > header > div:first-child img { width:2rem !important; height:2rem !important; }
-  #dashboardContainer > header h2 { font-size:.72rem !important; white-space:nowrap !important; }
-  #dashboardContainer > header p { font-size:.58rem !important; white-space:nowrap !important; }
-  #dashboardContainer > header > div:last-child { gap:.35rem !important; flex:0 0 auto !important; }
-  #dashboardContainer > header button { min-width:40px !important; min-height:40px !important; }
-  #dashboardContainer header button[onclick="logout()"] { padding:.5rem !important; font-size:0 !important; }
-  #dashboardContainer header button[onclick="logout()"] i { margin:0 !important; font-size:.85rem !important; }
-  #notifDropdown { position:fixed !important; top:58px !important; right:.5rem !important; left:.5rem !important; width:auto !important; max-width:none !important; margin-top:.35rem !important; }
-  #notifListContainer { max-height:55dvh !important; }
-  #dashboardContainer main { min-width:0 !important; padding:.75rem !important; overflow-x:hidden !important; }
-  #dashboardContainer aside#sivitSidebar { display:none !important; position:fixed !important; z-index:10000 !important; inset:0 auto 0 0 !important; width:min(82vw,310px) !important; height:100dvh !important; overflow-y:auto !important; padding:1rem !important; box-shadow:12px 0 35px rgba(15,23,42,.28) !important; }
-  #dashboardContainer aside#sivitSidebar.sivit-mobile-open { display:flex !important; }
-  #dashboardContainer aside#sivitSidebar #sidebarMenuContainer button, #dashboardContainer aside#sivitSidebar #sidebarMenuContainer a { min-height:44px !important; display:flex !important; align-items:center !important; }
-  #sekolahIdentitasCard, #filterDinasContainer, #gisMapContainer, #printableArea { border-radius:14px !important; }
-  #dashboardContainer .grid.grid-cols-2 { grid-template-columns:minmax(0,1fr) !important; }
-  #dashboardContainer [id^="dashKpi"] { min-width:0 !important; overflow-wrap:anywhere !important; }
-  #dashboardContainer .overflow-x-auto { max-width:100% !important; overflow-x:auto !important; -webkit-overflow-scrolling:touch !important; }
-  #dashboardContainer table { min-width:max-content !important; }
-  #tableHead th, #tableBody td { white-space:nowrap !important; }
-  #dataModal, #verifikasi-modal { padding:.65rem !important; align-items:flex-end !important; }
-  #dataModal > div, #verifikasi-modal > div { width:100% !important; max-width:none !important; max-height:92dvh !important; overflow-y:auto !important; border-radius:18px !important; padding:1rem !important; }
-  #formFieldsContainer { max-height:58dvh !important; padding-right:0 !important; }
-  #formFieldsContainer input, #formFieldsContainer select, #formFieldsContainer textarea, #dataModal input, #dataModal select, #dataModal textarea, #verifikasi-modal input, #verifikasi-modal select, #verifikasi-modal textarea { min-height:44px !important; font-size:16px !important; }
-  #formFieldsContainer textarea, #dataModal textarea, #verifikasi-modal textarea { min-height:90px !important; }
-  #actionButtonContainer { display:grid !important; grid-template-columns:minmax(0,1fr) !important; gap:.5rem !important; }
-  #actionButtonContainer button, #btnSaveModal { width:100% !important; min-height:44px !important; }
-  #kurvaSContainer { overflow:hidden !important; }
-  #kurvaSContainer canvas { max-width:100% !important; }
-}
-@media (min-width:768px) { #mobileMenuButton { display:none !important; } }
 </style>
 </head>
 <body class="bg-gradient-to-br from-blue-950 via-blue-900 to-slate-900 min-h-screen text-white font-sans antialiased flex flex-col justify-between">
@@ -1202,8 +1161,7 @@ table {
                 <p class="text-[10px] text-blue-200 font-medium">Kabupaten Rembang 2026</p>
             </div>
         </div>
-        <div class="flex items-center space-x-2 sm:space-x-4">
-            <button id="mobileMenuButton" type="button" onclick="toggleMobileSidebar()" aria-label="Buka menu navigasi" aria-expanded="false" class="md:hidden p-2 bg-blue-900 hover:bg-blue-800 text-amber-400 rounded-lg text-xs border border-blue-800 cursor-pointer"><i class="fa-solid fa-bars text-sm"></i></button>
+        <div class="flex items-center space-x-4">
             <!-- Dropdown Notifikasi In-App -->
             <div class="relative">
                 <button onclick="toggleNotifDropdown()" class="relative p-2 bg-blue-900 hover:bg-blue-800 text-amber-400 rounded-lg text-xs transition-colors border border-blue-800 cursor-pointer">
@@ -1232,8 +1190,7 @@ table {
     </header>
 
     <div class="flex-1 flex max-w-7xl w-full mx-auto">
-        <aside id="sivitSidebar" class="w-64 bg-slate-900 border-r border-blue-950 p-4 hidden md:flex flex-col justify-between shadow-sm">
-            <div class="flex items-center justify-between md:hidden mb-3"><p class="text-[10px] font-extrabold uppercase tracking-wider text-amber-400">Menu Navigasi</p><button type="button" onclick="toggleMobileSidebar(false)" aria-label="Tutup menu navigasi" class="p-2 rounded-lg text-slate-300 hover:text-white hover:bg-blue-900"><i class="fa-solid fa-xmark"></i></button></div>
+        <aside class="w-64 bg-slate-900 border-r border-blue-950 p-4 hidden md:flex flex-col justify-between shadow-sm">
             <div class="space-y-1">
                 <p class="text-[10px] font-extrabold uppercase tracking-wider text-amber-400 px-3 mb-2">Menu Navigasi</p>
                 <div id="sidebarMenuContainer" class="space-y-1 text-white font-bold text-xs"></div>
@@ -1287,8 +1244,23 @@ table {
             <!-- ======================================================= -->
 
 
-            <!-- ================= DASHBOARD DINAS PATCH 8.1 ================= -->
+            <!-- ================= DASHBOARD DINAS PATCH 8.2 ================= -->
             <section id="dashboardDinasContainer" class="hidden mb-6">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
+                    <div>
+                        <h3 class="text-base font-extrabold text-slate-900">
+                            <i class="fa-solid fa-gauge-high text-blue-700 mr-2"></i>Dashboard Monitoring DINAS
+                        </h3>
+                        <p class="text-xs text-slate-500">Ringkasan kondisi paket berdasarkan laporan progres APPROVED terakhir.</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span id="dashGeneratedAt" class="text-[10px] text-slate-400"></span>
+                        <button type="button" onclick="loadDashboardDinas()" class="px-3 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-xs border border-blue-200">
+                            <i class="fa-solid fa-rotate mr-1"></i>Refresh
+                        </button>
+                    </div>
+                </div>
+
                 <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
                     <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
                         <div class="text-[11px] font-bold text-slate-500 uppercase">Sekolah</div>
@@ -1308,14 +1280,60 @@ table {
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+                    <div class="rounded-xl border border-red-200 bg-red-50 p-4">
+                        <div class="text-[11px] font-bold text-red-700 uppercase">Terlambat</div>
+                        <div id="dashAlertTerlambat" class="text-2xl font-extrabold text-red-700 mt-1">0</div>
+                        <div class="text-[10px] text-red-600 mt-1">Deviasi ≤ -10%</div>
+                    </div>
+                    <div class="rounded-xl border border-amber-200 bg-amber-50 p-4">
+                        <div class="text-[11px] font-bold text-amber-700 uppercase">Perhatian</div>
+                        <div id="dashAlertPerhatian" class="text-2xl font-extrabold text-amber-700 mt-1">0</div>
+                        <div class="text-[10px] text-amber-600 mt-1">Realisasi di bawah target</div>
+                    </div>
+                    <div class="rounded-xl border border-orange-200 bg-orange-50 p-4">
+                        <div class="text-[11px] font-bold text-orange-700 uppercase">Jatuh Tempo</div>
+                        <div id="dashAlertJatuhTempo" class="text-2xl font-extrabold text-orange-700 mt-1">0</div>
+                        <div class="text-[10px] text-orange-600 mt-1">Tanggal selesai terlewati</div>
+                    </div>
+                    <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                        <div class="text-[11px] font-bold text-slate-600 uppercase">Belum Ada Laporan</div>
+                        <div id="dashAlertBelumLaporan" class="text-2xl font-extrabold text-slate-700 mt-1">0</div>
+                        <div class="text-[10px] text-slate-500 mt-1">Paket disetujui tanpa laporan APPROVED</div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 xl:grid-cols-3 gap-4">
+                    <div class="xl:col-span-2 bg-white rounded-xl border border-slate-200 shadow-sm p-4">
                         <div class="flex items-center justify-between mb-3">
-                            <h4 class="font-bold text-sm text-slate-800">
-                                <i class="fa-solid fa-chart-pie text-blue-700 mr-2"></i>Ringkasan
-                            </h4>
-                            <span id="dashGeneratedAt" class="text-[10px] text-slate-400"></span>
+                            <div>
+                                <h4 class="font-bold text-sm text-slate-800">
+                                    <i class="fa-solid fa-triangle-exclamation text-red-600 mr-2"></i>Prioritas Monitoring
+                                </h4>
+                                <p class="text-[10px] text-slate-400">Paket yang membutuhkan perhatian berdasarkan indikator otomatis.</p>
+                            </div>
                         </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-xs min-w-[760px]">
+                                <thead>
+                                    <tr class="text-left border-b border-slate-200 text-slate-500">
+                                        <th class="py-2 pr-2">Sekolah</th>
+                                        <th class="py-2 pr-2">Paket</th>
+                                        <th class="py-2 pr-2 text-right">Target</th>
+                                        <th class="py-2 pr-2 text-right">Realisasi</th>
+                                        <th class="py-2 pr-2 text-right">Deviasi</th>
+                                        <th class="py-2">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dashboardDinasMonitoringBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+                        <h4 class="font-bold text-sm text-slate-800 mb-3">
+                            <i class="fa-solid fa-chart-pie text-blue-700 mr-2"></i>Ringkasan
+                        </h4>
                         <div class="grid grid-cols-2 gap-3 text-xs">
                             <div class="rounded-lg bg-slate-50 p-3">
                                 <div class="text-slate-500">Total PAGU Disetujui</div>
@@ -1335,24 +1353,25 @@ table {
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
-                        <h4 class="font-bold text-sm text-slate-800 mb-3">
-                            <i class="fa-solid fa-location-dot text-blue-700 mr-2"></i>Rekap Kecamatan
-                        </h4>
-                        <div class="overflow-x-auto max-h-52">
-                            <table class="w-full text-xs">
-                                <thead>
-                                    <tr class="text-left border-b border-slate-200">
-                                        <th class="py-2 pr-2">Kecamatan</th>
-                                        <th class="py-2 pr-2">Sekolah</th>
-                                        <th class="py-2 pr-2">Paket</th>
-                                        <th class="py-2">Diajukan</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="dashboardDinasKecamatanBody"></tbody>
-                            </table>
-                        </div>
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 mt-4">
+                    <h4 class="font-bold text-sm text-slate-800 mb-3">
+                        <i class="fa-solid fa-location-dot text-blue-700 mr-2"></i>Rekap Kecamatan
+                    </h4>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-xs min-w-[560px]">
+                            <thead>
+                                <tr class="text-left border-b border-slate-200 text-slate-500">
+                                    <th class="py-2 pr-2">Kecamatan</th>
+                                    <th class="py-2 pr-2">Sekolah</th>
+                                    <th class="py-2 pr-2">Paket</th>
+                                    <th class="py-2 pr-2">Disetujui</th>
+                                    <th class="py-2">Diajukan</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dashboardDinasKecamatanBody"></tbody>
+                        </table>
                     </div>
                 </div>
             </section>
@@ -2008,32 +2027,146 @@ async function handleRegister(e) {
         setDashboardDinasVisibility(true);
 
         const k = data.kpi || {};
-        document.getElementById('dashKpiSekolah').textContent = Number(k.total_sekolah || 0).toLocaleString('id-ID');
-        document.getElementById('dashKpiPaket').textContent = Number(k.total_paket || 0).toLocaleString('id-ID');
-        document.getElementById('dashKpiPaketApproved').textContent = Number(k.paket_disetujui || 0).toLocaleString('id-ID');
-        document.getElementById('dashKpiLaporan').textContent = Number(k.laporan_diajukan || 0).toLocaleString('id-ID');
-        document.getElementById('dashKpiPagu').textContent = formatRupiahDashboard(k.total_pagu_disetujui);
-        document.getElementById('dashKpiFisik').textContent = (Number(k.rata_fisik_approved || 0)).toLocaleString('id-ID') + '%';
-        document.getElementById('dashKpiSerapan').textContent = (Number(k.rata_serapan_approved || 0)).toLocaleString('id-ID') + '%';
-        document.getElementById('dashKpiTotalLaporan').textContent = Number(k.total_laporan || 0).toLocaleString('id-ID');
+        const setText = (id, value) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = value;
+        };
 
-        document.getElementById('dashGeneratedAt').textContent =
-            data.generated_at ? 'Update ' + data.generated_at : '';
+        setText('dashKpiSekolah', Number(k.total_sekolah || 0).toLocaleString('id-ID'));
+        setText('dashKpiPaket', Number(k.total_paket || 0).toLocaleString('id-ID'));
+        setText('dashKpiPaketApproved', Number(k.paket_disetujui || 0).toLocaleString('id-ID'));
+        setText('dashKpiLaporan', Number(k.laporan_diajukan || 0).toLocaleString('id-ID'));
+        setText('dashKpiPagu', formatRupiahDashboard(k.total_pagu_disetujui));
+        setText('dashKpiFisik', Number(k.rata_fisik_approved || 0).toLocaleString('id-ID') + '%');
+        setText('dashKpiSerapan', Number(k.rata_serapan_approved || 0).toLocaleString('id-ID') + '%');
+        setText('dashKpiTotalLaporan', Number(k.total_laporan || 0).toLocaleString('id-ID'));
+
+        setText('dashAlertTerlambat', Number(k.terlambat || 0).toLocaleString('id-ID'));
+        setText('dashAlertPerhatian', Number(k.perhatian || 0).toLocaleString('id-ID'));
+        setText('dashAlertJatuhTempo', Number(k.jatuh_tempo || 0).toLocaleString('id-ID'));
+        setText('dashAlertBelumLaporan', Number(k.belum_laporan || 0).toLocaleString('id-ID'));
+
+        setText(
+            'dashGeneratedAt',
+            data.generated_at ? 'Update ' + data.generated_at : ''
+        );
+
+        const monitoringBody = document.getElementById('dashboardDinasMonitoringBody');
+        if (monitoringBody) {
+            monitoringBody.innerHTML = '';
+
+            const monitoring = Array.isArray(data.monitoring)
+                ? data.monitoring
+                : [];
+
+            if (!monitoring.length) {
+                const tr = document.createElement('tr');
+                const td = document.createElement('td');
+                td.colSpan = 6;
+                td.className = 'py-6 text-center text-slate-400';
+                td.textContent = 'Tidak ada paket yang membutuhkan perhatian.';
+                tr.appendChild(td);
+                monitoringBody.appendChild(tr);
+            } else {
+                monitoring.forEach(item => {
+                    const tr = document.createElement('tr');
+                    tr.className = 'border-b border-slate-100';
+
+                    const tdSekolah = document.createElement('td');
+                    tdSekolah.className = 'py-2 pr-2';
+                    const school = document.createElement('div');
+                    school.className = 'font-semibold text-slate-800';
+                    school.textContent = item.nama_sekolah || '-';
+                    const sub = document.createElement('div');
+                    sub.className = 'text-[10px] text-slate-400';
+                    sub.textContent = (item.npsn || '-') + ' · ' + (item.kecamatan || '-');
+                    tdSekolah.appendChild(school);
+                    tdSekolah.appendChild(sub);
+
+                    const tdPaket = document.createElement('td');
+                    tdPaket.className = 'py-2 pr-2';
+                    const paket = document.createElement('div');
+                    paket.className = 'font-semibold text-slate-700';
+                    paket.textContent = item.paket_id || '-';
+                    const menu = document.createElement('div');
+                    menu.className = 'text-[10px] text-slate-400';
+                    menu.textContent = item.nama_menu || '-';
+                    tdPaket.appendChild(paket);
+                    tdPaket.appendChild(menu);
+
+                    const makeRight = value => {
+                        const td = document.createElement('td');
+                        td.className = 'py-2 pr-2 text-right font-semibold';
+                        td.textContent = Number(value || 0).toLocaleString('id-ID') + '%';
+                        return td;
+                    };
+
+                    const tdDeviasi = document.createElement('td');
+                    tdDeviasi.className = 'py-2 pr-2 text-right font-bold';
+                    const deviasi = Number(item.deviasi || 0);
+                    tdDeviasi.textContent =
+                        (deviasi > 0 ? '+' : '') +
+                        deviasi.toLocaleString('id-ID') + '%';
+                    tdDeviasi.classList.add(
+                        deviasi < 0 ? 'text-red-600' : 'text-emerald-600'
+                    );
+
+                    const tdStatus = document.createElement('td');
+                    tdStatus.className = 'py-2';
+
+                    const badge = document.createElement('span');
+                    badge.className = 'inline-flex items-center px-2 py-1 rounded-full text-[10px] font-extrabold';
+
+                    const status = String(item.status_monitoring || '').toUpperCase();
+                    if (status === 'JATUH TEMPO') {
+                        badge.classList.add('bg-orange-100', 'text-orange-700');
+                    } else if (status === 'TERLAMBAT') {
+                        badge.classList.add('bg-red-100', 'text-red-700');
+                    } else if (status === 'PERHATIAN') {
+                        badge.classList.add('bg-amber-100', 'text-amber-700');
+                    } else {
+                        badge.classList.add('bg-slate-100', 'text-slate-600');
+                    }
+                    badge.textContent = item.status_monitoring || '-';
+                    tdStatus.appendChild(badge);
+
+                    tr.appendChild(tdSekolah);
+                    tr.appendChild(tdPaket);
+                    tr.appendChild(makeRight(item.target));
+                    tr.appendChild(makeRight(item.realisasi));
+                    tr.appendChild(tdDeviasi);
+                    tr.appendChild(tdStatus);
+
+                    monitoringBody.appendChild(tr);
+                });
+            }
+        }
 
         const body = document.getElementById('dashboardDinasKecamatanBody');
-        body.innerHTML = '';
+        if (body) {
+            body.innerHTML = '';
 
-        (data.kecamatan || []).forEach(item => {
-            const tr = document.createElement('tr');
-            tr.className = 'border-b border-slate-100';
-            tr.innerHTML = `
-                <td class="py-2 pr-2 font-semibold">${escapeHtml(item.kecamatan || '-')}</td>
-                <td class="py-2 pr-2">${Number(item.sekolah || 0).toLocaleString('id-ID')}</td>
-                <td class="py-2 pr-2">${Number(item.paket || 0).toLocaleString('id-ID')}</td>
-                <td class="py-2">${Number(item.laporan_diajukan || 0).toLocaleString('id-ID')}</td>
-            `;
-            body.appendChild(tr);
-        });
+            (data.kecamatan || []).forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = 'border-b border-slate-100';
+
+                [
+                    item.kecamatan || '-',
+                    Number(item.sekolah || 0).toLocaleString('id-ID'),
+                    Number(item.paket || 0).toLocaleString('id-ID'),
+                    Number(item.paket_disetujui || 0).toLocaleString('id-ID'),
+                    Number(item.laporan_diajukan || 0).toLocaleString('id-ID')
+                ].forEach((value, index) => {
+                    const td = document.createElement('td');
+                    td.className = 'py-2 pr-2';
+                    if (index === 0) td.classList.add('font-semibold');
+                    td.textContent = value;
+                    tr.appendChild(td);
+                });
+
+                body.appendChild(tr);
+            });
+        }
     }
 
     async function loadDashboardDinas() {
@@ -6266,17 +6399,6 @@ if (currentUser && currentUser.role === 'SEKOLAH') {
         });
     }
 
-
-/* PATCH 8.1.5-MOBILE-1: mobile sidebar */
-function toggleMobileSidebar(forceState) {
-  const sidebar=document.getElementById('sivitSidebar');
-  if(!sidebar) return;
-  const open=typeof forceState==='boolean' ? forceState : !sidebar.classList.contains('sivit-mobile-open');
-  sidebar.classList.toggle('sivit-mobile-open',open);
-  const btn=document.getElementById('mobileMenuButton');
-  if(btn) btn.setAttribute('aria-expanded',open?'true':'false');
-}
-window.addEventListener('resize',function(){ if(window.innerWidth>=768) toggleMobileSidebar(false); });
 </script>
 </body>
 </html>
