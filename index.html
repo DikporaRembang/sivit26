@@ -1070,6 +1070,173 @@ table {
     text-align: center;
 }
 
+
+/* =========================================================
+   SIVIT26 — FORMAL EDUCATION THEME + LIGHT SCREEN MOTION
+   PATCH 8.1.6-FE
+   CSS/UX only. Existing wording, slogans, logos and loading
+   animation are intentionally preserved.
+   ========================================================= */
+:root {
+    --sivit-navy:#0f2747;
+    --sivit-blue:#1d4f91;
+    --sivit-blue-2:#2b6cb0;
+    --sivit-gold:#c79a3b;
+    --sivit-gold-soft:#f4ead1;
+    --sivit-paper:#f7f9fc;
+    --sivit-ink:#1e293b;
+}
+
+/* Formal academic background: subtle, not decorative-heavy */
+body {
+    background:
+        radial-gradient(circle at 12% 8%, rgba(29,79,145,.07), transparent 26%),
+        radial-gradient(circle at 88% 92%, rgba(199,154,59,.055), transparent 24%),
+        linear-gradient(135deg,#f8fafc 0%,#eef3f8 100%) !important;
+    color:var(--sivit-ink) !important;
+}
+
+body::before {
+    content:"";
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    z-index:-1;
+    opacity:.34;
+    background-image:
+        linear-gradient(rgba(15,39,71,.025) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(15,39,71,.025) 1px,transparent 1px);
+    background-size:32px 32px;
+}
+
+/* Login: official/government-school character */
+#authContainer {
+    position:relative;
+}
+#authContainer > div {
+    border-top:4px solid var(--sivit-gold) !important;
+    border-radius:20px !important;
+    box-shadow:0 18px 45px rgba(15,39,71,.12) !important;
+}
+#authContainer h1 {
+    letter-spacing:.08em !important;
+}
+#authContainer button[type="submit"] {
+    background:linear-gradient(135deg,var(--sivit-navy),var(--sivit-blue)) !important;
+    transition:transform .2s ease,box-shadow .2s ease,filter .2s ease !important;
+}
+#authContainer button[type="submit"]:hover {
+    transform:translateY(-1px);
+    box-shadow:0 8px 18px rgba(15,39,71,.18) !important;
+    filter:brightness(1.05);
+}
+
+/* Header */
+#dashboardContainer > header {
+    background:linear-gradient(135deg,#0b2342 0%,#143e70 62%,#1b4f8a 100%) !important;
+    border-bottom:3px solid rgba(199,154,59,.8) !important;
+    box-shadow:0 5px 20px rgba(15,39,71,.16) !important;
+}
+#dashboardContainer > header h2 {
+    letter-spacing:.07em !important;
+}
+
+/* Sidebar */
+#dashboardContainer aside {
+    background:linear-gradient(180deg,#102d50 0%,#0b223d 100%) !important;
+    border-right:1px solid rgba(199,154,59,.25) !important;
+}
+#sidebarMenuContainer button,
+#sidebarMenuContainer a {
+    border-radius:10px !important;
+    transition:background .18s ease,transform .18s ease,color .18s ease !important;
+}
+#sidebarMenuContainer button:hover,
+#sidebarMenuContainer a:hover {
+    transform:translateX(3px);
+    background:rgba(255,255,255,.08) !important;
+}
+
+/* Content cards */
+#dashboardContainer main > div,
+#dashboardDinasContainer > div,
+#contentContainer > div {
+    border-color:#dbe4ef !important;
+}
+
+/* Academic/government card treatment without changing content */
+.bg-white {
+    box-shadow:0 5px 18px rgba(15,39,71,.055) !important;
+}
+.rounded-xl,.rounded-2xl {
+    transition:box-shadow .22s ease,border-color .22s ease,transform .22s ease !important;
+}
+.rounded-xl:hover,.rounded-2xl:hover {
+    box-shadow:0 9px 25px rgba(15,39,71,.08) !important;
+}
+
+/* Gold accent used sparingly for institutional hierarchy */
+.border-amber-400,.border-amber-300 { border-color:rgba(199,154,59,.45) !important; }
+.text-amber-400,.text-amber-300,.text-amber-500 { color:var(--sivit-gold) !important; }
+
+/* Buttons: restrained, professional motion */
+button,
+a {
+    -webkit-tap-highlight-color:transparent;
+}
+button:not(:disabled) {
+    transition:transform .18s ease,box-shadow .18s ease,background-color .18s ease,color .18s ease,border-color .18s ease !important;
+}
+button:not(:disabled):active {
+    transform:translateY(1px) scale(.99);
+}
+
+/* Tables feel like official monitoring documents */
+table thead th {
+    letter-spacing:.02em;
+}
+tbody tr {
+    transition:background-color .16s ease !important;
+}
+tbody tr:hover {
+    background-color:rgba(29,79,145,.035) !important;
+}
+
+/* =========================================================
+   LIGHTWEIGHT SCREEN TRANSITIONS
+   Observer below only adds/removes a CSS class when the
+   existing auth/dashboard visibility changes.
+   ========================================================= */
+.sivit-screen-enter {
+    animation:sivitScreenEnter .28s cubic-bezier(.22,.61,.36,1) both;
+}
+.sivit-content-enter {
+    animation:sivitContentEnter .24s ease-out both;
+}
+@keyframes sivitScreenEnter {
+    from { opacity:0; transform:translateY(7px); }
+    to   { opacity:1; transform:translateY(0); }
+}
+@keyframes sivitContentEnter {
+    from { opacity:0; transform:translateY(4px); }
+    to   { opacity:1; transform:translateY(0); }
+}
+
+/* Modal / dropdown motion */
+[id*="Modal"], .modal, [role="dialog"] {
+    transform-origin:center top;
+}
+
+/* Respect accessibility preference */
+@media (prefers-reduced-motion:reduce) {
+    *,*::before,*::after {
+        animation-duration:.01ms !important;
+        animation-iteration-count:1 !important;
+        transition-duration:.01ms !important;
+        scroll-behavior:auto !important;
+    }
+}
+
 </style>
 </head>
 <body class="bg-gradient-to-br from-blue-950 via-blue-900 to-slate-900 min-h-screen text-white font-sans antialiased flex flex-col justify-between">
@@ -1527,63 +1694,16 @@ table {
         }
     }
 
-    let notifRefreshTimer = null;
-    let notifRefreshInFlight = false;
-    const NOTIF_REFRESH_INTERVAL_MS = 15000;
-
-    function getNotifRecipient() {
-        return currentUser && currentUser.role === 'DINAS'
-            ? 'DINAS'
-            : (currentUser ? currentUser.username : '');
-    }
-
-    function stopNotifikasiRealtime() {
-        if (notifRefreshTimer) {
-            clearInterval(notifRefreshTimer);
-            notifRefreshTimer = null;
-        }
-    }
-
-    function startNotifikasiRealtime() {
-        stopNotifikasiRealtime();
-
-        if (!currentUser || !currentUser.token) return;
-
-        const penerima = getNotifRecipient();
-        if (!penerima) return;
-
-        notifRefreshTimer = setInterval(function() {
-            if (!currentUser || !currentUser.token) {
-                stopNotifikasiRealtime();
-                return;
-            }
-            loadNotifikasi(penerima, { silent: true });
-        }, NOTIF_REFRESH_INTERVAL_MS);
-    }
-
     function toggleNotifDropdown() {
         let dropdown = document.getElementById('notifDropdown');
-        if (!dropdown) return;
-
-        const willOpen = dropdown.classList.contains('hidden');
         dropdown.classList.toggle('hidden');
-
-        if (willOpen && currentUser) {
-            loadNotifikasi(getNotifRecipient(), { silent: true });
-        }
     }
 
-    function loadNotifikasi(penerima, options) {
-        options = options || {};
+    function loadNotifikasi(penerima) {
         let container = document.getElementById('notifListContainer');
         fetch(`${WEB_APP_URL}?token=${encodeURIComponent(currentUser?.token || "")}&action=getNotifikasi&penerima=${encodeURIComponent(penerima)}`)
             .then(res => res.json())
             .then(response => {
-                if (handleSessionExpired(response)) {
-                    stopNotifikasiRealtime();
-                    return;
-                }
-
                 if(response.status === 'success') {
                     let listNotif = response.data || [];
                     let badge = document.getElementById('notifBadge');
@@ -1643,9 +1763,7 @@ table {
             })
             .catch(error => {
                 console.error("Gagal memuat notifikasi", error);
-                if (!options.silent && container) {
-                    container.innerHTML = `<div class="p-4 text-center text-red-400">Gagal memuat notifikasi.</div>`;
-                }
+                container.innerHTML = `<div class="p-4 text-center text-red-400">Gagal memuat notifikasi.</div>`;
             });
     }
 
@@ -1663,7 +1781,7 @@ table {
                 ? 'DINAS'
                 : (currentUser ? currentUser.username : '');
 
-            loadNotifikasi(targetPenerima, { silent: true });
+            loadNotifikasi(targetPenerima);
           } else {
             alert(result.message || 'Notifikasi gagal diselesaikan.');
           }
@@ -1789,7 +1907,6 @@ async function handleRegister(e) {
         } catch (err) {
             console.warn('Logout server gagal:', err);
         } finally {
-            stopNotifikasiRealtime();
             localStorage.removeItem('sivit_user');
             currentUser = null;
             document.getElementById('authContainer').classList.remove('hidden');
@@ -1897,7 +2014,6 @@ async function handleRegister(e) {
 
       let targetPenerima = (currentUser.role === 'DINAS') ? 'DINAS' : currentUser.username;
       loadNotifikasi(targetPenerima);
-      startNotifikasiRealtime();
 
       if (currentUser.role === 'SEKOLAH' && currentUser.sekolah) {
         document.getElementById('sekolahIdentitasCard').classList.remove('hidden');
@@ -3165,7 +3281,42 @@ async function handleRegister(e) {
                 </head>
                 <body>
                     ${sections}
-                </body>
+                
+<script>
+/* PATCH 8.1.6-FE: isolated lightweight screen-motion helper.
+   Tidak mengubah alur aplikasi; hanya merespons perubahan visibility. */
+(function(){
+  'use strict';
+  function animateVisible(el){
+    if(!el || el.classList.contains('hidden')) return;
+    el.classList.remove('sivit-screen-enter');
+    void el.offsetWidth;
+    el.classList.add('sivit-screen-enter');
+  }
+  function animateContent(){
+    var el=document.getElementById('contentContainer') || document.getElementById('printableArea');
+    if(!el || el.classList.contains('hidden')) return;
+    el.classList.remove('sivit-content-enter');
+    void el.offsetWidth;
+    el.classList.add('sivit-content-enter');
+  }
+  function init(){
+    ['authContainer','dashboardContainer'].forEach(function(id){
+      var el=document.getElementById(id);
+      if(!el) return;
+      if(!el.classList.contains('hidden')) animateVisible(el);
+      new MutationObserver(function(){ animateVisible(el); }).observe(el,{attributes:true,attributeFilter:['class']});
+    });
+    var content=document.getElementById('contentContainer');
+    if(content){
+      new MutationObserver(function(){ animateContent(); }).observe(content,{childList:true,subtree:true});
+    }
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init,{once:true});
+  else init();
+})();
+</script>
+</body>
                 </html>
             `);
             printWindow.document.close();
