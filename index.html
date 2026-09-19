@@ -1251,7 +1251,7 @@ table {
                         <h3 class="text-base font-extrabold text-slate-900">
                             <i class="fa-solid fa-gauge-high text-blue-700 mr-2"></i>Dashboard Monitoring DINAS
                         </h3>
-                        <p class="text-xs text-slate-500">Ringkasan kondisi paket berdasarkan laporan progres APPROVED terakhir dan indikator peringatan otomatis.</p>
+                        <p class="text-xs text-slate-500">Ringkasan kondisi paket berdasarkan laporan progres APPROVED terakhir.</p>
                     </div>
                     <div class="flex items-center gap-2">
                         <span id="dashGeneratedAt" class="text-[10px] text-slate-400"></span>
@@ -1402,6 +1402,41 @@ table {
                     </div>
                 </div>
             </section>
+
+            <!-- ================= DETAIL SEKOLAH PATCH 8.4 ================= -->
+            <div id="detailSekolahOverlay" class="hidden fixed inset-0 z-[9998] bg-slate-950/60 backdrop-blur-sm p-3 sm:p-5 overflow-y-auto">
+                <div class="max-w-6xl mx-auto bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden">
+                    <div class="px-4 py-3 bg-blue-950 text-white flex items-center justify-between gap-3">
+                        <div>
+                            <div class="text-[10px] uppercase tracking-wider text-blue-200 font-bold">Monitoring DINAS</div>
+                            <h3 id="detailSekolahTitle" class="text-base font-extrabold">Detail Sekolah</h3>
+                            <div id="detailSekolahSubtitle" class="text-[10px] text-blue-200 mt-0.5"></div>
+                        </div>
+                        <button type="button" onclick="closeDetailSekolah()" class="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-xs font-bold">Tutup</button>
+                    </div>
+                    <div class="p-4 sm:p-5">
+                        <div id="detailSekolahLoading" class="py-10 text-center text-sm text-slate-500">Memuat detail sekolah...</div>
+                        <div id="detailSekolahContent" class="hidden">
+                            <div class="grid grid-cols-2 lg:grid-cols-6 gap-2 mb-4">
+                                <div class="rounded-lg bg-slate-50 border p-2.5"><div class="text-[9px] text-slate-500 uppercase font-bold">NPSN</div><div id="detailNpsn" class="font-extrabold text-sm mt-1"></div></div>
+                                <div class="rounded-lg bg-slate-50 border p-2.5"><div class="text-[9px] text-slate-500 uppercase font-bold">Kecamatan</div><div id="detailKecamatan" class="font-extrabold text-sm mt-1"></div></div>
+                                <div class="rounded-lg bg-slate-50 border p-2.5"><div class="text-[9px] text-slate-500 uppercase font-bold">Status User</div><div id="detailStatusUser" class="font-extrabold text-sm mt-1"></div></div>
+                                <div class="rounded-lg bg-slate-50 border p-2.5"><div class="text-[9px] text-slate-500 uppercase font-bold">Total Paket</div><div id="detailTotalPaket" class="font-extrabold text-sm mt-1"></div></div>
+                                <div class="rounded-lg bg-slate-50 border p-2.5"><div class="text-[9px] text-slate-500 uppercase font-bold">Disetujui</div><div id="detailPaketApproved" class="font-extrabold text-sm mt-1 text-emerald-600"></div></div>
+                                <div class="rounded-lg bg-slate-50 border p-2.5"><div class="text-[9px] text-slate-500 uppercase font-bold">Last Login</div><div id="detailLastLogin" class="font-extrabold text-sm mt-1"></div></div>
+                            </div>
+                            <div class="grid grid-cols-1 lg:grid-cols-3 gap-3 mb-4">
+                                <div class="lg:col-span-2 rounded-xl border p-3"><div class="font-bold text-sm text-slate-800 mb-2"><i class="fa-solid fa-school text-blue-700 mr-2"></i>Identitas</div><div id="detailAlamat" class="text-xs text-slate-600"></div><div id="detailTim" class="text-xs text-slate-600 mt-2"></div></div>
+                                <div class="rounded-xl border p-3 bg-blue-50"><div class="font-bold text-sm text-blue-900 mb-2">Akun Sekolah</div><div id="detailAkunUser" class="text-xs text-blue-900"></div></div>
+                            </div>
+                            <div class="rounded-xl border overflow-hidden">
+                                <div class="px-3 py-2 bg-slate-50 border-b font-bold text-sm text-slate-800">Paket Revitalisasi</div>
+                                <div class="overflow-x-auto"><table class="w-full text-[11px] min-w-[1050px]"><thead><tr class="border-b text-slate-500 text-left"><th class="p-2">Paket</th><th class="p-2">Menu</th><th class="p-2 text-right">PAGU</th><th class="p-2">Mulai</th><th class="p-2">Selesai</th><th class="p-2 text-right">Target</th><th class="p-2 text-right">Fisik</th><th class="p-2 text-right">Serapan</th><th class="p-2">Status</th><th class="p-2">Laporan Terakhir</th></tr></thead><tbody id="detailPaketBody"></tbody></table></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             <!-- ================= FILTER DINAS ================= -->
             <div id="filterDinasContainer" class="hidden mb-6 p-4 bg-blue-950 rounded-xl border border-amber-500/40 text-white shadow-md">
@@ -2104,8 +2139,10 @@ async function handleRegister(e) {
                     const tdSekolah = document.createElement('td');
                     tdSekolah.className = 'py-2 pr-2';
                     const school = document.createElement('div');
-                    school.className = 'font-semibold text-slate-800';
+                    school.className = 'font-semibold text-blue-700 hover:text-blue-900 hover:underline cursor-pointer';
                     school.textContent = item.nama_sekolah || '-';
+                    school.title = 'Buka detail sekolah';
+                    school.onclick = () => loadDetailSekolah(item.npsn);
                     const sub = document.createElement('div');
                     sub.className = 'text-[10px] text-slate-400';
                     sub.textContent = (item.npsn || '-') + ' · ' + (item.kecamatan || '-');
@@ -2244,6 +2281,57 @@ async function handleRegister(e) {
                 body.appendChild(tr);
             });
         }
+    }
+
+    function closeDetailSekolah() {
+        const overlay=document.getElementById('detailSekolahOverlay');
+        if (overlay) overlay.classList.add('hidden');
+    }
+
+    async function loadDetailSekolah(npsn) {
+        if (!currentUser || currentUser.role !== 'DINAS') {
+            alert('Detail sekolah hanya dapat dibuka oleh akun DINAS.');
+            return;
+        }
+        const target=String(npsn||'').trim();
+        if (!target) return;
+        const overlay=document.getElementById('detailSekolahOverlay');
+        const loading=document.getElementById('detailSekolahLoading');
+        const content=document.getElementById('detailSekolahContent');
+        if (overlay) overlay.classList.remove('hidden');
+        if (loading) { loading.classList.remove('hidden'); loading.textContent='Memuat detail sekolah...'; }
+        if (content) content.classList.add('hidden');
+        try {
+            const res=await fetch(`${WEB_APP_URL}?action=getDetailSekolah&npsn=${encodeURIComponent(target)}&token=${encodeURIComponent(currentUser.token||'')}`);
+            const data=await res.json();
+            if (!data || data.status!=='success') throw new Error((data&&data.pesan)||'Detail sekolah tidak dapat dimuat.');
+            const s=data.sekolah||{};
+            const set=(id,v)=>{const e=document.getElementById(id); if(e)e.textContent=v;};
+            set('detailSekolahTitle',s.nama_sekolah||'Detail Sekolah');
+            set('detailSekolahSubtitle',(s.npsn||'-')+' · '+(s.kecamatan||'-'));
+            set('detailNpsn',s.npsn||'-'); set('detailKecamatan',s.kecamatan||'-');
+            set('detailStatusUser',s.user_terdaftar ? (s.status_user||'AKTIF') : 'BELUM USER');
+            set('detailTotalPaket',Number(data.total_paket||0).toLocaleString('id-ID'));
+            set('detailPaketApproved',Number(data.paket_disetujui||0).toLocaleString('id-ID'));
+            set('detailLastLogin',s.last_login||'-');
+            set('detailAlamat',s.alamat_lengkap||'Alamat belum tersedia.');
+            set('detailTim','Perencana: '+(s.perencana||'-')+' · Pengawas: '+(s.pengawas||'-'));
+            set('detailAkunUser',s.user_terdaftar ? ('Username/NPSN: '+(s.username||s.npsn||'-')+' · Nama: '+(s.nama_pengguna||'-')+' · Status: '+(s.status_user||'-')) : 'Sekolah belum memiliki user SEKOLAH aktif/disetujui.');
+            const body=document.getElementById('detailPaketBody'); if(body) body.innerHTML='';
+            const paket=Array.isArray(data.paket)?data.paket:[];
+            if(!paket.length){
+                const tr=document.createElement('tr'),td=document.createElement('td'); td.colSpan=10; td.className='p-5 text-center text-slate-400'; td.textContent='Belum ada paket revitalisasi.'; tr.appendChild(td); body.appendChild(tr);
+            } else {
+                paket.forEach(p=>{
+                    const tr=document.createElement('tr'); tr.className='border-b border-slate-100 hover:bg-slate-50';
+                    const cells=[p.paket_id||'-',p.nama_menu||'-','Rp '+Number(p.pagu||0).toLocaleString('id-ID'),p.tanggal_mulai||'-',p.tgl_selesai||'-',Number(p.target||0).toLocaleString('id-ID')+'%',Number(p.realisasi||0).toLocaleString('id-ID')+'%',Number(p.serapan||0).toLocaleString('id-ID')+'%'];
+                    cells.forEach((v,i)=>{const td=document.createElement('td'); td.className='p-2'+(i>=2&&i<=7?' text-right':''); td.textContent=v; tr.appendChild(td);});
+                    const tdStatus=document.createElement('td'); tdStatus.className='p-2'; const badge=document.createElement('span'); badge.className='inline-flex px-2 py-1 rounded-full text-[9px] font-extrabold'; const st=String(p.status_monitoring||'NORMAL').toUpperCase(); badge.textContent=st; badge.classList.add(st==='JATUH TEMPO'?'bg-orange-100':'',st==='TERLAMBAT'?'bg-red-100':'',st==='PERHATIAN'?'bg-amber-100':'',st==='BELUM ADA LAPORAN'?'bg-slate-100':'',st==='NORMAL'?'bg-emerald-100':'',st==='JATUH TEMPO'?'text-orange-700':'',st==='TERLAMBAT'?'text-red-700':'',st==='PERHATIAN'?'text-amber-700':'',st==='BELUM ADA LAPORAN'?'text-slate-600':'',st==='NORMAL'?'text-emerald-700':''); tdStatus.appendChild(badge); tr.appendChild(tdStatus);
+                    const tdLap=document.createElement('td'); tdLap.className='p-2'; const l=p.laporan_terakhir; if(!l){tdLap.textContent='Belum ada laporan';} else {const info=document.createElement('div'); info.textContent='Minggu '+(l.minggu_ke||'-')+' · '+(l.tanggal_lapor||'-')+' · '+(l.status_verifikasi||'-'); tdLap.appendChild(info); if(l.foto_dokumentasi){const btn=document.createElement('button'); btn.type='button'; btn.className='mt-1 px-2 py-1 rounded-md bg-blue-100 text-blue-700 font-bold text-[9px]'; btn.textContent='Lihat Foto'; btn.onclick=function(){ if(typeof google==='undefined'||!google.script||!google.script.run){alert('Fitur foto aman hanya tersedia dari halaman SIVIT26.');return;} google.script.run.withSuccessHandler(function(r){if(r&&r.status==='success')showSecurePhotoPreview(r.dataUrl,r.fileName||'Foto Dokumentasi');else alert((r&&r.pesan)||'Foto tidak dapat ditampilkan.');}).withFailureHandler(function(e){alert('Gagal memuat foto: '+(e&&e.message?e.message:e));}).getPhotoData(String(l.foto_dokumentasi),currentUser.token||''); }; tdLap.appendChild(document.createElement('br')); tdLap.appendChild(btn);}} tr.appendChild(tdLap); body.appendChild(tr);
+                });
+            }
+            if (loading) loading.classList.add('hidden'); if(content) content.classList.remove('hidden');
+        } catch(err){ if(loading){loading.textContent=err.message||'Gagal memuat detail sekolah.'; loading.classList.remove('hidden');} if(content) content.classList.add('hidden'); }
     }
 
     async function loadDashboardDinas() {
