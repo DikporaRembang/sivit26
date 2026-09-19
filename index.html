@@ -3646,38 +3646,40 @@ currentHeaders.forEach(h => {
                                 lokasiField.value = gpsStr;
                             }
 
+                            let formattedDate = "";
+
+                            if (dateTime) {
+                                let parts = String(dateTime).split(' ');
+
+                                if (parts.length >= 2) {
+                                    let dateParts = parts[0].split(':');
+
+                                    if (dateParts.length === 3) {
+                                        formattedDate =
+                                            `${dateParts[2]}/${dateParts[1]}/${dateParts[0]} ${parts[1]}`;
+                                    }
+                                }
+                            }
+
+                            if (!formattedDate) {
+                                let now = new Date();
+
+                                formattedDate =
+                                    `${String(now.getDate()).padStart(2, '0')}/` +
+                                    `${String(now.getMonth() + 1).padStart(2, '0')}/` +
+                                    `${now.getFullYear()} ` +
+                                    `${String(now.getHours()).padStart(2, '0')}:` +
+                                    `${String(now.getMinutes()).padStart(2, '0')}:` +
+                                    `${String(now.getSeconds()).padStart(2, '0')}`;
+                            }
+
                             metaInfo.innerHTML =
                                 `<span class="text-emerald-400 font-bold">
                                     <i class="fa-solid fa-circle-check"></i>
                                     Foto: ${file.name}
                                 </span>
                                 <br>
-                                let formattedDate = "";
-
-                                if (dateTime) {
-                                    let parts = String(dateTime).split(' ');
-
-                                    if (parts.length >= 2) {
-                                        let dateParts = parts[0].split(':');
-
-                                        if (dateParts.length === 3) {
-                                            formattedDate =
-                                                `${dateParts[2]}/${dateParts[1]}/${dateParts[0]} ${parts[1]}`;
-                                        }
-                                    }
-                                }
-
-                                if (!formattedDate) {
-                                    let now = new Date();
-
-                                    formattedDate =
-                                        `${String(now.getDate()).padStart(2, '0')}/` +
-                                        `${String(now.getMonth() + 1).padStart(2, '0')}/` +
-                                        `${now.getFullYear()} ` +
-                                        `${String(now.getHours()).padStart(2, '0')}:` +
-                                        `${String(now.getMinutes()).padStart(2, '0')}:` +
-                                        `${String(now.getSeconds()).padStart(2, '0')}`;
-                                }
+                                🕒 Waktu pengambilan: ${formattedDate}
                                 <br>
                                 📍 GPS: ${gpsStr || 'Belum ada (isi manual di bawah)'}`;
 
@@ -4101,8 +4103,22 @@ async function handleFormSubmit(e) {
         formDataObj.npsn = usernameLogin;
     }
 
+
     // =========================================================
-    // 4. PENENTUAN ACTION BACKEND
+    // 4. STATUS LAPORAN PROGRES WAJIB DIAJUKAN
+    // =========================================================
+
+    if (
+        isSekolah &&
+        currentActiveSheet === 'laporan_progres'
+    ) {
+        formDataObj.status_verifikasi = 'DIAJUKAN';
+        formDataObj.catatan_dinas = '';
+    }
+
+
+    // =========================================================
+    // 5. PENENTUAN ACTION BACKEND
     // =========================================================
 
     let actionName = 'saveData';
@@ -4115,21 +4131,6 @@ async function handleFormSubmit(e) {
         ) {
             actionName = 'simpanLaporanProgres';
         }
-    }
-
-    // =========================================================
-    // 5. PERSIAPAN TOMBOL DAN LOADING
-    // =========================================================
-
-    let btnSave = document.getElementById('btnSaveModal');
-
-    if (btnSave) {
-        btnSave.innerText = 'Menyimpan...';
-        btnSave.disabled = true;
-    }
-
-    if (typeof showLoading === 'function') {
-        showLoading('Menyimpan data...');
     }
 
     // =========================================================
