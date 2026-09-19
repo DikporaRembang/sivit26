@@ -1744,6 +1744,18 @@ async function handleRegister(e) {
         }
     };
 
+    async function ensureMenuPekerjaanLoaded() {
+        if (Array.isArray(menuPekerjaanList) && menuPekerjaanList.length > 0) return true;
+
+        const resMenu = await fetch(`${WEB_APP_URL}?token=${encodeURIComponent(currentUser?.token || "")}&action=getRef&type=menu_pekerjaan`);
+        const dataMenu = await resMenu.json();
+        if (dataMenu.status !== 'success') {
+            throw new Error(dataMenu.pesan || 'Gagal memuat menu pekerjaan.');
+        }
+        menuPekerjaanList = Array.isArray(dataMenu.data) ? dataMenu.data : [];
+        return true;
+    }
+
     async function loadReferenceTables() {
         try {
             let resMenu = await fetch(`${WEB_APP_URL}?token=${encodeURIComponent(currentUser?.token || "")}&action=getRef&type=menu_pekerjaan`);
@@ -1894,6 +1906,15 @@ async function handleRegister(e) {
             panduanLink.title = 'Buka Panduan Penggunaan SIVIT26 2026';
             container.appendChild(panduanLink);
         }
+
+    function escapeHtml(value) {
+        return String(value === undefined || value === null ? '' : value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
 
     function formatRupiahDashboard(value) {
         const n = Number(value) || 0;
@@ -4734,7 +4755,18 @@ async function cetakLaporanResmi(paketId, npsn) {
         }
     }
 
-function openModalForm(rowData = null) {
+async function openModalForm(rowData = null) {
+    // Khusus Paket Pekerjaan: pastikan dropdown nama_menu sudah punya referensi.
+    if (typeof currentActiveSheet !== 'undefined' && currentActiveSheet === 'paket_pekerjaan_sd') {
+        try {
+            await ensureMenuPekerjaanLoaded();
+        } catch (err) {
+            console.error('Gagal memuat menu pekerjaan:', err);
+            alert('Menu pekerjaan belum dapat dimuat. Silakan coba lagi.');
+            return;
+        }
+    }
+
     // === PENGAMAN ANTI-CRASH (Null-Safety) ===
     if (typeof currentUser === 'undefined' || !currentUser) {
         console.error("currentUser belum diinisialisasi.");
@@ -4887,16 +4919,24 @@ currentHeaders.forEach(h => {
                 defOpt.innerText = "-- Pilih Menu Pekerjaan --";
                 input.appendChild(defOpt);
 
-                if (typeof menuPekerjaanList !== 'undefined' && Array.isArray(menuPekerjaanList)) {
+                if (Array.isArray(menuPekerjaanList)) {
+                    const menuSeen = new Set();
+
                     menuPekerjaanList.forEach(m => {
-                        let mName = m.nama_menu || Object.values(m)[1];
-                        if (mName) {
-                            let opt = document.createElement('option');
-                            opt.value = mName;
-                            opt.innerText = mName;
-                            if (activeRowData && activeRowData[h] === mName) opt.selected = true;
-                            input.appendChild(opt);
+                        const mName = String(m && m.nama_menu !== undefined ? m.nama_menu : '').trim();
+                        if (!mName) return;
+
+                        const menuKey = mName.toLowerCase();
+                        if (menuSeen.has(menuKey)) return;
+                        menuSeen.add(menuKey);
+
+                        let opt = document.createElement('option');
+                        opt.value = mName;
+                        opt.innerText = mName;
+                        if (activeRowData && String(activeRowData[h] || '').trim() === mName) {
+                            opt.selected = true;
                         }
+                        input.appendChild(opt);
                     });
                 }
             } else if (hLower === 'pagu') {
