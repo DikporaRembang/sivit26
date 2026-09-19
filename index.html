@@ -1614,6 +1614,19 @@ async function handleRegister(e) {
         }
     }
     
+    function handleSessionExpired(response) {
+        if (response && response.status === 'error' && /sesi login|token sesi|login kembali/i.test(response.pesan || '')) {
+            localStorage.removeItem('sivit_user');
+            currentUser = null;
+            const auth = document.getElementById('authContainer');
+            const dash = document.getElementById('dashboardContainer');
+            if (auth) auth.classList.remove('hidden');
+            if (dash) dash.classList.add('hidden');
+            return true;
+        }
+        return false;
+    }
+
     async function logout() {
         try {
             if (currentUser?.token) {
