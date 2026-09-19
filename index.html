@@ -3589,44 +3589,75 @@ currentHeaders.forEach(h => {
                             if (lat && lon) {
                                 let latitude = lat[0] + lat[1]/60 + lat[2]/3600;
                                 let longitude = lon[0] + lon[1]/60 + lon[2]/3600;
+
                                 if (latRef === "S") latitude = -latitude;
-                                if (lonRef === "W") longitude = -longitude;
-                                gpsStr = `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
+                                    if (lonRef === "W") longitude = -longitude;
+
+                                 gpsStr = `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
+
                             } else {
                                 manualFallbackContainer.classList.remove('hidden');
-                                let manualIn = manualFallbackContainer.querySelector('#manualGpsInput');
+
+                                let manualIn =
+                                    manualFallbackContainer.querySelector('#manualGpsInput');
+
                                 if (manualIn) {
                                     manualIn.oninput = function() {
-                                        let lokasiField = document.querySelector('input[name="lokasi_koordinat"]');
-                                        if (lokasiField) lokasiField.value = this.value;
+                                        let lokasiField =
+                                            document.querySelector(
+                                                'input[name="lokasi_koordinat"]'
+                                            );
+
+                                        if (lokasiField) {
+                                            lokasiField.value = this.value;
+                                        }
                                     };
                                 }
                             }
 
                             let formattedDate = "";
+
                             if (dateTime) {
                                 let parts = dateTime.split(' ')[0].split(':');
+
                                 if (parts.length === 3) {
-                                    formattedDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
+                                    formattedDate =
+                                        `${parts[2]}/${parts[1]}/${parts[0]}`;
                                 }
                             }
+
                             if (!formattedDate) {
                                 let now = new Date();
-                                formattedDate = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+
+                                formattedDate =
+                                    `${String(now.getDate()).padStart(2, '0')}/` +
+                                    `${String(now.getMonth() + 1).padStart(2, '0')}/` +
+                                    `${now.getFullYear()}`;
                             }
 
-                            let tglUploadField = document.querySelector('input[name="tanggal_lapor"]');
-                            if (tglUploadField && typeof convertToInputDate === 'function') {
-                                tglUploadField.value = convertToInputDate(formattedDate);
+                            // TIDAK ADA LAGI KODE YANG MENGUBAH tanggal_lapor
+
+                            let lokasiField =
+                                document.querySelector(
+                                    'input[name="lokasi_koordinat"]'
+                                );
+
+                            if (lokasiField && gpsStr) {
+                                lokasiField.value = gpsStr;
                             }
 
-                            let lokasiField = document.querySelector('input[name="lokasi_koordinat"]');
-                            if (lokasiField && gpsStr) lokasiField.value = gpsStr;
+                            metaInfo.innerHTML =
+                                `<span class="text-emerald-400 font-bold">
+                                    <i class="fa-solid fa-circle-check"></i>
+                                    Foto: ${file.name}
+                                </span>
+                                <br>
+                                🕒 Tanggal foto: ${formattedDate}
+                                <br>
+                                📍 GPS: ${gpsStr || 'Belum ada (isi manual di bawah)'}`;
 
-                            metaInfo.innerHTML = `<span class="text-emerald-400 font-bold"><i class="fa-solid fa-circle-check"></i> Foto: ${file.name}</span><br>🕒 Tanggal: ${formattedDate}<br>📍 GPS: ${gpsStr || 'Belum ada (isi manual di bawah)'}`;
                         });
                     }
-                };
 
                 div.appendChild(btnUpload);
                 div.appendChild(input);
@@ -4198,44 +4229,160 @@ if (currentUser && currentUser.role === 'SEKOLAH') {
         });
     }
 
-    // D. EKSTRAKSI METADATA EXIF DARI FOTO (Tanggal & Koordinat GPS)
+    // D. EKSTRAKSI METADATA EXIF DARI FOTO
+    //    - GPS tetap masuk ke lokasi_koordinat
+    //    - Tanggal/waktu EXIF hanya ditampilkan sebagai metadata foto
+    //    - Tanggal Lapor TIDAK diubah oleh metadata EXIF
+
     const inputFile = document.getElementById('file-foto');
+
     if (inputFile) {
         inputFile.addEventListener('change', function(e) {
+
             const file = e.target.files[0];
             if (!file) return;
 
-            // Set tanggal default ke hari ini sebagai cadangan
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('tanggal-laporan').value = today;
-            document.getElementById('koordinat-lokasi').value = "Mengambil koordinat...";
+            const lokasiField = document.getElementById('koordinat-lokasi');
+
+            if (lokasiField) {
+                lokasiField.value = "Mengambil metadata foto...";
+            }
+
+            // Cari elemen informasi metadata foto.
+            // Jika belum ada, buat otomatis di bawah input foto.
+            let metaFoto = document.getElementById('metadata-foto');
+
+            if (!metaFoto) {
+                metaFoto = document.createElement('div');
+                metaFoto.id = 'metadata-foto';
+                metaFoto.className =
+                    'mt-2 p-2 rounded-lg bg-blue-950/60 border border-blue-700 text-[11px] text-blue-200 space-y-1';
+
+                inputFile.parentElement.appendChild(metaFoto);
+            }
+
+            metaFoto.innerHTML =
+                '<span class="text-amber-300">Membaca metadata foto...</span>';
 
             EXIF.getData(file, function() {
-                // 1. Ambil Tanggal Asli dari EXIF (DateTimeOriginal)
-                let exifDate = EXIF.getTag(this, "DateTimeOriginal");
+
+                // =====================================================
+                // 1. TANGGAL & WAKTU PENGAMBILAN FOTO DARI EXIF
+                // =====================================================
+
+                let exifDate =
+                    EXIF.getTag(this, "DateTimeOriginal") ||
+                    EXIF.getTag(this, "DateTime") ||
+                    null;
+
+                let tanggalWaktuFoto = "-";
+
                 if (exifDate) {
-                    // Format EXIF biasanya "YYYY:MM:DD HH:MM:SS" diubah ke "YYYY-MM-DD"
-                    let formattedDate = exifDate.split(' ')[0].replace(/:/g, '-');
-                    document.getElementById('tanggal-laporan').value = formattedDate;
+
+                    // Format umum EXIF:
+                    // YYYY:MM:DD HH:MM:SS
+
+                    const parts = String(exifDate).split(' ');
+
+                    if (parts.length >= 2) {
+
+                        const tanggal = parts[0].replace(/:/g, '-');
+                        const waktu = parts[1];
+
+                        const dateParts = tanggal.split('-');
+
+                        if (dateParts.length === 3) {
+                            tanggalWaktuFoto =
+                                `${dateParts[2]}/${dateParts[1]}/${dateParts[0]} ${waktu}`;
+                        } else {
+                            tanggalWaktuFoto = String(exifDate);
+                        }
+
+                    } else {
+
+                        tanggalWaktuFoto = String(exifDate);
+                    }
                 }
 
-                // 2. Ambil Koordinat GPS dari EXIF
+                // =====================================================
+                // 2. GPS DARI EXIF
+                // =====================================================
+
                 let lat = EXIF.getTag(this, "GPSLatitude");
                 let latRef = EXIF.getTag(this, "GPSLatitudeRef");
+
                 let lon = EXIF.getTag(this, "GPSLongitude");
                 let lonRef = EXIF.getTag(this, "GPSLongitudeRef");
+    
+                let koordinat = "";
 
                 if (lat && lon) {
-                    let latitude = convertDMSToDD(lat, latRef);
-                    let longitude = convertDMSToDD(lon, lonRef);
-                    document.getElementById('koordinat-lokasi').value = `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
+
+                    try {
+
+                        let latitude = convertDMSToDD(lat, latRef);
+                        let longitude = convertDMSToDD(lon, lonRef);
+
+                        koordinat =
+                            `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
+
+                        if (lokasiField) {
+                            lokasiField.value = koordinat;
+                        }
+
+                    } catch (err) {
+
+                        console.error(
+                            'Gagal mengonversi GPS EXIF:',
+                            err
+                        );
+
+                        koordinat = "GPS tidak dapat dibaca";
+
+                        if (lokasiField) {
+                            lokasiField.value = koordinat;
+                        }
+                    }
+
                 } else {
-                    document.getElementById('koordinat-lokasi').value = "GPS tidak ditemukan di foto (Manual/Default)";
+
+                    koordinat =
+                        "GPS tidak ditemukan pada metadata foto";
+
+                    if (lokasiField) {
+                        lokasiField.value = koordinat;
+                    }
                 }
+
+                // =====================================================
+                // 3. TAMPILKAN METADATA FOTO
+                // =====================================================
+
+                metaFoto.innerHTML = `
+                    <div class="font-bold text-emerald-400">
+                        <i class="fa-solid fa-circle-check"></i>
+                        Foto berhasil dibaca
+                    </div>
+
+                    <div>
+                        <span class="text-blue-400">Nama file:</span>
+                        ${file.name}
+                    </div>
+
+                    <div>
+                        <span class="text-blue-400">Waktu pengambilan:</span>
+                        ${tanggalWaktuFoto}
+                    </div>
+
+                    <div>
+                        <span class="text-blue-400">Koordinat GPS:</span>
+                        ${koordinat}
+                    </div>
+                `;
+
             });
         });
     }
-
     async function ambilDataSekolahByNpsn(npsn) {
         try {
             const res = await fetch(
