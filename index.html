@@ -2396,16 +2396,13 @@ async function handleRegister(e) {
         let namaSekolah = '-';
         let kecamatanSekolah = '-';
         let alamatSekolah = '-';
-        if (
-            currentUser.sekolah &&
-            String(currentUser.username || '').trim() === targetNpsn
-        ) {
-            namaSekolah =
-                currentUser.sekolah.nama_sekolah || '-';
-            kecamatanSekolah =
-                currentUser.sekolah.kecamatan || '-';
-            alamatSekolah =
-                currentUser.sekolah.alamat_lengkap || '-';
+
+        const dataSekolah = await ambilDataSekolahByNpsn(targetNpsn);
+
+        if (dataSekolah) {
+            namaSekolah = dataSekolah.nama_sekolah || '-';
+            kecamatanSekolah = dataSekolah.kecamatan || '-';
+            alamatSekolah = dataSekolah.alamat_lengkap || '-';
         }
         // =====================================================
         // AMBIL DATA PROGRES UNTUK NPSN SEKOLAH
@@ -3009,19 +3006,13 @@ async function cetakLaporanResmi(paketId, npsn) {
         let alamatSekolah = "-";
         let targetNpsn = String(npsn || paket.npsn || '').trim();
 
-        if (currentUser && currentUser.sekolah && String(currentUser.username || '').trim() === targetNpsn) {
-            namaSekolah = currentUser.sekolah.nama_sekolah || '-';
-            kecamatanSekolah = currentUser.sekolah.kecamatan || '-';
-            alamatSekolah = currentUser.sekolah.alamat_lengkap || '-';
-        } else {
-            let foundUser = usersList.find(u => String(u.username || u.npsn || '').trim() === targetNpsn);
-            if (foundUser) {
-                namaSekolah = foundUser.nama_pengguna || foundUser.nama_sekolah || '-';
-                kecamatanSekolah = foundUser.kecamatan || '-';
-                alamatSekolah = foundUser.alamat_lengkap || '-';
-            }
-        }
+        const dataSekolah = await ambilDataSekolahByNpsn(targetNpsn);
 
+        if (dataSekolah) {
+            namaSekolah = dataSekolah.nama_sekolah || '-';
+            kecamatanSekolah = dataSekolah.kecamatan || '-';
+            alamatSekolah = dataSekolah.alamat_lengkap || '-';
+        }
         let progresList = [];
         try {
             let res = await fetch(`${WEB_APP_URL}?action=getData&sheet=laporan_progres&role=DINAS&npsn=${encodeURIComponent(targetNpsn)}`);
@@ -4243,6 +4234,33 @@ if (currentUser && currentUser.role === 'SEKOLAH') {
                 }
             });
         });
+    }
+
+    async function ambilDataSekolahByNpsn(npsn) {
+        try {
+            const res = await fetch(
+                `${WEB_APP_URL}?action=getData` +
+                `&sheet=sekolah` +
+                `&role=SEKOLAH` +
+                `&npsn=${encodeURIComponent(npsn)}`
+            );
+
+            const result = await res.json();
+
+            if (result.status !== 'success' || !Array.isArray(result.data)) {
+                return null;
+            }
+
+            const target = String(npsn).trim();
+
+            return result.data.find(row =>
+                String(row.npsn || '').trim() === target
+            ) || null;
+
+        } catch (err) {
+            console.error('Gagal mengambil data sekolah:', err);
+            return null;
+        }
     }
 
     // Fungsi pembantu konversi koordinat GPS EXIF (DMS ke Decimal Degrees)
