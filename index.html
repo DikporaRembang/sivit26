@@ -1899,6 +1899,33 @@ async function handleRegister(e) {
             actionBtnContainer.appendChild(btnAdd);
         }
 
+        // =========================================================
+        // CETAK REKAP DINAS
+        // =========================================================
+        if (currentUser.role === 'DINAS' &&
+            (sheetName === 'paket_pekerjaan_sd' || sheetName === 'laporan_progres')) {
+
+            let btnCetakPaketDinas = document.createElement('button');
+            btnCetakPaketDinas.className =
+                "bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3.5 py-1.5 rounded-xl text-xs shadow-xs flex items-center space-x-1.5 cursor-pointer";
+            btnCetakPaketDinas.innerHTML =
+                `<i class="fa-solid fa-print"></i><span>Rekap Paket</span>`;
+            btnCetakPaketDinas.title =
+                "Cetak Rekap Paket Pekerjaan SD berdasarkan NPSN";
+            btnCetakPaketDinas.onclick = () => cetakRekapDinasPaket();
+            actionBtnContainer.appendChild(btnCetakPaketDinas);
+
+            let btnCetakProgresDinas = document.createElement('button');
+            btnCetakProgresDinas.className =
+                "bg-blue-700 hover:bg-blue-800 text-white font-bold px-3.5 py-1.5 rounded-xl text-xs shadow-xs flex items-center space-x-1.5 cursor-pointer";
+            btnCetakProgresDinas.innerHTML =
+                `<i class="fa-solid fa-file-lines"></i><span>Rekap Progres</span>`;
+            btnCetakProgresDinas.title =
+                "Cetak Rekap Laporan Progres berdasarkan NPSN";
+            btnCetakProgresDinas.onclick = () => cetakRekapDinasProgres();
+            actionBtnContainer.appendChild(btnCetakProgresDinas);
+        }
+
         try {
             let targetSheet = sheetName === 'kurva_s' ? 'laporan_progres' : sheetName;
             let res = await fetch(`${WEB_APP_URL}?action=getData&sheet=${targetSheet}&role=${currentUser.role}&npsn=${encodeURIComponent(currentUser.username)}`);
@@ -3138,6 +3165,817 @@ async function cetakLaporanResmi(paketId, npsn) {
         printWindow.document.close();
     }
     
+
+    // =========================================================
+    // CETAK REKAP DINAS — PAKET & PROGRES
+    // Basis: index (59).html
+    // Scope:
+    //   - Satu NPSN
+    //   - Semua NPSN
+    // Pengelompokan:
+    //   NPSN -> Sekolah -> Paket -> Progres
+    // =========================================================
+
+    function escapePrintHtml(value) {
+        return String(value === undefined || value === null ? '' : value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    function printRupiahDinas(value) {
+        if (value === null || value === undefined || value === '') return 'Rp 0';
+
+        let numeric = 0;
+        if (typeof value === 'number') {
+            numeric = value;
+        } else {
+            let cleaned = String(value).replace(/[^0-9.-]+/g, '');
+            numeric = parseFloat(cleaned) || 0;
+        }
+
+        return 'Rp ' + numeric.toLocaleString('id-ID');
+    }
+
+    function printPercentDinas(value) {
+        if (value === null || value === undefined || value === '') return '0%';
+        let text = String(value).trim();
+        return text.endsWith('%') ? text : text + '%';
+    }
+
+    async function ambilDataDinasUntukCetak() {
+        if (!currentUser || currentUser.role !== 'DINAS') {
+            throw new Error('Fitur cetak rekap hanya untuk akun DINAS.');
+        }
+
+        const selectNpsn = document.getElementById('selectDinasNpsn');
+        const selectPaket = document.getElementById('selectDinasPaket');
+
+        const selectedNpsn = String(selectNpsn ? selectNpsn.value : '').trim();
+        const selectedMenu = String(selectPaket ? selectPaket.value : '').trim();
+
+        showLoading('Menyiapkan data rekap cetak...');
+
+        try {
+            // Ambil tiga sumber data secara eksplisit supaya hasil cetak
+            // tidak bergantung pada tabel yang sedang aktif di layar.
+            const [resSekolah, resPaket, resProgres] = await Promise.all([
+                fetch(`${WEB_APP_URL}?action=getData&sheet=sekolah&role=DINAS&npsn=`),
+                fetch(`${WEB_APP_URL}?action=getData&sheet=paket_pekerjaan_sd&role=DINAS&npsn=`),
+                fetch(`${WEB_APP_URL}?action=getData&sheet=laporan_progres&role=DINAS&npsn=`)
+            ]);
+
+            const [dataSekolah, dataPaket, dataProgres] = await Promise.all([
+                resSekolah.json(),
+                resPaket.json(),
+                resProgres.json()
+            ]);
+
+            if (dataSekolah.status !== 'success') {
+                throw new Error(dataSekolah.message || 'Data sekolah gagal dimuat.');
+            }
+            if (dataPaket.status !== 'success') {
+                throw new Error(dataPaket.message || 'Data paket pekerjaan gagal dimuat.');
+            }
+            if (dataProgres.status !== 'success') {
+                throw new Error(dataProgres.message || 'Data laporan progres gagal dimuat.');
+            }
+
+            let sekolahList = Array.isArray(dataSekolah.data) ? dataSekolah.data : [];
+            let paketList = Array.isArray(dataPaket.data) ? dataPaket.data : [];
+            let progresList = Array.isArray(dataProgres.data) ? dataProgres.data : [];
+
+            // Filter NPSN.
+            if (selectedNpsn) {
+                paketList = paketList.filter(p =>
+                    String(p.npsn || '').trim() === selectedNpsn
+                );
+
+                progresList = progresList.filter(p =>
+                    String(p.npsn || '').trim() === selectedNpsn
+                );
+            }
+
+            // Filter menu pekerjaan jika pengguna memilihnya.
+            if (selectedMenu) {
+                paketList = paketList.filter(p =>
+                    String(p.nama_menu || '').trim() === selectedMenu
+                );
+
+                const paketIds = new Set(
+                    paketList.map(p => String(p.paket_id || p.id_paket || '').trim())
+                );
+
+                progresList = progresList.filter(p =>
+                    paketIds.has(String(p.paket_id || p.id_paket || '').trim())
+                );
+            }
+
+            // Batasi sekolah hanya pada NPSN yang memang punya paket.
+            const npsnPaket = new Set(
+                paketList
+                    .map(p => String(p.npsn || '').trim())
+                    .filter(Boolean)
+            );
+
+            if (selectedNpsn && !npsnPaket.has(selectedNpsn)) {
+                // Tetap izinkan cetak dengan identitas sekolah,
+                // tetapi tanpa paket akan menghasilkan keterangan kosong.
+                npsnPaket.add(selectedNpsn);
+            }
+
+            return {
+                selectedNpsn,
+                selectedMenu,
+                sekolahList,
+                paketList,
+                progresList,
+                npsnPaket
+            };
+
+        } finally {
+            hideLoading();
+        }
+    }
+
+    function bukaJendelaCetakDinas(title, htmlBody) {
+        const printWindow = window.open('', '_blank');
+
+        if (!printWindow) {
+            alert(
+                'Jendela cetak diblokir browser. ' +
+                'Silakan izinkan pop-up untuk SIVIT26.'
+            );
+            return;
+        }
+
+        printWindow.document.write(`
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>${escapePrintHtml(title)}</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 18mm;
+            font-family: Arial, Helvetica, sans-serif;
+            color: #111827;
+            background: #ffffff;
+            font-size: 10.5pt;
+        }
+
+        .kop {
+            display: flex;
+            align-items: center;
+            border-bottom: 3px double #111827;
+            padding-bottom: 9px;
+            margin-bottom: 14px;
+        }
+
+        .kop img {
+            width: 58px;
+            height: 58px;
+            object-fit: contain;
+            margin-right: 12px;
+        }
+
+        .kop-text {
+            flex: 1;
+            text-align: center;
+        }
+
+        .kop-text h1,
+        .kop-text h2,
+        .kop-text p {
+            margin: 1px 0;
+        }
+
+        .kop-text h2 {
+            font-size: 11pt;
+        }
+
+        .kop-text h1 {
+            font-size: 13pt;
+        }
+
+        .kop-text p {
+            font-size: 8.5pt;
+        }
+
+        .judul {
+            text-align: center;
+            margin: 12px 0 16px;
+        }
+
+        .judul h3 {
+            margin: 0;
+            font-size: 12pt;
+            text-transform: uppercase;
+        }
+
+        .judul p {
+            margin: 4px 0 0;
+            color: #4b5563;
+            font-size: 9pt;
+        }
+
+        .ringkasan {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+
+        .ringkasan .box {
+            border: 1px solid #9ca3af;
+            padding: 7px;
+            background: #f9fafb;
+        }
+
+        .ringkasan .label {
+            display: block;
+            font-size: 8pt;
+            color: #6b7280;
+            margin-bottom: 2px;
+        }
+
+        .ringkasan .value {
+            font-weight: bold;
+            font-size: 10pt;
+        }
+
+        .sekolah-block {
+            margin-top: 18px;
+            page-break-inside: avoid;
+        }
+
+        .sekolah-header {
+            background: #1d4ed8;
+            color: #ffffff;
+            padding: 8px 10px;
+            border: 1px solid #1e40af;
+        }
+
+        .sekolah-header .npsn {
+            font-size: 11pt;
+            font-weight: bold;
+        }
+
+        .sekolah-header .nama {
+            font-size: 10pt;
+            margin-top: 2px;
+        }
+
+        .identitas {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 7px 0 10px;
+        }
+
+        .identitas td {
+            border: 1px solid #d1d5db;
+            padding: 5px 6px;
+            vertical-align: top;
+        }
+
+        .identitas td.label {
+            width: 15%;
+            font-weight: bold;
+            background: #f3f4f6;
+        }
+
+        .section-title {
+            margin: 10px 0 5px;
+            font-size: 9.5pt;
+            font-weight: bold;
+            color: #1e3a8a;
+            border-bottom: 1px solid #9ca3af;
+            padding-bottom: 3px;
+        }
+
+        table.data {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px;
+        }
+
+        table.data th,
+        table.data td {
+            border: 1px solid #9ca3af;
+            padding: 5px 6px;
+            vertical-align: top;
+        }
+
+        table.data th {
+            background: #e5e7eb;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        table.data td.center {
+            text-align: center;
+        }
+
+        table.data td.right {
+            text-align: right;
+        }
+
+        .paket-block {
+            margin-bottom: 12px;
+            page-break-inside: avoid;
+        }
+
+        .paket-title {
+            background: #eff6ff;
+            border: 1px solid #93c5fd;
+            padding: 7px;
+            font-weight: bold;
+        }
+
+        .progres-wrap {
+            margin-top: 6px;
+        }
+
+        .muted {
+            color: #6b7280;
+            font-style: italic;
+        }
+
+        .footer-print {
+            margin-top: 25px;
+            padding-top: 8px;
+            border-top: 1px solid #d1d5db;
+            font-size: 8pt;
+            color: #6b7280;
+            text-align: center;
+        }
+
+        .no-print {
+            text-align: center;
+            margin: 18px 0 0;
+        }
+
+        .no-print button {
+            border: 0;
+            padding: 9px 18px;
+            border-radius: 6px;
+            background: #1d4ed8;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        @media print {
+            body {
+                padding: 10mm;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+
+            .sekolah-block {
+                page-break-inside: avoid;
+            }
+
+            .paket-block {
+                page-break-inside: avoid;
+            }
+
+            thead {
+                display: table-header-group;
+            }
+        }
+    </style>
+</head>
+<body>
+    ${htmlBody}
+
+    <div class="footer-print">
+        SIVIT26 — Sistem Informasi Pemantauan Revitalisasi SD Kabupaten Rembang 2026
+    </div>
+
+    <div class="no-print">
+        <button onclick="window.print()">Cetak / Simpan sebagai PDF</button>
+    </div>
+</body>
+</html>
+        `);
+
+        printWindow.document.close();
+    }
+
+    async function cetakRekapDinasPaket() {
+        if (!currentUser || currentUser.role !== 'DINAS') {
+            alert('Fitur ini hanya dapat digunakan oleh akun DINAS.');
+            return;
+        }
+
+        try {
+            const data = await ambilDataDinasUntukCetak();
+            const {
+                selectedNpsn,
+                selectedMenu,
+                sekolahList,
+                paketList,
+                npsnPaket
+            } = data;
+
+            const schoolMap = new Map();
+
+            sekolahList.forEach(s => {
+                const npsn = String(s.npsn || '').trim();
+                if (npsn) schoolMap.set(npsn, s);
+            });
+
+            const groups = Array.from(npsnPaket)
+                .filter(Boolean)
+                .sort((a, b) => a.localeCompare(b, 'id'));
+
+            let totalPaket = 0;
+            let body = '';
+
+            groups.forEach((npsn, schoolIndex) => {
+                const school = schoolMap.get(npsn) || {};
+                const namaSekolah =
+                    school.nama_sekolah ||
+                    school.nama_pengguna ||
+                    'Sekolah ' + npsn;
+
+                const paketSekolah = paketList
+                    .filter(p => String(p.npsn || '').trim() === npsn)
+                    .sort((a, b) =>
+                        String(a.nama_menu || '').localeCompare(
+                            String(b.nama_menu || ''),
+                            'id'
+                        )
+                    );
+
+                totalPaket += paketSekolah.length;
+
+                body += `
+                    <section class="sekolah-block">
+                        <div class="sekolah-header">
+                            <div class="npsn">NPSN: ${escapePrintHtml(npsn)}</div>
+                            <div class="nama">${escapePrintHtml(namaSekolah)}</div>
+                        </div>
+
+                        <table class="identitas">
+                            <tr>
+                                <td class="label">Kecamatan</td>
+                                <td>${escapePrintHtml(school.kecamatan || '-')}</td>
+                                <td class="label">Alamat</td>
+                                <td>${escapePrintHtml(school.alamat_lengkap || '-')}</td>
+                            </tr>
+                        </table>
+
+                        <div class="section-title">
+                            PAKET PEKERJAAN SD
+                        </div>
+
+                        <table class="data">
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>ID Paket</th>
+                                    <th>Nama Menu Pekerjaan</th>
+                                    <th>Pagu</th>
+                                    <th>Tanggal Mulai</th>
+                                    <th>Lama Hari</th>
+                                    <th>Tanggal Selesai</th>
+                                    <th>Perencana</th>
+                                    <th>Pengawas</th>
+                                    <th>Status Pagu</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${
+                                    paketSekolah.length
+                                    ? paketSekolah.map((p, i) => `
+                                        <tr>
+                                            <td class="center">${i + 1}</td>
+                                            <td>${escapePrintHtml(p.paket_id || p.id_paket || '-')}</td>
+                                            <td>${escapePrintHtml(p.nama_menu || '-')}</td>
+                                            <td class="right">${printRupiahDinas(p.pagu)}</td>
+                                            <td>${escapePrintHtml(p.tanggal_mulai || '-')}</td>
+                                            <td class="center">${escapePrintHtml(p.lama_hari || 0)}</td>
+                                            <td>${escapePrintHtml(p.tgl_selesai || '-')}</td>
+                                            <td>${escapePrintHtml(p.perencana || '-')}</td>
+                                            <td>${escapePrintHtml(p.pengawas || '-')}</td>
+                                            <td class="center">${escapePrintHtml(p.status_pagu || '-')}</td>
+                                        </tr>
+                                    `).join('')
+                                    : `
+                                        <tr>
+                                            <td colspan="10" class="center muted">
+                                                Belum ada paket pekerjaan.
+                                            </td>
+                                        </tr>
+                                    `
+                                }
+                            </tbody>
+                        </table>
+                    </section>
+                `;
+            });
+
+            const scopeText = selectedNpsn
+                ? `NPSN ${escapePrintHtml(selectedNpsn)}`
+                : 'Seluruh NPSN';
+
+            const menuText = selectedMenu
+                ? ` | Menu: ${escapePrintHtml(selectedMenu)}`
+                : '';
+
+            const today = new Date().toLocaleDateString('id-ID', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+            });
+
+            const fullBody = `
+                <div class="kop">
+                    <img src="logorembang.png" alt="Logo Kabupaten Rembang"
+                         onerror="this.style.display='none'">
+                    <div class="kop-text">
+                        <h2>PEMERINTAH KABUPATEN REMBANG</h2>
+                        <h1>DINAS PENDIDIKAN, PEMUDA DAN OLAHRAGA</h1>
+                        <p>Seksi Kelembagaan, Sarana dan Prasarana Bidang SD</p>
+                        <p>SIVIT26 Tahun 2026</p>
+                    </div>
+                </div>
+
+                <div class="judul">
+                    <h3>REKAPITULASI PAKET PEKERJAAN SD</h3>
+                    <p>${scopeText}${menuText} | Dicetak ${today}</p>
+                </div>
+
+                <div class="ringkasan">
+                    <div class="box">
+                        <span class="label">Cakupan Sekolah</span>
+                        <span class="value">${groups.length} NPSN</span>
+                    </div>
+                    <div class="box">
+                        <span class="label">Total Paket</span>
+                        <span class="value">${totalPaket} Paket</span>
+                    </div>
+                    <div class="box">
+                        <span class="label">Jenis Menu</span>
+                        <span class="value">${new Set(paketList.map(p => String(p.nama_menu || '').trim()).filter(Boolean)).size} Menu</span>
+                    </div>
+                </div>
+
+                ${body}
+            `;
+
+            bukaJendelaCetakDinas(
+                `Rekap Paket Pekerjaan SD - ${selectedNpsn || 'Semua NPSN'}`,
+                fullBody
+            );
+
+        } catch (err) {
+            console.error('Gagal mencetak rekap paket DINAS:', err);
+            alert('Gagal menyiapkan rekap paket: ' + (err.message || err));
+        }
+    }
+
+    async function cetakRekapDinasProgres() {
+        if (!currentUser || currentUser.role !== 'DINAS') {
+            alert('Fitur ini hanya dapat digunakan oleh akun DINAS.');
+            return;
+        }
+
+        try {
+            const data = await ambilDataDinasUntukCetak();
+            const {
+                selectedNpsn,
+                selectedMenu,
+                sekolahList,
+                paketList,
+                progresList,
+                npsnPaket
+            } = data;
+
+            const schoolMap = new Map();
+
+            sekolahList.forEach(s => {
+                const npsn = String(s.npsn || '').trim();
+                if (npsn) schoolMap.set(npsn, s);
+            });
+
+            const groups = Array.from(npsnPaket)
+                .filter(Boolean)
+                .sort((a, b) => a.localeCompare(b, 'id'));
+
+            let totalPaket = 0;
+            let totalLaporan = 0;
+            let body = '';
+
+            groups.forEach(npsn => {
+                const school = schoolMap.get(npsn) || {};
+                const namaSekolah =
+                    school.nama_sekolah ||
+                    school.nama_pengguna ||
+                    'Sekolah ' + npsn;
+
+                const paketSekolah = paketList
+                    .filter(p => String(p.npsn || '').trim() === npsn)
+                    .sort((a, b) =>
+                        String(a.nama_menu || '').localeCompare(
+                            String(b.nama_menu || ''),
+                            'id'
+                        )
+                    );
+
+                totalPaket += paketSekolah.length;
+
+                let paketHtml = '';
+
+                paketSekolah.forEach((paket, paketIndex) => {
+                    const paketId = String(
+                        paket.paket_id || paket.id_paket || ''
+                    ).trim();
+
+                    const progresPaket = progresList
+                        .filter(item =>
+                            String(item.paket_id || item.id_paket || '').trim() === paketId
+                        )
+                        .sort((a, b) =>
+                            String(a.minggu_ke || '').localeCompare(
+                                String(b.minggu_ke || ''),
+                                'id',
+                                { numeric: true }
+                            )
+                        );
+
+                    totalLaporan += progresPaket.length;
+
+                    paketHtml += `
+                        <div class="paket-block">
+                            <div class="paket-title">
+                                ${paketIndex + 1}. ${escapePrintHtml(paket.nama_menu || 'Paket Pekerjaan')}
+                                — ID Paket: ${escapePrintHtml(paketId || '-')}
+                            </div>
+
+                            <table class="identitas">
+                                <tr>
+                                    <td class="label">Pagu</td>
+                                    <td>${printRupiahDinas(paket.pagu)}</td>
+                                    <td class="label">Periode</td>
+                                    <td>
+                                        ${escapePrintHtml(paket.tanggal_mulai || '-')}
+                                        s.d.
+                                        ${escapePrintHtml(paket.tgl_selesai || '-')}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="label">Perencana</td>
+                                    <td>${escapePrintHtml(paket.perencana || '-')}</td>
+                                    <td class="label">Pengawas</td>
+                                    <td>${escapePrintHtml(paket.pengawas || '-')}</td>
+                                </tr>
+                            </table>
+
+                            <div class="progres-wrap">
+                                <div class="section-title">RIWAYAT LAPORAN PROGRES</div>
+
+                                <table class="data">
+                                    <thead>
+                                        <tr>
+                                            <th>No</th>
+                                            <th>Minggu Ke</th>
+                                            <th>Tanggal Lapor</th>
+                                            <th>Target (%)</th>
+                                            <th>Realisasi (%)</th>
+                                            <th>Penggunaan Anggaran</th>
+                                            <th>Status Verifikasi</th>
+                                            <th>Catatan Dinas</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${
+                                            progresPaket.length
+                                            ? progresPaket.map((item, i) => `
+                                                <tr>
+                                                    <td class="center">${i + 1}</td>
+                                                    <td class="center">${escapePrintHtml(item.minggu_ke || '-')}</td>
+                                                    <td>${escapePrintHtml(item.tanggal_lapor || '-')}</td>
+                                                    <td class="center">${printPercentDinas(item.target_kurva_s || 0)}</td>
+                                                    <td class="center"><strong>${printPercentDinas(item.realisasi_fisik || 0)}</strong></td>
+                                                    <td class="right">${printRupiahDinas(item.penggunaan_anggaran)}</td>
+                                                    <td class="center">${escapePrintHtml(item.status_verifikasi || 'DIAJUKAN')}</td>
+                                                    <td>${escapePrintHtml(item.catatan_dinas || '-')}</td>
+                                                </tr>
+                                            `).join('')
+                                            : `
+                                                <tr>
+                                                    <td colspan="8" class="center muted">
+                                                        Belum ada laporan progres untuk paket ini.
+                                                    </td>
+                                                </tr>
+                                            `
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                body += `
+                    <section class="sekolah-block">
+                        <div class="sekolah-header">
+                            <div class="npsn">NPSN: ${escapePrintHtml(npsn)}</div>
+                            <div class="nama">${escapePrintHtml(namaSekolah)}</div>
+                        </div>
+
+                        <table class="identitas">
+                            <tr>
+                                <td class="label">Kecamatan</td>
+                                <td>${escapePrintHtml(school.kecamatan || '-')}</td>
+                                <td class="label">Alamat</td>
+                                <td>${escapePrintHtml(school.alamat_lengkap || '-')}</td>
+                            </tr>
+                        </table>
+
+                        ${paketHtml || `
+                            <div class="muted">
+                                Belum ada paket pekerjaan untuk sekolah ini.
+                            </div>
+                        `}
+                    </section>
+                `;
+            });
+
+            const scopeText = selectedNpsn
+                ? `NPSN ${escapePrintHtml(selectedNpsn)}`
+                : 'Seluruh NPSN';
+
+            const menuText = selectedMenu
+                ? ` | Menu: ${escapePrintHtml(selectedMenu)}`
+                : '';
+
+            const today = new Date().toLocaleDateString('id-ID', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+            });
+
+            const fullBody = `
+                <div class="kop">
+                    <img src="logorembang.png" alt="Logo Kabupaten Rembang"
+                         onerror="this.style.display='none'">
+                    <div class="kop-text">
+                        <h2>PEMERINTAH KABUPATEN REMBANG</h2>
+                        <h1>DINAS PENDIDIKAN, PEMUDA DAN OLAHRAGA</h1>
+                        <p>Seksi Kelembagaan, Sarana dan Prasarana Bidang SD</p>
+                        <p>SIVIT26 Tahun 2026</p>
+                    </div>
+                </div>
+
+                <div class="judul">
+                    <h3>REKAPITULASI LAPORAN PROGRES PEKERJAAN SD</h3>
+                    <p>${scopeText}${menuText} | Dicetak ${today}</p>
+                </div>
+
+                <div class="ringkasan">
+                    <div class="box">
+                        <span class="label">Cakupan Sekolah</span>
+                        <span class="value">${groups.length} NPSN</span>
+                    </div>
+                    <div class="box">
+                        <span class="label">Total Paket</span>
+                        <span class="value">${totalPaket} Paket</span>
+                    </div>
+                    <div class="box">
+                        <span class="label">Total Laporan Progres</span>
+                        <span class="value">${totalLaporan} Laporan</span>
+                    </div>
+                </div>
+
+                ${body}
+            `;
+
+            bukaJendelaCetakDinas(
+                `Rekap Laporan Progres - ${selectedNpsn || 'Semua NPSN'}`,
+                fullBody
+            );
+
+        } catch (err) {
+            console.error('Gagal mencetak rekap progres DINAS:', err);
+            alert('Gagal menyiapkan rekap progres: ' + (err.message || err));
+        }
+    }
+
     async function verifyReg(npsn, status) {
         if(!confirm(`Ubah status pendaftaran sekolah menjadi ${status}?`)) return;
         try {
