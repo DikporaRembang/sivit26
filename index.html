@@ -1463,7 +1463,7 @@ table {
 
     function loadNotifikasi(penerima) {
         let container = document.getElementById('notifListContainer');
-        fetch(`${WEB_APP_URL}?action=getNotifikasi&penerima=${encodeURIComponent(penerima)}`)
+        fetch(`${WEB_APP_URL}?token=${encodeURIComponent(currentUser?.token || "")}&action=getNotifikasi&penerima=${encodeURIComponent(penerima)}`)
             .then(res => res.json())
             .then(response => {
                 if(response.status === 'success') {
@@ -1501,7 +1501,7 @@ table {
 
     function eksekusiDanHapusNotifikasi(idNotifikasi) {
       fetch(
-        `${WEB_APP_URL}?action=hapusNotifikasi&id=${encodeURIComponent(idNotifikasi)}`
+        `${WEB_APP_URL}?token=${encodeURIComponent(currentUser?.token || "")}&action=hapusNotifikasi&id=${encodeURIComponent(idNotifikasi)}`
       )
         .then(response => response.json())
         .then(result => {
@@ -1525,7 +1525,7 @@ table {
     document.getElementById('regNpsn').addEventListener('blur', function() {
         let npsn = this.value.trim();
         if (!npsn) return;
-        fetch(`${WEB_APP_URL}?action=checkNpsn&npsn=${npsn}`)
+        fetch(`${WEB_APP_URL}?token=${encodeURIComponent(currentUser?.token || "")}&action=checkNpsn&npsn=${npsn}`)
             .then(res => res.json())
             .then(res => {
                 if (res.status === 'success') {
@@ -1614,11 +1614,23 @@ async function handleRegister(e) {
         }
     }
     
-    function logout() {
-        localStorage.removeItem('sivit_user');
-        currentUser = null;
-        document.getElementById('authContainer').classList.remove('hidden');
-        document.getElementById('dashboardContainer').classList.add('hidden');
+    async function logout() {
+        try {
+            if (currentUser?.token) {
+                await fetch(WEB_APP_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action: 'logout', token: currentUser.token })
+                });
+            }
+        } catch (err) {
+            console.warn('Logout server gagal:', err);
+        } finally {
+            localStorage.removeItem('sivit_user');
+            currentUser = null;
+            document.getElementById('authContainer').classList.remove('hidden');
+            document.getElementById('dashboardContainer').classList.add('hidden');
+        }
     }
 
     window.onload = function() {
@@ -1628,7 +1640,7 @@ async function handleRegister(e) {
             if (saved) {
                 currentUser = JSON.parse(saved);
 
-               if (currentUser && currentUser.username) {
+               if (currentUser && currentUser.username && currentUser.token) {
                     initDashboard();
                 } else {
                     localStorage.removeItem('sivit_user');
@@ -1650,15 +1662,15 @@ async function handleRegister(e) {
 
     async function loadReferenceTables() {
         try {
-            let resMenu = await fetch(`${WEB_APP_URL}?action=getRef&type=menu_pekerjaan`);
+            let resMenu = await fetch(`${WEB_APP_URL}?token=${encodeURIComponent(currentUser?.token || "")}&action=getRef&type=menu_pekerjaan`);
             let dataMenu = await resMenu.json();
             menuPekerjaanList = dataMenu.data || [];
 
-            let resUsers = await fetch(`${WEB_APP_URL}?action=getRef&type=users`);
+            let resUsers = await fetch(`${WEB_APP_URL}?token=${encodeURIComponent(currentUser?.token || "")}&action=getRef&type=users`);
             let dataUsers = await resUsers.json();
             usersList = dataUsers.data || [];
 
-            let resPaket = await fetch(`${WEB_APP_URL}?action=getData&sheet=paket_pekerjaan_sd&role=DINAS&npsn=`);
+            let resPaket = await fetch(`${WEB_APP_URL}?token=${encodeURIComponent(currentUser?.token || "")}&action=getData&sheet=paket_pekerjaan_sd&role=DINAS&npsn=`);
             let dataPaket = await resPaket.json();
             paketPekerjaanList = dataPaket.data || [];
 
@@ -1945,7 +1957,7 @@ async function handleRegister(e) {
 
         try {
             let targetSheet = sheetName === 'kurva_s' ? 'laporan_progres' : sheetName;
-            let res = await fetch(`${WEB_APP_URL}?action=getData&sheet=${targetSheet}&role=${currentUser.role}&npsn=${encodeURIComponent(currentUser.username)}`);
+            let res = await fetch(`${WEB_APP_URL}?token=${encodeURIComponent(currentUser?.token || "")}&action=getData&sheet=${targetSheet}&role=${currentUser.role}&npsn=${encodeURIComponent(currentUser.username)}`);
             let result = await res.json();
 
             if (result.status === 'success') {
@@ -1979,7 +1991,7 @@ async function handleRegister(e) {
                             : String(currentUser.username || '').trim();
 
                         const resPaketRef = await fetch(
-                            `${WEB_APP_URL}?action=getData&sheet=paket_pekerjaan_sd&role=${paketRole}&npsn=${encodeURIComponent(paketNpsn)}`
+                            `${WEB_APP_URL}?token=${encodeURIComponent(currentUser?.token || "")}&action=getData&sheet=paket_pekerjaan_sd&role=${paketRole}&npsn=${encodeURIComponent(paketNpsn)}`
                         );
                         const resultPaketRef = await resPaketRef.json();
 
@@ -2055,7 +2067,7 @@ async function handleRegister(e) {
 
         try {
             let res = await fetch(
-                `${WEB_APP_URL}?action=getData&sheet=laporan_progres&role=DINAS&npsn=`
+                `${WEB_APP_URL}?token=${encodeURIComponent(currentUser?.token || "")}&action=getData&sheet=laporan_progres&role=DINAS&npsn=`
             );
 
             let result = await res.json();
@@ -2584,9 +2596,9 @@ async function handleRegister(e) {
 
         try {
             const [resSekolah, resPaket, resProgres] = await Promise.all([
-                fetch(`${WEB_APP_URL}?action=getData&sheet=sekolah&role=SEKOLAH&npsn=${encodeURIComponent(targetNpsn)}`),
-                fetch(`${WEB_APP_URL}?action=getData&sheet=paket_pekerjaan_sd&role=SEKOLAH&npsn=${encodeURIComponent(targetNpsn)}`),
-                fetch(`${WEB_APP_URL}?action=getData&sheet=laporan_progres&role=SEKOLAH&npsn=${encodeURIComponent(targetNpsn)}`)
+                fetch(`${WEB_APP_URL}?token=${encodeURIComponent(currentUser?.token || "")}&action=getData&sheet=sekolah&role=SEKOLAH&npsn=${encodeURIComponent(targetNpsn)}`),
+                fetch(`${WEB_APP_URL}?token=${encodeURIComponent(currentUser?.token || "")}&action=getData&sheet=paket_pekerjaan_sd&role=SEKOLAH&npsn=${encodeURIComponent(targetNpsn)}`),
+                fetch(`${WEB_APP_URL}?token=${encodeURIComponent(currentUser?.token || "")}&action=getData&sheet=laporan_progres&role=SEKOLAH&npsn=${encodeURIComponent(targetNpsn)}`)
             ]);
 
             const [resultSekolah, resultPaket, resultProgres] = await Promise.all([
@@ -2879,7 +2891,7 @@ async function handleRegister(e) {
         try {
             
             const res = await fetch(
-                `${WEB_APP_URL}?action=getData` +
+                `${WEB_APP_URL}?token=${encodeURIComponent(currentUser?.token || "")}&action=getData` +
                 `&sheet=laporan_progres` +
                 `&role=SEKOLAH` +
                 `&npsn=${encodeURIComponent(targetNpsn)}`
@@ -3483,7 +3495,7 @@ async function cetakLaporanResmi(paketId, npsn) {
         }
         let progresList = [];
         try {
-            let res = await fetch(`${WEB_APP_URL}?action=getData&sheet=laporan_progres&role=DINAS&npsn=${encodeURIComponent(targetNpsn)}`);
+            let res = await fetch(`${WEB_APP_URL}?token=${encodeURIComponent(currentUser?.token || "")}&action=getData&sheet=laporan_progres&role=DINAS&npsn=${encodeURIComponent(targetNpsn)}`);
             let result = await res.json();
             if (result.status === 'success') {
                 progresList = (result.data || []).filter(item => String(item.paket_id || '').trim() === String(paketId).trim());
@@ -3663,9 +3675,9 @@ async function cetakLaporanResmi(paketId, npsn) {
             // Ambil tiga sumber data secara eksplisit supaya hasil cetak
             // tidak bergantung pada tabel yang sedang aktif di layar.
             const [resSekolah, resPaket, resProgres] = await Promise.all([
-                fetch(`${WEB_APP_URL}?action=getData&sheet=sekolah&role=DINAS&npsn=`),
-                fetch(`${WEB_APP_URL}?action=getData&sheet=paket_pekerjaan_sd&role=DINAS&npsn=`),
-                fetch(`${WEB_APP_URL}?action=getData&sheet=laporan_progres&role=DINAS&npsn=`)
+                fetch(`${WEB_APP_URL}?token=${encodeURIComponent(currentUser?.token || "")}&action=getData&sheet=sekolah&role=DINAS&npsn=`),
+                fetch(`${WEB_APP_URL}?token=${encodeURIComponent(currentUser?.token || "")}&action=getData&sheet=paket_pekerjaan_sd&role=DINAS&npsn=`),
+                fetch(`${WEB_APP_URL}?token=${encodeURIComponent(currentUser?.token || "")}&action=getData&sheet=laporan_progres&role=DINAS&npsn=`)
             ]);
 
             const [dataSekolah, dataPaket, dataProgres] = await Promise.all([
@@ -4422,7 +4434,7 @@ async function cetakLaporanResmi(paketId, npsn) {
         try {
             const res = await fetch(WEB_APP_URL, {
                 method: 'POST',
-                body: JSON.stringify({ action: 'verifyRegister', npsn: npsn, status: status })
+                body: JSON.stringify({ action: 'verifyRegister', token: currentUser?.token || '', npsn: npsn, status: status })
             });
             const data = await res.json();
             alert(data.pesan);
@@ -4461,6 +4473,7 @@ async function cetakLaporanResmi(paketId, npsn) {
                 method: 'POST',
                 body: JSON.stringify({
                     action: 'verifikasiLaporan',
+                    token: currentUser?.token || '',
                     idLaporan: idLaporan,
                     status: status,
                     catatanDinas: catatanDinas
@@ -5402,6 +5415,7 @@ async function handleFormSubmit(e) {
             method: 'POST',
             body: JSON.stringify({
                 action: actionName,
+                token: currentUser?.token || '',
                 sheet: currentActiveSheet,
                 role: currentUser ? currentUser.role : '',
 
@@ -5472,6 +5486,7 @@ async function deleteRowData(rowIndex) {
             method: 'POST',
             body: JSON.stringify({
                 action: 'deleteData',
+                token: currentUser?.token || '',
                 sheet: currentActiveSheet,
                 rowIndex: rowIndex
             })
@@ -5496,6 +5511,7 @@ async function verifikasiPaguDinas(paketId, keputusan) {
             method: 'POST',
             body: JSON.stringify({
                 action: 'verifikasiPagu',
+                token: currentUser?.token || '',
                 role: currentUser.role,
                 paketId: paketId,
                 keputusan: keputusan
@@ -5523,7 +5539,7 @@ async function bukaRiwayatPagu(npsn, paketId) {
     modal.classList.add('flex');
 
     try {
-        let res = await fetch(`${WEB_APP_URL}?action=getData&sheet=riwayat_pagu&role=${currentUser.role}&npsn=${encodeURIComponent(npsn)}`);
+        let res = await fetch(`${WEB_APP_URL}?token=${encodeURIComponent(currentUser?.token || "")}&action=getData&sheet=riwayat_pagu&role=${currentUser.role}&npsn=${encodeURIComponent(npsn)}`);
         let result = await res.json();
         if (result.status === 'success') {
             let dataRiwayat = (result.data || []).filter(r => String(r.paket_id || '').trim() === String(paketId).trim());
@@ -5779,7 +5795,7 @@ if (currentUser && currentUser.role === 'SEKOLAH') {
     async function ambilDataSekolahByNpsn(npsn) {
         try {
             const res = await fetch(
-                `${WEB_APP_URL}?action=getData` +
+                `${WEB_APP_URL}?token=${encodeURIComponent(currentUser?.token || "")}&action=getData` +
                 `&sheet=sekolah` +
                 `&role=SEKOLAH` +
                 `&npsn=${encodeURIComponent(npsn)}`
@@ -5823,6 +5839,10 @@ if (currentUser && currentUser.role === 'SEKOLAH') {
             // Kumpulkan data payload
             const payload = {
                 action: 'simpanLaporanProgres', // <--- Disamakan dengan backend
+                token: currentUser?.token || '',
+                role: currentUser?.role || '',
+                username: currentUser?.username || '',
+                npsn: currentUser?.username || '',
                 formData: {
                     npsn: document.getElementById('npsn-sekolah').value,
                     nama_sekolah: document.getElementById('nama-sekolah').value,
