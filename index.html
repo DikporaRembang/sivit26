@@ -3652,7 +3652,32 @@ currentHeaders.forEach(h => {
                                     Foto: ${file.name}
                                 </span>
                                 <br>
-                                🕒 Tanggal foto: ${formattedDate}
+                                let formattedDate = "";
+
+                                if (dateTime) {
+                                    let parts = String(dateTime).split(' ');
+
+                                    if (parts.length >= 2) {
+                                        let dateParts = parts[0].split(':');
+
+                                        if (dateParts.length === 3) {
+                                            formattedDate =
+                                                `${dateParts[2]}/${dateParts[1]}/${dateParts[0]} ${parts[1]}`;
+                                        }
+                                    }
+                                }
+
+                                if (!formattedDate) {
+                                    let now = new Date();
+
+                                    formattedDate =
+                                        `${String(now.getDate()).padStart(2, '0')}/` +
+                                        `${String(now.getMonth() + 1).padStart(2, '0')}/` +
+                                        `${now.getFullYear()} ` +
+                                        `${String(now.getHours()).padStart(2, '0')}:` +
+                                        `${String(now.getMinutes()).padStart(2, '0')}:` +
+                                        `${String(now.getSeconds()).padStart(2, '0')}`;
+                                }
                                 <br>
                                 📍 GPS: ${gpsStr || 'Belum ada (isi manual di bawah)'}`;
 
@@ -3671,6 +3696,22 @@ currentHeaders.forEach(h => {
                 input.readOnly = true;
                 input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-400 cursor-not-allowed font-bold";
                 input.value = activeRowData && activeRowData[h] ? activeRowData[h] : "LAP-" + currentUser.username + "-" + Math.floor(Date.now() / 1000);
+            } else if (hLower === 'npsn') {
+                input = document.createElement('input');
+                input.type = "text";
+                input.name = h;
+                input.readOnly = true;
+
+                input.className =
+                    "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 " +
+                    "rounded-xl text-xs text-amber-300 cursor-not-allowed font-bold";
+    input.value =
+        currentUser && currentUser.role === 'SEKOLAH'
+            ? String(currentUser.username || '').trim()
+            : (activeRowData && activeRowData[h]
+                ? activeRowData[h]
+                : "");
+            
             } else if (hLower === 'paket_id') {
                 input = document.createElement('select');
                 input.name = h;
@@ -3728,6 +3769,10 @@ currentHeaders.forEach(h => {
                 input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
                 input.value = typeof convertToInputDate === 'function' ? convertToInputDate(activeRowData && activeRowData[h] ? activeRowData[h] : new Date().toISOString().split('T')[0]) : "";
             } else if (hLower === 'target_kurva_s' || hLower === 'realisasi_fisik') {
+
+                let wrapper = document.createElement('div');
+                wrapper.className = "relative";
+
                 input = document.createElement('input');
                 input.type = "number";
                 input.step = "0.01";
@@ -3735,8 +3780,27 @@ currentHeaders.forEach(h => {
                 input.min = "0";
                 input.name = h;
                 input.placeholder = "0 - 100";
-                input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-                input.value = activeRowData && activeRowData[h] !== undefined ? String(activeRowData[h]).replace('%', '') : "";
+
+                input.className =
+                    "w-full px-3.5 py-2.5 pr-10 border border-blue-700 " +
+                    "bg-blue-950 rounded-xl text-xs text-white " +
+                    "focus:ring-2 focus:ring-amber-400 focus:outline-none";
+
+                input.value =
+                    activeRowData && activeRowData[h] !== undefined
+                        ? String(activeRowData[h]).replace('%', '').trim()
+                        : "";
+
+                let percentSuffix = document.createElement('span');
+                percentSuffix.innerText = "%";
+                percentSuffix.className =
+                    "absolute right-3 top-1/2 -translate-y-1/2 " +
+                    "text-amber-400 font-bold text-xs pointer-events-none";
+
+                wrapper.appendChild(input);
+                wrapper.appendChild(percentSuffix);
+
+                div.appendChild(wrapper);
             } else if (hLower === 'lokasi_koordinat') {
                 input = document.createElement('input');
                 input.type = "text";
@@ -3744,13 +3808,74 @@ currentHeaders.forEach(h => {
                 input.readOnly = true;
                 input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-300 cursor-not-allowed";
                 input.value = activeRowData && activeRowData[h] ? activeRowData[h] : "Otomatis dari metadata foto...";
-            } else if (hLower === 'penggunaan_anggaran') {
+
+            } else if (hLower === 'status_verifikasi') {
+
                 input = document.createElement('input');
-                input.type = "number";
+                input.type = "text";
                 input.name = h;
-                input.placeholder = "Nominal anggaran";
-                input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-                input.value = activeRowData && activeRowData[h] !== undefined ? Number(activeRowData[h]) : "";
+                input.readOnly = true;
+
+                input.className =
+                    "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 " +
+                    "rounded-xl text-xs text-amber-300 cursor-not-allowed font-bold";
+
+                if (currentUser.role === 'SEKOLAH') {
+                    input.value = "DIAJUKAN";
+                } else {
+                    input.value =
+                        activeRowData && activeRowData[h]
+                            ? activeRowData[h]
+                : "DIAJUKAN";
+                }
+                
+           } else if (hLower === 'penggunaan_anggaran') {
+
+                let wrapper = document.createElement('div');
+                wrapper.className = "relative";
+
+                let prefix = document.createElement('span');
+                prefix.innerText = "Rp.";
+                prefix.className =
+                    "absolute left-3 top-1/2 -translate-y-1/2 " +
+                    "text-amber-400 font-bold text-xs pointer-events-none";
+
+                input = document.createElement('input');
+                input.type = "text";
+                input.name = h;
+                input.inputMode = "numeric";
+                input.placeholder = "0";
+
+                input.className =
+                    "w-full px-3.5 py-2.5 pl-11 border border-blue-700 " +
+                    "bg-blue-950 rounded-xl text-xs text-white " +
+                    "focus:ring-2 focus:ring-amber-400 focus:outline-none";
+
+                let rawAnggaran =
+                    activeRowData && activeRowData[h] !== undefined
+                        ? String(activeRowData[h])
+                        : "";
+
+                let numericAnggaran =
+                    rawAnggaran.replace(/[^0-9]/g, "");
+
+                input.value =
+                    numericAnggaran
+                        ? Number(numericAnggaran).toLocaleString('id-ID')
+                        : "";
+
+                input.oninput = function() {
+                    let angka = this.value.replace(/[^0-9]/g, '');
+
+                    this.value = angka
+                        ? Number(angka).toLocaleString('id-ID')
+                        : "";
+                };
+
+                wrapper.appendChild(prefix);
+                wrapper.appendChild(input);
+
+                div.appendChild(wrapper);
             } else {
                 input = document.createElement('input');
                 input.type = "text";
@@ -3928,7 +4053,12 @@ async function handleFormSubmit(e) {
             return;
         }
 
-        formDataObj[inp.name] = inp.value;
+        if (inp.name === 'penggunaan_anggaran') {
+            formDataObj[inp.name] =
+                inp.value.replace(/[^0-9]/g, '');
+        } else {
+            formDataObj[inp.name] = inp.value;
+        }
     });
 
     // =========================================================
@@ -3943,10 +4073,11 @@ async function handleFormSubmit(e) {
     }
 
     // =========================================================
-    // 3. NPSN DARI AKUN SEKOLAH YANG LOGIN
+    // 3. NPSN WAJIB DARI AKUN SEKOLAH YANG LOGIN
     // =========================================================
 
-    if (isSekolah && isPaketPekerjaan) {
+    if (isSekolah) {
+
         const usernameLogin = String(
             currentUser.username || ''
         ).trim();
@@ -3961,11 +4092,12 @@ async function handleFormSubmit(e) {
             usernameLogin.toUpperCase() === 'DINAS'
         ) {
             alert(
-                'Akun DINAS/ADMIN tidak dapat menyimpan paket pekerjaan sekolah.'
+                'Akun DINAS/ADMIN tidak dapat menyimpan data sebagai SEKOLAH.'
             );
             return;
         }
 
+        // Paksa NPSN sesuai akun sekolah yang sedang login
         formDataObj.npsn = usernameLogin;
     }
 
