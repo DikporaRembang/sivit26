@@ -5474,11 +5474,17 @@ currentHeaders.forEach(h => {
                     
                     let labelMinggu = `Minggu ke-${w} ${fmtStart} s/d ${fmtEnd}`;
                     let opt = document.createElement('option');
-                    opt.value = labelMinggu;
+                    // VALUE harus angka, bukan label
+                    opt.value = String(w);
+                    // Yang tampil tetap lengkap dan informatif
                     opt.innerText = labelMinggu;
-                    if (activeRowData && activeRowData[h] === labelMinggu) opt.selected = true;
+                    if (
+                        activeRowData &&
+                        String(activeRowData[h] || '').trim() === String(w)
+                    ) {
+                        opt.selected = true;
+                    }
                     input.appendChild(opt);
-                }
             } else if (hLower === 'tanggal_lapor') {
                 input = document.createElement('input');
                 input.type = "date";
