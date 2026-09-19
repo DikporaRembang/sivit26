@@ -2248,9 +2248,24 @@ async function handleRegister(e) {
                     renderKurvaSChart();
                 }
             } else {
-                bodyEl.innerHTML = `<tr><td colspan="10" class="text-center p-4 text-red-500 text-xs">${result.message || 'Gagal memuat data'}</td></tr>`;
+                const errorMessage =
+                    result.pesan ||
+                    result.message ||
+                    'Gagal memuat data.';
+
+                bodyEl.innerHTML =
+                    `<tr>
+                        <td colspan="10" class="text-center p-4 text-red-500 text-xs">
+                            ${escapeHtml(errorMessage)}
+                        </td>
+                    </tr>`;
+
                 const subtitleEl = document.getElementById('contentSubtitle');
-                if (subtitleEl) subtitleEl.innerText = result.message || 'Gagal memuat data.';
+                if (subtitleEl) {
+                    subtitleEl.innerText = errorMessage;
+                }
+
+                console.error('SIVIT26 getData error:', result);
             }
         } catch (err) {
             bodyEl.innerHTML = `<tr><td colspan="10" class="text-center p-4 text-red-500 text-xs">Kesalahan jaringan saat mengambil data.</td></tr>`;
