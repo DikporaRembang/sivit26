@@ -2379,6 +2379,46 @@ async function handleRegister(e) {
         link.click();
     }
 
+    function showSecurePhotoPreview(dataUrl, fileName) {
+        let overlay = document.getElementById('securePhotoPreviewOverlay');
+
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.id = 'securePhotoPreviewOverlay';
+            overlay.className = 'fixed inset-0 z-[9999] bg-black/80 flex items-center justify-center p-4';
+
+            overlay.innerHTML = `
+                <div class="relative max-w-5xl max-h-[92vh] bg-slate-950 rounded-2xl border border-blue-700 shadow-2xl p-3 flex flex-col">
+                    <div class="flex items-center justify-between gap-4 mb-3">
+                        <div id="securePhotoPreviewTitle" class="text-sm font-bold text-white truncate"></div>
+                        <button type="button" id="securePhotoPreviewClose"
+                            class="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold">
+                            Tutup
+                        </button>
+                    </div>
+                    <div class="overflow-auto flex-1 flex items-center justify-center">
+                        <img id="securePhotoPreviewImage" alt="Foto dokumentasi"
+                            class="max-w-full max-h-[78vh] object-contain rounded-xl">
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(overlay);
+
+            overlay.addEventListener('click', function(e) {
+                if (e.target === overlay) overlay.remove();
+            });
+
+            overlay.querySelector('#securePhotoPreviewClose').onclick = function() {
+                overlay.remove();
+            };
+        }
+
+        overlay.querySelector('#securePhotoPreviewTitle').innerText = fileName || 'Foto Dokumentasi';
+        overlay.querySelector('#securePhotoPreviewImage').src = dataUrl;
+        overlay.classList.remove('hidden');
+    }
+
     function renderTable(headers, data, sheetName) {
         let headEl = document.getElementById('tableHead');
         let bodyEl = document.getElementById('tableBody');
@@ -2479,7 +2519,53 @@ async function handleRegister(e) {
                     }
                 }
 
-                td.innerText = val;
+                if (
+                    sheetName === 'laporan_progres' &&
+                    h.toLowerCase() === 'foto_dokumentasi' &&
+                    String(row[h] || '').trim() !== ''
+                ) {
+                    td.innerHTML = '';
+
+                    let btnFoto = document.createElement('button');
+                    btnFoto.type = 'button';
+                    btnFoto.className = 'px-2.5 py-1 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-lg text-[11px] font-bold border border-blue-300 cursor-pointer';
+                    btnFoto.innerHTML = '<i class="fa-solid fa-image mr-1"></i> Lihat Foto';
+
+                    btnFoto.onclick = function() {
+                        btnFoto.disabled = true;
+                        btnFoto.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Memuat...';
+
+                        if (typeof google === 'undefined' || !google.script || !google.script.run) {
+                            btnFoto.disabled = false;
+                            btnFoto.innerHTML = '<i class="fa-solid fa-image mr-1"></i> Lihat Foto';
+                            alert('Fitur foto aman hanya tersedia dari halaman SIVIT26.');
+                            return;
+                        }
+
+                        google.script.run
+                            .withSuccessHandler(function(result) {
+                                btnFoto.disabled = false;
+                                btnFoto.innerHTML = '<i class="fa-solid fa-image mr-1"></i> Lihat Foto';
+
+                                if (!result || result.status !== 'success') {
+                                    alert((result && result.pesan) || 'Foto tidak dapat ditampilkan.');
+                                    return;
+                                }
+
+                                showSecurePhotoPreview(result.dataUrl, result.fileName || 'Foto Dokumentasi');
+                            })
+                            .withFailureHandler(function(err) {
+                                btnFoto.disabled = false;
+                                btnFoto.innerHTML = '<i class="fa-solid fa-image mr-1"></i> Lihat Foto';
+                                alert('Gagal memuat foto: ' + (err && err.message ? err.message : err));
+                            })
+                            .getPhotoData(String(row[h]), currentUser && currentUser.token ? currentUser.token : '');
+                    };
+
+                    td.appendChild(btnFoto);
+                } else {
+                    td.innerText = val;
+                }
                 tr.appendChild(td);
             });
 
@@ -4875,11 +4961,11 @@ currentHeaders.forEach(h => {
                     
                     let reader = new FileReader();
                     reader.onload = function(evt) {
-                        hiddenValInput.value = JSON.stringify({
-                            base64: evt.target.result,
-                            name: file.name,
-                            type: file.type
-                        });
+                        // Simpan Data URL langsung agar handleFormSubmit
+                        // dapat mengirimkannya ke backend.
+                        hiddenValInput.value = evt.target.result;
+                        hiddenValInput.dataset.fileName = file.name;
+                        hiddenValInput.dataset.mimeType = file.type || 'image/jpeg';
                     };
                     reader.readAsDataURL(file);
 
@@ -5868,6 +5954,12 @@ if (currentUser && currentUser.role === 'SEKOLAH') {
                     catatan_dinas: ""
                 }
             };
+
+            // Sertakan foto dokumentasi bila form khusus ini dipakai.
+            const fotoInput = document.getElementById('valInput_foto_dokumentasi');
+            if (fotoInput && fotoInput.value && String(fotoInput.value).indexOf('data:image') === 0) {
+                payload.formData.foto_dokumentasi = fotoInput.value;
+            }
 
             const submitBtn = this.querySelector('button[type="submit"]');
             submitBtn.innerText = 'Mengirim Laporan...';
