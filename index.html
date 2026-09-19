@@ -1892,6 +1892,15 @@ async function handleRegister(e) {
             actionBtnContainer.appendChild(btnAdd);
 
         } else if (currentUser.role === 'SEKOLAH' && sheetName === 'laporan_progres') {
+            // Tombol Rekap Laporan Progres Fisik
+            let btnCetakProgresSekolah = document.createElement('button');
+            btnCetakProgresSekolah.className = "bg-blue-700 hover:bg-blue-800 text-white font-bold px-3.5 py-1.5 rounded-xl text-xs shadow-xs flex items-center space-x-1.5 cursor-pointer";
+            btnCetakProgresSekolah.innerHTML = `<i class="fa-solid fa-file-lines"></i><span>Rekap Progres Fisik</span>`;
+            btnCetakProgresSekolah.title = "Cetak Rekap Laporan Progres Fisik sekolah ini";
+            btnCetakProgresSekolah.onclick = () => cetakRekapProgresFisikSekolah();
+            actionBtnContainer.appendChild(btnCetakProgresSekolah);
+
+            // Tombol Tambah Laporan
             let btnAdd = document.createElement('button');
             btnAdd.className = "bg-amber-500 hover:bg-amber-400 text-blue-950 font-bold px-3.5 py-1.5 rounded-xl text-xs shadow-xs flex items-center space-x-1.5 cursor-pointer";
             btnAdd.innerHTML = `<i class="fa-solid fa-plus"></i><span>Tambah Laporan</span>`;
@@ -2447,6 +2456,261 @@ async function handleRegister(e) {
         });
     }
     
+    async function cetakRekapProgresFisikSekolah() {
+        if (!currentUser || currentUser.role !== 'SEKOLAH') {
+            alert('Fitur ini hanya dapat digunakan oleh akun SEKOLAH.');
+            return;
+        }
+
+        const targetNpsn = String(currentUser.username || '').trim();
+        if (!targetNpsn) {
+            alert('NPSN akun sekolah tidak ditemukan.');
+            return;
+        }
+
+        showLoading('Menyiapkan rekap laporan progres fisik...');
+
+        try {
+            const [resSekolah, resPaket, resProgres] = await Promise.all([
+                fetch(`${WEB_APP_URL}?action=getData&sheet=sekolah&role=SEKOLAH&npsn=${encodeURIComponent(targetNpsn)}`),
+                fetch(`${WEB_APP_URL}?action=getData&sheet=paket_pekerjaan_sd&role=SEKOLAH&npsn=${encodeURIComponent(targetNpsn)}`),
+                fetch(`${WEB_APP_URL}?action=getData&sheet=laporan_progres&role=SEKOLAH&npsn=${encodeURIComponent(targetNpsn)}`)
+            ]);
+
+            const [resultSekolah, resultPaket, resultProgres] = await Promise.all([
+                resSekolah.json(),
+                resPaket.json(),
+                resProgres.json()
+            ]);
+
+            const dataSekolah = resultSekolah.status === 'success'
+                ? (resultSekolah.data || [])[0]
+                : null;
+            const daftarPaket = resultPaket.status === 'success'
+                ? (resultPaket.data || [])
+                : [];
+            const daftarProgres = resultProgres.status === 'success'
+                ? (resultProgres.data || [])
+                : [];
+
+            const namaSekolah = dataSekolah?.nama_sekolah || currentUser.nama_pengguna || '-';
+            const kecamatanSekolah = dataSekolah?.kecamatan || '-';
+            const alamatSekolah = dataSekolah?.alamat_lengkap || '-';
+
+            if (daftarProgres.length === 0) {
+                hideLoading();
+                alert('Belum ada Laporan Progres Fisik untuk NPSN ' + targetNpsn + '.');
+                return;
+            }
+
+            const esc = value => String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+
+            const rupiah = value => {
+                if (value === null || value === undefined || value === '') return 'Rp 0';
+                const numericValue = typeof value === 'number'
+                    ? value
+                    : (parseFloat(String(value).replace(/[^0-9.-]+/g, '')) || 0);
+                return 'Rp ' + numericValue.toLocaleString('id-ID');
+            };
+
+            const persen = value => {
+                if (value === null || value === undefined || value === '') return '0%';
+                const text = String(value).trim();
+                return text.endsWith('%') ? text : text + '%';
+            };
+
+            const paketMap = new Map(
+                daftarPaket.map(p => [
+                    String(p.paket_id || p.id_paket || '').trim(),
+                    p
+                ])
+            );
+
+            const grouped = {};
+            daftarProgres.forEach(row => {
+                const paketId = String(row.paket_id || row.id_paket || '').trim() || '-';
+                if (!grouped[paketId]) grouped[paketId] = [];
+                grouped[paketId].push(row);
+            });
+
+            Object.values(grouped).forEach(rows => {
+                rows.sort((a, b) => {
+                    const ma = parseInt(a.minggu_ke, 10) || 0;
+                    const mb = parseInt(b.minggu_ke, 10) || 0;
+                    return ma - mb;
+                });
+            });
+
+            const paketIds = Object.keys(grouped);
+            let noPaket = 0;
+            let sections = '';
+
+            paketIds.forEach(paketId => {
+                noPaket++;
+                const paket = paketMap.get(paketId) || {};
+                const rows = grouped[paketId];
+                const namaMenu = String(
+                    paket.nama_menu ||
+                    rows.find(r => r.nama_menu)?.nama_menu ||
+                    ''
+                ).trim() || '-';
+
+                const body = rows.map((row, i) => `
+                    <tr>
+                        <td class="center">${i + 1}</td>
+                        <td class="center">${esc(row.minggu_ke || '-')}</td>
+                        <td>${esc(row.tanggal_lapor || '-')}</td>
+                        <td class="center">${esc(persen(row.target_kurva_s))}</td>
+                        <td class="center">${esc(persen(row.realisasi_fisik))}</td>
+                        <td class="right">${esc(rupiah(row.penggunaan_anggaran))}</td>
+                        <td>${esc(row.status_verifikasi || 'DIAJUKAN')}</td>
+                        <td>${esc(row.catatan_pekerjaan || '-')}</td>
+                    </tr>
+                `).join('');
+
+                sections += `
+                    <section class="progres-page">
+                        <div class="kop">
+                            <div class="logo-area">
+                                <img src="logorembang.png" alt="Logo Rembang">
+                            </div>
+                            <div class="kop-text">
+                                <div class="pemkab">PEMERINTAH KABUPATEN REMBANG</div>
+                                <div class="dinas">DINAS PENDIDIKAN, PEMUDA DAN OLAHRAGA KABUPATEN REMBANG</div>
+                                <div class="sekolah">${esc(namaSekolah)} - Kecamatan ${esc(kecamatanSekolah)}</div>
+                                <div class="aplikasi">Sistem Informasi Pemantauan Revitalisasi SD (SIVIT26 Tahun 2026)</div>
+                            </div>
+                        </div>
+
+                        <div class="judul">
+                            <h2>REKAPITULASI LAPORAN PROGRES FISIK</h2>
+                            <div>Paket ${noPaket} dari ${paketIds.length}</div>
+                        </div>
+
+                        <table class="identitas">
+                            <tr>
+                                <td>NPSN</td><td>${esc(targetNpsn)}</td>
+                                <td>ID Paket</td><td>${esc(paketId)}</td>
+                            </tr>
+                            <tr>
+                                <td>Nama Sekolah</td><td>${esc(namaSekolah)}</td>
+                                <td>Nama Menu Pekerjaan</td><td>${esc(namaMenu)}</td>
+                            </tr>
+                            <tr>
+                                <td>Kecamatan</td><td>${esc(kecamatanSekolah)}</td>
+                                <td>PAGU</td><td>${esc(rupiah(paket.pagu))}</td>
+                            </tr>
+                            <tr>
+                                <td>Alamat</td><td colspan="3">${esc(alamatSekolah)}</td>
+                            </tr>
+                        </table>
+
+                        <div class="subjudul">RIWAYAT LAPORAN PROGRES FISIK</div>
+                        <table class="progres">
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>Minggu Ke</th>
+                                    <th>Tanggal Lapor</th>
+                                    <th>Target</th>
+                                    <th>Realisasi</th>
+                                    <th>Penggunaan Anggaran</th>
+                                    <th>Status Verifikasi</th>
+                                    <th>Catatan Pekerjaan</th>
+                                </tr>
+                            </thead>
+                            <tbody>${body}</tbody>
+                        </table>
+
+                        <div class="ttd">
+                            <div>
+                                <p>Mengetahui,</p>
+                                <strong>Kepala Sekolah</strong>
+                                <div class="ruang-ttd"></div>
+                                <strong>( ........................................ )</strong>
+                            </div>
+                            <div>
+                                <p>Rembang, ${new Date().toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'})}</p>
+                                <strong>Perencana / Pengawas</strong>
+                                <div class="ruang-ttd"></div>
+                                <strong>( ........................................ )</strong>
+                            </div>
+                        </div>
+                    </section>
+                `;
+            });
+
+            const today = new Date().toLocaleDateString('id-ID', {
+                day: 'numeric', month: 'long', year: 'numeric'
+            });
+
+            const printWindow = window.open('', '_blank');
+            if (!printWindow) {
+                alert('Jendela cetak diblokir oleh browser. Silakan izinkan pop-up untuk SIVIT26.');
+                return;
+            }
+
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="UTF-8">
+                    <title>Rekap Progres Fisik - ${esc(namaSekolah)} (${esc(targetNpsn)})</title>
+                    <style>
+                        * { box-sizing: border-box; }
+                        @page { size: A4 landscape; margin: 10mm; }
+                        body { margin:0; padding:0; font-family:Arial,Helvetica,sans-serif; color:#111827; background:#fff; font-size:10px; }
+                        .progres-page { width:100%; min-height:180mm; page-break-after:always; padding:4mm; }
+                        .progres-page:last-child { page-break-after:auto; }
+                        .kop { display:flex; align-items:center; border-bottom:3px solid #111827; padding-bottom:6px; margin-bottom:10px; }
+                        .logo-area { width:72px; text-align:center; }
+                        .logo-area img { width:55px; height:55px; object-fit:contain; }
+                        .kop-text { flex:1; text-align:center; line-height:1.25; }
+                        .pemkab { font-size:15px; font-weight:800; }
+                        .dinas { font-size:12px; font-weight:800; }
+                        .sekolah { font-size:12px; font-weight:800; margin-top:2px; }
+                        .aplikasi { font-size:9px; margin-top:2px; }
+                        .judul { text-align:center; margin:8px 0 10px; }
+                        .judul h2 { margin:0 0 3px; font-size:14px; font-weight:800; }
+                        .judul div { font-size:9px; color:#374151; }
+                        table { width:100%; border-collapse:collapse; }
+                        .identitas td { border:1px solid #6b7280; padding:4px 6px; vertical-align:top; }
+                        .identitas td:nth-child(odd) { width:15%; font-weight:700; background:#f3f4f6; }
+                        .identitas td:nth-child(even) { width:35%; }
+                        .subjudul { margin:10px 0 5px; font-weight:800; font-size:10px; }
+                        .progres th, .progres td { border:1px solid #4b5563; padding:4px 5px; vertical-align:top; }
+                        .progres th { background:#e5e7eb; font-weight:800; text-align:center; }
+                        .center { text-align:center; }
+                        .right { text-align:right; }
+                        .ttd { display:flex; justify-content:space-between; margin-top:25px; page-break-inside:avoid; }
+                        .ttd > div { width:42%; text-align:center; }
+                        .ruang-ttd { height:45px; }
+                        @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+                    </style>
+                </head>
+                <body>
+                    ${sections}
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+
+            hideLoading();
+            printWindow.focus();
+            setTimeout(() => printWindow.print(), 500);
+
+        } catch (err) {
+            hideLoading();
+            console.error('Gagal mencetak rekap progres fisik SEKOLAH:', err);
+            alert('Gagal menyiapkan rekap progres fisik: ' + (err.message || err));
+        }
+    }
+
     async function cetakSemuaPaketSekolah() {
         // =====================================================
         // VALIDASI ROLE
