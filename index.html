@@ -1549,13 +1549,43 @@ table {
                         listNotif.reverse().forEach(n => {
                             let div = document.createElement('div');
                             div.className = "p-3 hover:bg-blue-800/40 transition-colors flex flex-col justify-between";
-                            div.innerHTML = `
-                                <div>
-                                    <p class="text-blue-100 font-medium mb-1">${n.pesan}</p>
-                                    <span class="text-[9px] text-amber-300 font-semibold"><i class="fa-regular fa-clock mr-1"></i>${n.waktu || '-'}</span>
-                                </div>
-                                ${(n.id || n.id_notif) ? `<button onclick="eksekusiDanHapusNotifikasi('${n.id || n.id_notif}')" class="mt-2 self-end px-2 py-1 bg-amber-500 hover:bg-amber-400 text-blue-950 font-bold rounded text-[10px] cursor-pointer"><i class="fa-solid fa-check mr-1"></i> Selesai / Eksekusi</button>` : ''}
-                            `;
+
+                            let content = document.createElement('div');
+
+                            let message = document.createElement('p');
+                            message.className = "text-blue-100 font-medium mb-1";
+                            message.textContent = n.pesan || '';
+                            content.appendChild(message);
+
+                            let time = document.createElement('span');
+                            time.className = "text-[9px] text-amber-300 font-semibold";
+
+                            let clockIcon = document.createElement('i');
+                            clockIcon.className = "fa-regular fa-clock mr-1";
+                            time.appendChild(clockIcon);
+                            time.appendChild(document.createTextNode(n.waktu || '-'));
+
+                            content.appendChild(time);
+                            div.appendChild(content);
+
+                            let notifId = n.id || n.id_notif || n.id_notifikasi;
+                            if (notifId) {
+                                let button = document.createElement('button');
+                                button.type = 'button';
+                                button.className = "mt-2 self-end px-2 py-1 bg-amber-500 hover:bg-amber-400 text-blue-950 font-bold rounded text-[10px] cursor-pointer";
+
+                                let checkIcon = document.createElement('i');
+                                checkIcon.className = "fa-solid fa-check mr-1";
+                                button.appendChild(checkIcon);
+                                button.appendChild(document.createTextNode(' Selesai / Eksekusi'));
+
+                                button.addEventListener('click', function() {
+                                    eksekusiDanHapusNotifikasi(notifId);
+                                });
+
+                                div.appendChild(button);
+                            }
+
                             container.appendChild(div);
                         });
                     } else {
