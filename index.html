@@ -1283,7 +1283,15 @@ table {
                     <!-- HEADER KETERANGAN GRAFIK -->
                     <div id="kurvaSHeader" class="text-center mb-3">
                         <h5 class="fw-bold m-0" style="font-size: 16px; font-weight: bold;">GRAFIK PERKEMBANGAN REVITALISASI SD KABUPATEN REMBANG 2026</h5>
-                        <p id="infoSekolahMenu" class="text-muted m-0" style="font-size: 13px; color: #555;"></p>
+                        <div class="mb-3 flex flex-col sm:flex-row gap-2 items-start sm:items-center">
+                        <label for="selectKurvaSPaket" class="font-bold text-xs text-slate-700 whitespace-nowrap">Paket Pekerjaan:</label>
+                        <select id="selectKurvaSPaket" onchange="renderKurvaSChart()" class="w-full sm:w-auto min-w-[280px] px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white text-slate-800">
+                            <option value="">-- Pilih Paket Pekerjaan --</option>
+                        </select>
+                    </div>
+                    <p id="infoSekolahMenu" class="text-muted m-0" style="font-size: 13px; color: #555;"></p>
+                    <div id="kurvaSKpi" class="grid grid-cols-2 sm:grid-cols-5 gap-2 mt-3 text-xs"></div>
+                    <div id="kurvaSWarning" class="hidden mt-3 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800"></div>
                     </div>
 
                     <!-- KONTAINER KANVAS DENGAN TINGGI TETAP -->
@@ -2138,58 +2146,151 @@ async function handleRegister(e) {
     }
         
     function renderKurvaSChart() {
-        let ctx = document.getElementById('chartKurvaS').getContext('2d');
+        const canvasEl = document.getElementById('chartKurvaS');
+        if (!canvasEl) return;
+
+        const ctx = canvasEl.getContext('2d');
         if (chartKurvaSInstance) chartKurvaSInstance.destroy();
 
-        let firstRow = currentData.length > 0 ? currentData[0] : {};
-        let currentNpsn = firstRow.npsn || currentUser.username || '-';
-        let currentMenu = firstRow.nama_menu || firstRow.menu || 'Pekerjaan Revitalisasi';
+        const rows = Array.isArray(currentData) ? [...currentData] : [];
+        const paketList = Array.isArray(paketPekerjaanList) ? paketPekerjaanList : [];
 
-        let namaSekolah = "Sekolah Tidak Ditemukan";
-        if (typeof usersList !== 'undefined' && Array.isArray(usersList)) {
-            let foundSekolah = usersList.find(s => String(s.username || s.npsn || '').trim() === String(currentNpsn).trim());
+        // =========================================================
+        // KURVA S — SATU PAKET SEBAGAI SATUAN ANALISIS
+        // Baseline utama: target_kurva_s (%)
+        // Pembanding: realisasi_fisik (%) dan penggunaan_anggaran / PAGU DISETUJUI x 100
+        // =========================================================
+        const getPaketId = row => String(row.paket_id || row.id_paket || '').trim();
+        const getNamaMenu = row => String(row.nama_menu || row.menu || '').trim();
+
+        const uniquePaketIds = [...new Set(rows.map(getPaketId).filter(Boolean))];
+        let selectPaket = document.getElementById('selectKurvaSPaket');
+
+        if (selectPaket) {
+            const selectedBefore = String(selectPaket.value || '').trim();
+            selectPaket.innerHTML = '<option value="">-- Pilih Paket Pekerjaan --</option>';
+
+            uniquePaketIds.forEach(paketId => {
+                const firstRow = rows.find(r => getPaketId(r) === paketId) || {};
+                const refPaket = paketList.find(p => getPaketId(p) === paketId) || {};
+                const namaMenu = getNamaMenu(firstRow) || String(refPaket.nama_menu || '').trim() || 'Pekerjaan';
+                const opt = document.createElement('option');
+                opt.value = paketId;
+                opt.textContent = `${paketId} — ${namaMenu}`;
+                selectPaket.appendChild(opt);
+            });
+
+            if (selectedBefore && uniquePaketIds.includes(selectedBefore)) {
+                selectPaket.value = selectedBefore;
+            } else if (uniquePaketIds.length === 1) {
+                selectPaket.value = uniquePaketIds[0];
+            }
+        }
+
+        const selectedPaketId = String(selectPaket ? selectPaket.value : '').trim();
+        const paketRows = selectedPaketId
+            ? rows.filter(r => getPaketId(r) === selectedPaketId)
+            : rows;
+
+        const firstRow = paketRows.length > 0 ? paketRows[0] : (rows[0] || {});
+        const currentNpsn = String(firstRow.npsn || currentUser?.username || '-').trim();
+        const currentMenu = getNamaMenu(firstRow) || 'Pekerjaan Revitalisasi';
+
+        let namaSekolah = 'Sekolah Tidak Ditemukan';
+        if (Array.isArray(usersList)) {
+            const foundSekolah = usersList.find(s =>
+                String(s.username || s.npsn || '').trim() === currentNpsn
+            );
             if (foundSekolah) {
                 namaSekolah = foundSekolah.nama_pengguna || foundSekolah.nama_sekolah || namaSekolah;
             }
-        } else if (currentUser && currentUser.sekolah && currentUser.sekolah.nama_sekolah) {
+        }
+        if (currentUser && currentUser.sekolah && currentUser.sekolah.nama_sekolah) {
             namaSekolah = currentUser.sekolah.nama_sekolah;
         } else if (firstRow.nama_sekolah) {
             namaSekolah = firstRow.nama_sekolah;
         }
 
-        let infoEl = document.getElementById('infoSekolahMenu');
+        const infoEl = document.getElementById('infoSekolahMenu');
         if (infoEl) {
             infoEl.innerHTML = `<strong>Nama Sekolah:</strong> ${namaSekolah} (NPSN: ${currentNpsn}) &bull; <strong>Menu:</strong> ${currentMenu}`;
         }
 
-        let labels = currentData.map(d => d.minggu_ke || d.minggu || d.tanggal_lapor || 'Minggu');
-        
-        let targetData = currentData.map(d => {
-            let val = d.target_kurva_s !== undefined ? d.target_kurva_s : (d.target || 0);
-            return Number(String(val).replace('%','')) || 0;
+        // Pagu hanya boleh berasal dari paket yang sudah DISETUJUI DINAS.
+        const matchedPaket = paketList.find(p =>
+            getPaketId(p) === selectedPaketId &&
+            String(p.status_pagu || '').trim().toUpperCase() === 'DISETUJUI'
+        );
+        const paguDisetujui = matchedPaket
+            ? (Number(matchedPaket.pagu) || Number(matchedPaket.pagu_anggaran) || 0)
+            : 0;
+
+        const sortedRows = paketRows.sort((a, b) => {
+            const ma = Number(a.minggu_ke || a.minggu || 0);
+            const mb = Number(b.minggu_ke || b.minggu || 0);
+            if (Number.isFinite(ma) && Number.isFinite(mb) && ma !== mb) return ma - mb;
+            return String(a.tanggal_lapor || '').localeCompare(String(b.tanggal_lapor || ''));
         });
 
-        let realisasiData = currentData.map(d => {
-            let val = d.realisasi_fisik !== undefined && d.realisasi_fisik !== null ? d.realisasi_fisik : 0;
-            return Number(String(val).replace('%', '').trim()) || 0;
+        const pct = value => {
+            const n = Number(String(value ?? '').replace('%', '').trim());
+            return Number.isFinite(n) ? Math.max(0, Math.min(100, n)) : 0;
+        };
+
+        const targetData = sortedRows.map(d => pct(d.target_kurva_s));
+        const realisasiData = sortedRows.map(d => pct(d.realisasi_fisik));
+        const anggaranPersenData = sortedRows.map(d => {
+            const penggunaan = Number(String(d.penggunaan_anggaran ?? 0).replace(/[^0-9.-]/g, '')) || 0;
+            if (paguDisetujui <= 0) return null;
+            return Number(((penggunaan / paguDisetujui) * 100).toFixed(2));
         });
 
-        let anggaranPersenData = currentData.map(d => {
-            let pId = String(d.paket_id || d.id_paket || '').trim();
-            let matchedPaket = paketPekerjaanList.find(p => String(p.paket_id || p.id_paket || '').trim() === pId);
-            let paguPekerjaan = matchedPaket ? (Number(matchedPaket.pagu || matchedPaket.pagu_anggaran) || 0) : 0;
-            let penggunaan = Number(d.penggunaan_anggaran || d.anggaran || 0);
-            
-            if (paguPekerjaan > 0) {
-                return Number(((penggunaan / paguPekerjaan) * 100).toFixed(2));
+        const labels = sortedRows.map(d => {
+            const minggu = d.minggu_ke || d.minggu;
+            return minggu ? `Minggu ${minggu}` : (d.tanggal_lapor || 'Periode');
+        });
+
+        // Ringkasan kondisi terakhir terhadap baseline target.
+        const latestTarget = targetData.length ? targetData[targetData.length - 1] : 0;
+        const latestFisik = realisasiData.length ? realisasiData[realisasiData.length - 1] : 0;
+        const latestAnggaran = anggaranPersenData.length ? anggaranPersenData[anggaranPersenData.length - 1] : null;
+        const devFisik = Number((latestFisik - latestTarget).toFixed(2));
+        const devAnggaran = latestAnggaran === null ? null : Number((latestAnggaran - latestTarget).toFixed(2));
+
+        const kpiEl = document.getElementById('kurvaSKpi');
+        if (kpiEl) {
+            const devText = v => v === null ? '-' : `${v > 0 ? '+' : ''}${v.toFixed(2)}%`;
+            kpiEl.innerHTML = `
+                <div><span>Target terakhir</span><strong>${latestTarget.toFixed(2)}%</strong></div>
+                <div><span>Realisasi fisik</span><strong>${latestFisik.toFixed(2)}%</strong></div>
+                <div><span>Realisasi anggaran</span><strong>${latestAnggaran === null ? '-' : latestAnggaran.toFixed(2) + '%'}</strong></div>
+                <div><span>Deviasi fisik</span><strong>${devText(devFisik)}</strong></div>
+                <div><span>Deviasi anggaran</span><strong>${devText(devAnggaran)}</strong></div>
+            `;
+        }
+
+        const warningEl = document.getElementById('kurvaSWarning');
+        if (warningEl) {
+            if (!selectedPaketId) {
+                warningEl.textContent = uniquePaketIds.length > 1
+                    ? 'Pilih satu paket pekerjaan agar Kurva S tidak mencampur beberapa paket.'
+                    : '';
+                warningEl.classList.toggle('hidden', uniquePaketIds.length <= 1);
+            } else if (!matchedPaket || paguDisetujui <= 0) {
+                warningEl.textContent = 'Pagu yang DISETUJUI DINAS untuk paket ini belum tersedia. Persentase anggaran tidak dapat dihitung.';
+                warningEl.classList.remove('hidden');
+            } else {
+                warningEl.classList.add('hidden');
             }
-            return 0;
-        });
+        }
+
+        if (!selectedPaketId && uniquePaketIds.length > 1) return;
+        if (!sortedRows.length) return;
 
         chartKurvaSInstance = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: labels.length ? labels : ['Minggu 1', 'Minggu 2', 'Minggu 3', 'Minggu 4'],
+                labels,
                 datasets: [
                     {
                         label: 'Target Kurva S (%)',
@@ -2197,7 +2298,8 @@ async function handleRegister(e) {
                         borderColor: 'rgb(59, 130, 246)',
                         backgroundColor: 'rgba(59, 130, 246, 0.1)',
                         tension: 0.3,
-                        fill: false
+                        fill: false,
+                        spanGaps: false
                     },
                     {
                         label: 'Realisasi Fisik (%)',
@@ -2208,23 +2310,33 @@ async function handleRegister(e) {
                         fill: false
                     },
                     {
-                        label: 'Penggunaan Anggaran (%)',
+                        label: 'Realisasi Anggaran (%)',
                         data: anggaranPersenData,
                         borderColor: 'rgb(16, 185, 129)',
                         backgroundColor: 'rgba(16, 185, 129, 0.1)',
                         tension: 0.3,
-                        fill: false
+                        fill: false,
+                        spanGaps: false
                     }
                 ]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                scales: { 
-                    y: { 
-                        beginAtZero: true, 
-                        max: 100 
-                    } 
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: context => `${context.dataset.label}: ${context.parsed.y === null ? 'Tidak tersedia' : context.parsed.y.toFixed(2) + '%'}`
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: { callback: value => value + '%' }
+                    }
                 }
             }
         });
