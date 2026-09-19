@@ -3268,6 +3268,7 @@ currentHeaders.forEach(h => {
 
         let input;
         let val = activeRowData ? (activeRowData[h] !== undefined ? activeRowData[h] : "") : "";
+        h = String(h).trim();
         let hLower = h.toLowerCase();
 
         // Kondisi 1: Role Sekolah mengedit sheet 'users'
@@ -3613,26 +3614,6 @@ currentHeaders.forEach(h => {
                                         }
                                     };
                                 }
-                            }
-
-                            let formattedDate = "";
-
-                            if (dateTime) {
-                                let parts = dateTime.split(' ')[0].split(':');
-
-                                if (parts.length === 3) {
-                                    formattedDate =
-                                        `${parts[2]}/${parts[1]}/${parts[0]}`;
-                                }
-                            }
-
-                            if (!formattedDate) {
-                                let now = new Date();
-
-                                formattedDate =
-                                    `${String(now.getDate()).padStart(2, '0')}/` +
-                                    `${String(now.getMonth() + 1).padStart(2, '0')}/` +
-                                    `${now.getFullYear()}`;
                             }
 
                             // TIDAK ADA LAGI KODE YANG MENGUBAH tanggal_lapor
