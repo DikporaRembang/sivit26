@@ -1876,11 +1876,21 @@ async function handleRegister(e) {
         actionBtnContainer.innerHTML = "";
 
         if (currentUser.role === 'SEKOLAH' && sheetName === 'paket_pekerjaan_sd') {
+
+            // Tombol Cetak Semua Paket
+            let btnCetakSemua = document.createElement('button');
+            btnCetakSemua.className = "bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3.5 py-1.5 rounded-xl text-xs shadow-xs flex items-center space-x-1.5 cursor-pointer";
+            btnCetakSemua.innerHTML = `<i class="fa-solid fa-print"></i><span>Cetak Semua Paket</span>`;
+            btnCetakSemua.onclick = () => cetakSemuaPaketSekolah();
+            actionBtnContainer.appendChild(btnCetakSemua);
+
+            // Tombol Tambah Paket
             let btnAdd = document.createElement('button');
             btnAdd.className = "bg-amber-500 hover:bg-amber-400 text-blue-950 font-bold px-3.5 py-1.5 rounded-xl text-xs shadow-xs flex items-center space-x-1.5 cursor-pointer";
             btnAdd.innerHTML = `<i class="fa-solid fa-plus"></i><span>Tambah Paket</span>`;
             btnAdd.onclick = () => openModalForm();
             actionBtnContainer.appendChild(btnAdd);
+
         } else if (currentUser.role === 'SEKOLAH' && sheetName === 'laporan_progres') {
             let btnAdd = document.createElement('button');
             btnAdd.className = "bg-amber-500 hover:bg-amber-400 text-blue-950 font-bold px-3.5 py-1.5 rounded-xl text-xs shadow-xs flex items-center space-x-1.5 cursor-pointer";
@@ -2343,6 +2353,648 @@ async function handleRegister(e) {
             }
             bodyEl.appendChild(tr);
         });
+    }
+    
+    async function cetakSemuaPaketSekolah() {
+        // =====================================================
+        // VALIDASI ROLE
+        // =====================================================
+        if (!currentUser || currentUser.role !== 'SEKOLAH') {
+            alert('Fitur ini hanya dapat digunakan oleh akun SEKOLAH.');
+            return;
+        }
+        // =====================================================
+        // NPSN HARUS BERASAL DARI AKUN YANG LOGIN
+        // =====================================================
+        const targetNpsn = String(
+            currentUser.username || ''
+        ).trim();
+        if (!targetNpsn) {
+            alert('NPSN akun sekolah tidak ditemukan.');
+            return;
+        }
+        // =====================================================
+        // AMBIL DATA PAKET YANG SUDAH DITAMPILKAN
+        // Backend memang sudah memfilter berdasarkan NPSN SEKOLAH.
+        // Kita filter ulang di frontend sebagai pengaman.
+        // =====================================================
+        let daftarPaket = Array.isArray(paketPekerjaanList)
+            ? paketPekerjaanList.filter(p =>
+                String(p.npsn || '').trim() === targetNpsn
+            )
+            : [];
+        if (daftarPaket.length === 0) {
+            alert(
+                'Belum ada Paket Pekerjaan untuk NPSN ' +
+                targetNpsn + '.'
+            );
+            return;
+        }
+        // =====================================================
+        // DATA SEKOLAH
+        // =====================================================
+        let namaSekolah = '-';
+        let kecamatanSekolah = '-';
+        let alamatSekolah = '-';
+        if (
+            currentUser.sekolah &&
+            String(currentUser.username || '').trim() === targetNpsn
+        ) {
+            namaSekolah =
+                currentUser.sekolah.nama_sekolah || '-';
+            kecamatanSekolah =
+                currentUser.sekolah.kecamatan || '-';
+            alamatSekolah =
+                currentUser.sekolah.alamat_lengkap || '-';
+        }
+        // =====================================================
+        // AMBIL DATA PROGRES UNTUK NPSN SEKOLAH
+        // =====================================================
+        let progresList = [];
+        try {
+            
+            const res = await fetch(
+                `${WEB_APP_URL}?action=getData` +
+                `&sheet=laporan_progres` +
+                `&role=SEKOLAH` +
+                `&npsn=${encodeURIComponent(targetNpsn)}`
+            );
+
+            const result = await res.json();
+
+            if (result.status === 'success') {
+                progresList = result.data || [];
+            }
+        } catch (err) {
+
+            console.error(
+                'Gagal mengambil data progres:',
+                err
+            );
+        }
+
+        // =====================================================
+        // FUNGSI FORMAT RUPIAH
+        // =====================================================
+        function formatRupiah(value) {
+
+            if (
+                value === null ||
+                value === undefined ||
+                value === ''
+            ) {
+            return 'Rp 0';
+            }
+
+            let numericValue = 0;
+
+            if (typeof value === 'number') {
+
+                numericValue = value;
+
+            } else {
+
+                let cleaned = String(value)
+                    .replace(/[^0-9.-]+/g, '');
+
+                numericValue =
+                    parseFloat(cleaned) || 0;
+            }
+
+            return 'Rp ' +
+                numericValue.toLocaleString('id-ID');
+        }
+
+        // =====================================================
+        // FUNGSI ESCAPE HTML
+        // =====================================================
+        function esc(value) {
+
+            return String(
+                value === undefined ||
+                value === null
+                    ? ''
+                    : value
+            )
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+        }
+
+        // =====================================================
+        // BANGUN ISI SEMUA PAKET
+        // =====================================================
+        let seluruhPaketHTML = '';
+
+        daftarPaket.forEach((paket, index) => {
+
+            const paketId =
+                paket.paket_id ||
+                '-';
+
+            const progresPaket =
+                progresList.filter(item =>
+                    String(item.paket_id || '').trim() ===
+                    String(paketId).trim()
+                );
+
+            seluruhPaketHTML += `
+
+                <section class="paket-page">
+
+                    <!-- KOP -->
+                    <div class="kop">
+
+                        <div class="logo-area">
+                            <img
+                                src="logorembang.png"
+                                alt="Logo Rembang"
+                            >
+                        </div>
+
+                        <div class="kop-text">
+                            <div class="pemkab">
+                                PEMERINTAH KABUPATEN REMBANG
+                            </div>
+
+                            <div class="dinas">
+                            DINAS PENDIDIKAN, PEMUDA DAN OLAHRAGA KABATEN REMBANG
+                            </div>
+
+                            <div class="sekolah">
+                                ${esc(namaSekolah)}
+                            - Kecamatan
+                                ${esc(kecamatanSekolah)}
+                            </div>
+
+                            <div class="aplikasi">
+                                Sistem Informasi Pemantauan
+                                Revitalisasi SD
+                                (SIVIT26 Tahun 2026)
+                            </div>
+                        </div>
+
+                    </div>
+
+
+                    <!-- JUDUL -->
+                    <div class="judul">
+
+                        <h2>
+                            PAKET PEKERJAAN REVITALISASI SD
+                        </h2>
+
+                        <div>
+                            Paket ${index + 1}
+                            dari ${daftarPaket.length}
+                        </div>
+
+                    </div>
+
+
+                    <!-- IDENTITAS -->
+                    <table class="identitas">
+
+                        <tr>
+                            <td>NPSN</td>
+                            <td>${esc(targetNpsn)}</td>
+
+                            <td>ID Paket</td>
+                            <td>${esc(paketId)}</td>
+                        </tr>
+
+                        <tr>
+                            <td>Nama Sekolah</td>
+                            <td>${esc(namaSekolah)}</td>
+
+                            <td>Jenis Pekerjaan</td>
+                            <td>
+                                ${esc(paket.nama_menu || '-')}
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>Kecamatan</td>
+                            <td>${esc(kecamatanSekolah)}</td>
+
+                            <td>PAGU</td>
+                            <td>
+                                ${formatRupiah(paket.pagu)}
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>Alamat</td>
+                            <td>${esc(alamatSekolah)}</td>
+
+                            <td>PAGU USULAN</td>
+                            <td>
+                                ${formatRupiah(paket.pagu_usulan)}
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>Status PAGU</td>
+                            <td>
+                                ${esc(paket.status_pagu || '-')}
+                            </td>
+
+                            <td>Jangka Waktu</td>
+                            <td>
+                                ${esc(paket.lama_hari || 0)}
+                                Hari
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>Tanggal Mulai</td>
+                            <td>
+                                ${esc(paket.tanggal_mulai || '-')}
+                            </td>
+
+                            <td>Tanggal Selesai</td>
+                            <td>
+                                ${esc(paket.tgl_selesai || '-')}
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>Perencana</td>
+                            <td>
+                                ${esc(paket.perencana || '-')}
+                            </td>
+
+                            <td>Pengawas</td>
+                            <td>
+                                ${esc(paket.pengawas || '-')}
+                            </td>
+                        </tr>
+
+                    </table>
+
+
+                    <!-- PROGRES -->
+                    <div class="subjudul">
+                        RIWAYAT PROGRES PEKERJAAN
+                    </div>
+
+                    <table class="progres">
+
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>Minggu Ke</th>
+                                <th>Tanggal Lapor</th>
+                                <th>Target (%)</th>
+                                <th>Realisasi (%)</th>
+                                <th>Penggunaan Anggaran</th>
+                                <th>Status Verifikasi</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            ${
+                                progresPaket.length > 0
+
+                                ?
+
+                                progresPaket.map((item, i) => `
+
+                                    <tr>
+
+                                        <td>${i + 1}</td>
+
+                                        <td>
+                                            ${esc(item.minggu_ke || '-')}
+                                        </td>
+
+                                        <td>
+                                            ${esc(item.tanggal_lapor || '-')}
+                                        </td>
+
+                                        <td>
+                                            ${esc(item.target_kurva_s || 0)}%
+                                        </td>
+
+                                        <td>
+                                            ${esc(item.realisasi_fisik || 0)}%
+                                        </td>
+
+                                        <td>
+                                            ${formatRupiah(
+                                                item.penggunaan_anggaran
+                                            )}
+                                        </td>
+
+                                        <td>
+                                            ${esc(
+                                                item.status_verifikasi ||
+                                                'DIAJUKAN'
+                                            )}
+                                        </td>
+
+                                    </tr>
+
+                                `).join('')
+
+                                :
+
+                                `
+                                    <tr>
+                                        <td colspan="7">
+                                            Belum ada laporan progres.
+                                        </td>
+                                    </tr>
+                                `
+                            }
+
+                        </tbody>
+
+                    </table>
+
+
+                    <!-- TANDA TANGAN -->
+                    <div class="ttd">
+
+                        <div>
+                            <p>Mengetahui,</p>
+                            <strong>Kepala Sekolah</strong>
+
+                            <div class="ruang-ttd"></div>
+
+                            <strong>
+                                ( ........................................ )
+                            </strong>
+                        </div>
+
+
+                        <div>
+
+                            <p>
+                            Rembang,
+                                ${new Date().toLocaleDateString(
+                                    'id-ID',
+                                    {
+                                        day: 'numeric',
+                                        month: 'long',
+                                        year: 'numeric'
+                                    }
+                                )}
+                            </p>
+
+                            <strong>
+                                Perencana / Pengawas
+                            </strong>
+
+                            <div class="ruang-ttd"></div>
+
+                            <strong>
+                                ( ........................................ )
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+                </section>
+            `;
+        });
+
+
+        // =====================================================
+        // BUKA JENDELA CETAK
+        // =====================================================
+        const printWindow =
+            window.open('', '_blank');
+
+        if (!printWindow) {
+
+            alert(
+                'Jendela cetak diblokir oleh browser. ' +
+                'Silakan izinkan pop-up untuk SIVIT26.'
+            );
+
+            return;
+        }
+
+
+        printWindow.document.write(`
+
+            <!DOCTYPE html>
+
+            <html>
+
+            <head>
+
+                <meta charset="UTF-8">
+
+                <title>
+                    Paket Pekerjaan -
+                    ${esc(namaSekolah)}
+                    (${esc(targetNpsn)})
+                </title>
+
+                <style>
+
+                    * {
+                    box-sizing: border-box;
+                    }
+
+                    body {
+                        margin: 0;
+                        padding: 0;
+                        font-family: Arial, Helvetica, sans-serif;
+                        color: #111827;
+                        background: white;
+                        font-size: 11px;
+                    }
+
+                    .paket-page {
+                        width: 100%;
+                        min-height: 270mm;
+                        padding: 12mm;
+                        page-break-after: always;
+                    }
+
+                    .paket-page:last-child {
+                        page-break-after: auto;
+                    }
+
+                    .kop {
+                        display: flex;
+                        align-items: center;
+                        border-bottom: 3px double #111827;
+                        padding-bottom: 10px;
+                        margin-bottom: 18px;
+                    }
+
+                    .logo-area {
+                        width: 65px;
+                        flex-shrink: 0;
+                        margin-right: 15px;
+                    }
+
+                    .logo-area img {
+                        width: 60px;
+                        height: 60px;
+                        object-fit: contain;
+                    }
+
+                    .kop-text {
+                        flex: 1;
+                        text-align: center;
+                    }
+
+                    .pemkab {
+                        font-size: 12px;
+                        font-weight: bold;
+                    }
+
+                    .dinas {
+                        font-size: 14px;
+                        font-weight: 800;
+                        margin-top: 2px;
+                    }
+
+                    .sekolah {
+                        font-size: 11px;
+                        font-weight: bold;
+                        margin-top: 4px;
+                    }
+
+                    .aplikasi {
+                        font-size: 9px;
+                        color: #4b5563;
+                        margin-top: 2px;
+                    }
+
+                    .judul {
+                        text-align: center;
+                        margin-bottom: 18px;
+                    }
+
+                    .judul h2 {
+                        margin: 0 0 4px 0;
+                        font-size: 14px;
+                        text-decoration: underline;
+                    }
+
+                    .judul div {
+                        font-size: 10px;
+                        color: #6b7280;
+                    }
+
+                    table {
+                        width: 100%;
+                        border-collapse: collapse;
+                    }
+
+                    .identitas {
+                        margin-bottom: 22px;
+                    }
+
+                    .identitas td {
+                        border: 1px solid #9ca3af;
+                        padding: 6px;
+                    }
+
+                    .identitas td:nth-child(odd) {
+                        width: 15%;
+                        font-weight: bold;
+                        background: #f3f4f6;
+                    }
+
+                    .identitas td:nth-child(even) {
+                        width: 35%;
+                    }
+
+                    .subjudul {
+                        font-size: 11px;
+                        font-weight: bold;
+                        margin-bottom: 7px;
+                        border-bottom: 1px solid #9ca3af;
+                        padding-bottom: 4px;
+                    }
+
+                    .progres th,
+                    .progres td {
+                        border: 1px solid #9ca3af;
+                        padding: 6px;
+                        text-align: center;
+                    }
+
+                    .progres th {
+                        background: #e5e7eb;
+                        font-weight: bold;
+                    }
+
+                    .ttd {
+                        display: flex;
+                        justify-content: space-between;
+                        margin-top: 55px;
+                        text-align: center;
+                    }
+
+                    .ttd > div {
+                        width: 40%;
+                    }
+
+                    .ruang-ttd {
+                        height: 65px;
+                    }
+
+                    @media print {
+
+                        body {
+                            -webkit-print-color-adjust: exact;
+                            print-color-adjust: exact;
+                        }
+
+                    }
+
+                </style>
+
+            </head>
+
+            <body>
+
+                ${seluruhPaketHTML}
+
+                <div
+                    class="no-print"
+                    style="
+                        text-align:center;
+                        padding:20px;
+                    "
+                >
+
+                    <button
+                        onclick="window.print()"
+                        style="
+                            padding:10px 20px;
+                            background:#047857;
+                            color:white;
+                            border:0;
+                            border-radius:6px;
+                            font-weight:bold;
+                            cursor:pointer;
+                        "
+                    >
+                        Cetak / Simpan sebagai PDF
+                    </button>
+
+                </div>
+
+            </body>
+
+            </html>
+
+        `);
+
+        printWindow.document.close();
     }
     
 async function cetakLaporanResmi(paketId, npsn) {
