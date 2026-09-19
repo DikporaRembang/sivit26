@@ -1245,8 +1245,8 @@ table {
 
 
             <!-- ================= DASHBOARD DINAS PATCH 8.2 ================= -->
-            <section id="dashboardDinasContainer" class="hidden mb-6">
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
+            <section id="dashboardDinasContainer" class="hidden mb-5">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
                     <div>
                         <h3 class="text-base font-extrabold text-slate-900">
                             <i class="fa-solid fa-gauge-high text-blue-700 mr-2"></i>Dashboard Monitoring DINAS
@@ -1255,56 +1255,64 @@ table {
                     </div>
                     <div class="flex items-center gap-2">
                         <span id="dashGeneratedAt" class="text-[10px] text-slate-400"></span>
-                        <button type="button" onclick="loadDashboardDinas()" class="px-3 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-xs border border-blue-200">
+                        <button type="button" onclick="loadDashboardDinas()" class="px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-xs border border-blue-200">
                             <i class="fa-solid fa-rotate mr-1"></i>Refresh
                         </button>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
-                    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
-                        <div class="text-[11px] font-bold text-slate-500 uppercase">Sekolah</div>
-                        <div id="dashKpiSekolah" class="text-2xl font-extrabold text-blue-700 mt-1">0</div>
+                <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-2 mb-3">
+                    <div class="bg-white rounded-lg border border-slate-200 shadow-sm px-3 py-2.5">
+                        <div class="text-[10px] font-bold text-slate-500 uppercase">Total Sekolah</div>
+                        <div id="dashKpiSekolah" class="text-xl font-extrabold text-blue-700 mt-0.5">0</div>
                     </div>
-                    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
-                        <div class="text-[11px] font-bold text-slate-500 uppercase">Paket</div>
-                        <div id="dashKpiPaket" class="text-2xl font-extrabold text-blue-700 mt-1">0</div>
+                    <div class="bg-white rounded-lg border border-slate-200 shadow-sm px-3 py-2.5">
+                        <div class="text-[10px] font-bold text-slate-500 uppercase">Sekolah User</div>
+                        <div id="dashKpiSekolahUser" class="text-xl font-extrabold text-indigo-700 mt-0.5">0</div>
                     </div>
-                    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
-                        <div class="text-[11px] font-bold text-slate-500 uppercase">Paket Disetujui</div>
-                        <div id="dashKpiPaketApproved" class="text-2xl font-extrabold text-emerald-600 mt-1">0</div>
+                    <div class="bg-white rounded-lg border border-slate-200 shadow-sm px-3 py-2.5">
+                        <div class="text-[10px] font-bold text-slate-500 uppercase">Cakupan User</div>
+                        <div id="dashKpiCakupanUser" class="text-xl font-extrabold text-emerald-600 mt-0.5">0%</div>
                     </div>
-                    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
-                        <div class="text-[11px] font-bold text-slate-500 uppercase">Laporan Diajukan</div>
-                        <div id="dashKpiLaporan" class="text-2xl font-extrabold text-amber-600 mt-1">0</div>
+                    <div class="bg-white rounded-lg border border-slate-200 shadow-sm px-3 py-2.5">
+                        <div class="text-[10px] font-bold text-slate-500 uppercase">Paket</div>
+                        <div id="dashKpiPaket" class="text-xl font-extrabold text-blue-700 mt-0.5">0</div>
+                    </div>
+                    <div class="bg-white rounded-lg border border-slate-200 shadow-sm px-3 py-2.5">
+                        <div class="text-[10px] font-bold text-slate-500 uppercase">Paket Disetujui</div>
+                        <div id="dashKpiPaketApproved" class="text-xl font-extrabold text-emerald-600 mt-0.5">0</div>
+                    </div>
+                    <div class="bg-white rounded-lg border border-slate-200 shadow-sm px-3 py-2.5">
+                        <div class="text-[10px] font-bold text-slate-500 uppercase">Laporan Diajukan</div>
+                        <div id="dashKpiLaporan" class="text-xl font-extrabold text-amber-600 mt-0.5">0</div>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
-                    <div class="rounded-xl border border-red-200 bg-red-50 p-4">
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
+                    <div class="rounded-xl border border-red-200 bg-red-50 p-3">
                         <div class="text-[11px] font-bold text-red-700 uppercase">Terlambat</div>
                         <div id="dashAlertTerlambat" class="text-2xl font-extrabold text-red-700 mt-1">0</div>
                         <div class="text-[10px] text-red-600 mt-1">Deviasi ≤ -10%</div>
                     </div>
-                    <div class="rounded-xl border border-amber-200 bg-amber-50 p-4">
+                    <div class="rounded-xl border border-amber-200 bg-amber-50 p-3">
                         <div class="text-[11px] font-bold text-amber-700 uppercase">Perhatian</div>
                         <div id="dashAlertPerhatian" class="text-2xl font-extrabold text-amber-700 mt-1">0</div>
                         <div class="text-[10px] text-amber-600 mt-1">Realisasi di bawah target</div>
                     </div>
-                    <div class="rounded-xl border border-orange-200 bg-orange-50 p-4">
+                    <div class="rounded-xl border border-orange-200 bg-orange-50 p-3">
                         <div class="text-[11px] font-bold text-orange-700 uppercase">Jatuh Tempo</div>
                         <div id="dashAlertJatuhTempo" class="text-2xl font-extrabold text-orange-700 mt-1">0</div>
                         <div class="text-[10px] text-orange-600 mt-1">Tanggal selesai terlewati</div>
                     </div>
-                    <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                    <div class="rounded-xl border border-slate-200 bg-slate-50 p-3">
                         <div class="text-[11px] font-bold text-slate-600 uppercase">Belum Ada Laporan</div>
                         <div id="dashAlertBelumLaporan" class="text-2xl font-extrabold text-slate-700 mt-1">0</div>
                         <div class="text-[10px] text-slate-500 mt-1">Paket disetujui tanpa laporan APPROVED</div>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 xl:grid-cols-3 gap-4">
-                    <div class="xl:col-span-2 bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+                <div class="grid grid-cols-1 xl:grid-cols-3 gap-3">
+                    <div class="xl:col-span-2 bg-white rounded-xl border border-slate-200 shadow-sm p-3">
                         <div class="flex items-center justify-between mb-3">
                             <div>
                                 <h4 class="font-bold text-sm text-slate-800">
@@ -1330,7 +1338,7 @@ table {
                         </div>
                     </div>
 
-                    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+                    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-3">
                         <h4 class="font-bold text-sm text-slate-800 mb-3">
                             <i class="fa-solid fa-chart-pie text-blue-700 mr-2"></i>Ringkasan
                         </h4>
@@ -1355,7 +1363,26 @@ table {
                     </div>
                 </div>
 
-                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 mt-4">
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-3 mt-3">
+                    <h4 class="font-bold text-sm text-slate-800 mb-2">
+                        <i class="fa-solid fa-user-check text-indigo-700 mr-2"></i>Cakupan Sekolah sebagai User per Kecamatan
+                    </h4>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-[11px] min-w-[520px]">
+                            <thead>
+                                <tr class="text-left border-b border-slate-200 text-slate-500">
+                                    <th class="py-1.5 pr-2">Kecamatan</th>
+                                    <th class="py-1.5 pr-2 text-right">Total Sekolah</th>
+                                    <th class="py-1.5 pr-2 text-right">User SEKOLAH</th>
+                                    <th class="py-1.5 text-right">Cakupan</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dashboardDinasCakupanUserBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-3 mt-3">
                     <h4 class="font-bold text-sm text-slate-800 mb-3">
                         <i class="fa-solid fa-location-dot text-blue-700 mr-2"></i>Rekap Kecamatan
                     </h4>
@@ -2033,6 +2060,8 @@ async function handleRegister(e) {
         };
 
         setText('dashKpiSekolah', Number(k.total_sekolah || 0).toLocaleString('id-ID'));
+        setText('dashKpiSekolahUser', Number(k.sekolah_user || 0).toLocaleString('id-ID'));
+        setText('dashKpiCakupanUser', Number(k.persentase_sekolah_user || 0).toLocaleString('id-ID') + '%');
         setText('dashKpiPaket', Number(k.total_paket || 0).toLocaleString('id-ID'));
         setText('dashKpiPaketApproved', Number(k.paket_disetujui || 0).toLocaleString('id-ID'));
         setText('dashKpiLaporan', Number(k.laporan_diajukan || 0).toLocaleString('id-ID'));
@@ -2139,6 +2168,54 @@ async function handleRegister(e) {
 
                     monitoringBody.appendChild(tr);
                 });
+            }
+        }
+
+        const cakupanBody = document.getElementById('dashboardDinasCakupanUserBody');
+        if (cakupanBody) {
+            cakupanBody.innerHTML = '';
+
+            (data.cakupan_user_kecamatan || []).forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = 'border-b border-slate-100';
+
+                const tdKec = document.createElement('td');
+                tdKec.className = 'py-1.5 pr-2 font-semibold text-slate-700';
+                tdKec.textContent = item.kecamatan || '-';
+
+                const tdTotal = document.createElement('td');
+                tdTotal.className = 'py-1.5 pr-2 text-right';
+                tdTotal.textContent = Number(item.total_sekolah || 0).toLocaleString('id-ID');
+
+                const tdUser = document.createElement('td');
+                tdUser.className = 'py-1.5 pr-2 text-right font-semibold text-indigo-700';
+                tdUser.textContent = Number(item.sekolah_user || 0).toLocaleString('id-ID');
+
+                const tdPct = document.createElement('td');
+                tdPct.className = 'py-1.5 text-right font-extrabold';
+                const pct = Number(item.persentase || 0);
+                tdPct.textContent = pct.toLocaleString('id-ID') + '%';
+                tdPct.classList.add(
+                    pct >= 75 ? 'text-emerald-600' :
+                    pct >= 50 ? 'text-lime-600' :
+                    pct >= 25 ? 'text-amber-600' : 'text-red-600'
+                );
+
+                tr.appendChild(tdKec);
+                tr.appendChild(tdTotal);
+                tr.appendChild(tdUser);
+                tr.appendChild(tdPct);
+                cakupanBody.appendChild(tr);
+            });
+
+            if (!(data.cakupan_user_kecamatan || []).length) {
+                const tr = document.createElement('tr');
+                const td = document.createElement('td');
+                td.colSpan = 4;
+                td.className = 'py-4 text-center text-slate-400';
+                td.textContent = 'Belum ada data sekolah.';
+                tr.appendChild(td);
+                cakupanBody.appendChild(tr);
             }
         }
 
