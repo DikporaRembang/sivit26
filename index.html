@@ -5456,41 +5456,57 @@ currentHeaders.forEach(h => {
                 input = document.createElement('select');
                 input.name = h;
                 input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-                
+
                 let defOpt = document.createElement('option');
                 defOpt.value = "";
                 defOpt.innerText = "-- Pilih Rentang Minggu --";
                 input.appendChild(defOpt);
 
                 let baseDate = new Date(2026, 0, 5);
+
                 for (let w = 1; w <= 24; w++) {
                     let startD = new Date(baseDate);
                     startD.setDate(baseDate.getDate() + (w - 1) * 7);
+
                     let endD = new Date(baseDate);
                     endD.setDate(baseDate.getDate() + w * 7 - 1);
 
                     let fmtStart = `${String(startD.getDate()).padStart(2, '0')}/${String(startD.getMonth() + 1).padStart(2, '0')}/${startD.getFullYear()}`;
                     let fmtEnd = `${String(endD.getDate()).padStart(2, '0')}/${String(endD.getMonth() + 1).padStart(2, '0')}/${endD.getFullYear()}`;
-                    
+
                     let labelMinggu = `Minggu ke-${w} ${fmtStart} s/d ${fmtEnd}`;
+
                     let opt = document.createElement('option');
+
                     // VALUE harus angka, bukan label
                     opt.value = String(w);
+
                     // Yang tampil tetap lengkap dan informatif
                     opt.innerText = labelMinggu;
+
                     if (
                         activeRowData &&
                         String(activeRowData[h] || '').trim() === String(w)
                     ) {
                         opt.selected = true;
                     }
+
                     input.appendChild(opt);
-            } else if (hLower === 'tanggal_lapor') {
+                }  // <-- tutup FOR
+
+            } else if (hLower === 'tanggal_lapor') {  // <-- tutup blok minggu_ke lalu lanjut else-if
                 input = document.createElement('input');
                 input.type = "date";
                 input.name = h;
                 input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-                input.value = typeof convertToInputDate === 'function' ? convertToInputDate(activeRowData && activeRowData[h] ? activeRowData[h] : new Date().toISOString().split('T')[0]) : "";
+
+                input.value = typeof convertToInputDate === 'function'
+                    ? convertToInputDate(
+                        activeRowData && activeRowData[h]
+                            ? activeRowData[h]
+                            : new Date().toISOString().split('T')[0]
+                    )
+                    : "";
             } else if (hLower === 'target_kurva_s' || hLower === 'realisasi_fisik') {
 
                 let wrapper = document.createElement('div');
