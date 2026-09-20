@@ -710,6 +710,50 @@ table {
 }
 
 /* =========================================================
+   PATCH 8.5.3 — DASHBOARD TETAP SAAT FEED DI-SCROLL
+   ========================================================= */
+
+@media (min-width: 769px) {
+    /* Dashboard DINAS tetap berada di area atas ketika feed digulir.
+       Dashboard memiliki scroll internal agar tidak mengambil seluruh layar. */
+    #dashboardDinasContainer {
+        position: sticky;
+        top: 0;
+        z-index: 40;
+        max-height: min(72vh, 760px);
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        background: var(--sivit-bg) !important;
+        padding-top: 0.25rem;
+        padding-bottom: 0.5rem;
+        scrollbar-width: thin;
+    }
+
+    #dashboardDinasContainer::-webkit-scrollbar {
+        width: 7px;
+    }
+
+    #dashboardDinasContainer::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 999px;
+    }
+
+    #dashboardDinasContainer > * {
+        position: relative;
+    }
+}
+
+@media (max-width: 768px) {
+    /* Pada perangkat kecil, dashboard mengikuti alur normal agar
+       tidak mengunci area layar dan tetap nyaman digulir. */
+    #dashboardDinasContainer {
+        position: static;
+        max-height: none;
+        overflow: visible;
+    }
+}
+
+/* =========================================================
    RESPONSIVE
    ========================================================= */
 
@@ -1364,40 +1408,23 @@ table {
                 </div>
 
                 <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-3 mt-3">
-                    <h4 class="font-bold text-sm text-slate-800 mb-2">
-                        <i class="fa-solid fa-user-check text-indigo-700 mr-2"></i>Cakupan Sekolah sebagai User per Kecamatan
+                    <h4 class="font-bold text-sm text-slate-800 mb-3">
+                        <i class="fa-solid fa-location-dot text-blue-700 mr-2"></i>Rekap Gabungan Kecamatan
                     </h4>
                     <div class="overflow-x-auto">
-                        <table class="w-full text-[11px] min-w-[520px]">
+                        <table class="w-full text-[11px] min-w-[980px]">
                             <thead>
                                 <tr class="text-left border-b border-slate-200 text-slate-500">
                                     <th class="py-1.5 pr-2">Kecamatan</th>
-                                    <th class="py-1.5 pr-2 text-right">Total Sekolah</th>
-                                    <th class="py-1.5 pr-2 text-right">User SEKOLAH</th>
-                                    <th class="py-1.5 text-right">Cakupan</th>
+                                    <th class="py-1.5 pr-2 text-right">Sekolah</th>
+                                    <th class="py-1.5 pr-2 text-right">User</th>
+                                    <th class="py-1.5 pr-2 text-right">Cakupan</th>
+                                    <th class="py-1.5 pr-2 text-right">Paket</th>
+                                    <th class="py-1.5 pr-2 text-right">Disetujui</th>
+                                    <th class="py-1.5 text-right">Diajukan</th>
                                 </tr>
                             </thead>
-                            <tbody id="dashboardDinasCakupanUserBody"></tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-3 mt-3">
-                    <h4 class="font-bold text-sm text-slate-800 mb-3">
-                        <i class="fa-solid fa-location-dot text-blue-700 mr-2"></i>Rekap Kecamatan
-                    </h4>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-xs min-w-[560px]">
-                            <thead>
-                                <tr class="text-left border-b border-slate-200 text-slate-500">
-                                    <th class="py-2 pr-2">Kecamatan</th>
-                                    <th class="py-2 pr-2">Sekolah</th>
-                                    <th class="py-2 pr-2">Paket</th>
-                                    <th class="py-2 pr-2">Disetujui</th>
-                                    <th class="py-2">Diajukan</th>
-                                </tr>
-                            </thead>
-                            <tbody id="dashboardDinasKecamatanBody"></tbody>
+                            <tbody id="dashboardDinasRekapKecamatanBody"></tbody>
                         </table>
                     </div>
                 </div>
@@ -2215,78 +2242,56 @@ async function handleRegister(e) {
             }
         }
 
-        const cakupanBody = document.getElementById('dashboardDinasCakupanUserBody');
-        if (cakupanBody) {
-            cakupanBody.innerHTML = '';
+        const rekapBody = document.getElementById('dashboardDinasRekapKecamatanBody');
+        if (rekapBody) {
+            rekapBody.innerHTML = '';
+            const rows = Array.isArray(data.rekap_kecamatan)
+                ? data.rekap_kecamatan
+                : [];
 
-            (data.cakupan_user_kecamatan || []).forEach(item => {
+            rows.forEach(item => {
                 const tr = document.createElement('tr');
                 tr.className = 'border-b border-slate-100';
-
-                const tdKec = document.createElement('td');
-                tdKec.className = 'py-1.5 pr-2 font-semibold text-slate-700';
-                tdKec.textContent = item.kecamatan || '-';
-
-                const tdTotal = document.createElement('td');
-                tdTotal.className = 'py-1.5 pr-2 text-right';
-                tdTotal.textContent = Number(item.total_sekolah || 0).toLocaleString('id-ID');
-
-                const tdUser = document.createElement('td');
-                tdUser.className = 'py-1.5 pr-2 text-right font-semibold text-indigo-700';
-                tdUser.textContent = Number(item.sekolah_user || 0).toLocaleString('id-ID');
-
-                const tdPct = document.createElement('td');
-                tdPct.className = 'py-1.5 text-right font-extrabold';
-                const pct = Number(item.persentase || 0);
-                tdPct.textContent = pct.toLocaleString('id-ID') + '%';
-                tdPct.classList.add(
-                    pct >= 75 ? 'text-emerald-600' :
-                    pct >= 50 ? 'text-lime-600' :
-                    pct >= 25 ? 'text-amber-600' : 'text-red-600'
-                );
-
-                tr.appendChild(tdKec);
-                tr.appendChild(tdTotal);
-                tr.appendChild(tdUser);
-                tr.appendChild(tdPct);
-                cakupanBody.appendChild(tr);
-            });
-
-            if (!(data.cakupan_user_kecamatan || []).length) {
-                const tr = document.createElement('tr');
-                const td = document.createElement('td');
-                td.colSpan = 4;
-                td.className = 'py-4 text-center text-slate-400';
-                td.textContent = 'Belum ada data sekolah.';
-                tr.appendChild(td);
-                cakupanBody.appendChild(tr);
-            }
-        }
-
-        const body = document.getElementById('dashboardDinasKecamatanBody');
-        if (body) {
-            body.innerHTML = '';
-
-            (data.kecamatan || []).forEach(item => {
-                const tr = document.createElement('tr');
-                tr.className = 'border-b border-slate-100';
-
-                [
+                const values = [
                     item.kecamatan || '-',
                     Number(item.sekolah || 0).toLocaleString('id-ID'),
+                    Number(item.sekolah_user || 0).toLocaleString('id-ID'),
+                    Number(item.persentase || 0).toLocaleString('id-ID') + '%',
                     Number(item.paket || 0).toLocaleString('id-ID'),
                     Number(item.paket_disetujui || 0).toLocaleString('id-ID'),
                     Number(item.laporan_diajukan || 0).toLocaleString('id-ID')
-                ].forEach((value, index) => {
+                ];
+
+                values.forEach((value, index) => {
                     const td = document.createElement('td');
-                    td.className = 'py-2 pr-2';
-                    if (index === 0) td.classList.add('font-semibold');
+                    td.className = 'py-1.5 pr-2';
+                    if (index === 0) td.classList.add('font-semibold', 'text-slate-700');
+                    if (index > 0) td.classList.add('text-right');
+                    if (index === 2) td.classList.add('font-semibold', 'text-indigo-700');
+                    if (index === 3) {
+                        const pct = Number(item.persentase || 0);
+                        td.classList.add('font-extrabold');
+                        td.classList.add(
+                            pct >= 75 ? 'text-emerald-600' :
+                            pct >= 50 ? 'text-lime-600' :
+                            pct >= 25 ? 'text-amber-600' : 'text-red-600'
+                        );
+                    }
                     td.textContent = value;
                     tr.appendChild(td);
                 });
-
-                body.appendChild(tr);
+                rekapBody.appendChild(tr);
             });
+
+            if (!rows.length) {
+                const tr = document.createElement('tr');
+                const td = document.createElement('td');
+                td.colSpan = 7;
+                td.className = 'py-4 text-center text-slate-400';
+                td.textContent = 'Belum ada data rekap kecamatan.';
+                tr.appendChild(td);
+                rekapBody.appendChild(tr);
+            }
         }
     }
 
@@ -3007,6 +3012,16 @@ async function handleRegister(e) {
         // agar paket_id tidak berdiri sendiri dan mudah dikenali.
         let displayHeaders = [...headers];
 
+        // PATCH 8.5.2: Rekap DINAS menampilkan nama sekolah berdasarkan NPSN.
+        const isRekapDinas = currentUser && currentUser.role === 'DINAS' &&
+            (sheetName === 'paket_pekerjaan_sd' || sheetName === 'laporan_progres');
+
+        if (isRekapDinas && !displayHeaders.some(h => String(h).toLowerCase() === 'nama_sekolah')) {
+            const npsnIndex = displayHeaders.findIndex(h => String(h).toLowerCase() === 'npsn');
+            if (npsnIndex >= 0) displayHeaders.splice(npsnIndex + 1, 0, 'nama_sekolah');
+            else displayHeaders.unshift('nama_sekolah');
+        }
+
         if (
             sheetName === 'laporan_progres' &&
             !displayHeaders.some(h => String(h).toLowerCase() === 'nama_menu')
@@ -3064,6 +3079,16 @@ async function handleRegister(e) {
                 let td = document.createElement('td');
                 td.className = "p-3 text-slate-900 text-xs truncate max-w-xs font-bold";
                 let val = row[h] !== undefined ? row[h] : "";
+
+                if (isRekapDinas && h.toLowerCase() === 'nama_sekolah') {
+                    const npsnKey = String(row.npsn || '').trim();
+                    const matchedSchool = (usersList || []).find(u =>
+                        String(u.username || u.npsn || '').trim() === npsnKey
+                    );
+                    val = matchedSchool
+                        ? (matchedSchool.nama_sekolah || matchedSchool.nama_pengguna || '')
+                        : ('Sekolah ' + (npsnKey || '-'));
+                }
 
                 if ((h.toLowerCase() === 'pagu' || h.toLowerCase() === 'pagu_lama' || h.toLowerCase() === 'pagu_baru' || h.toLowerCase() === 'penggunaan_anggaran') && !isNaN(val) && val !== "") {
                     let angkaNum = Number(val);
@@ -3247,6 +3272,58 @@ async function handleRegister(e) {
             }
             bodyEl.appendChild(tr);
         });
+
+        // PATCH 8.5.2: subtotal data hasil filter DINAS.
+        if (isRekapDinas && data.length > 0) {
+            const moneyFields = ['pagu', 'pagu_usulan', 'pagu_lama', 'pagu_baru', 'penggunaan_anggaran'];
+            const totals = {};
+            moneyFields.forEach(field => totals[field] = 0);
+
+            data.forEach(row => {
+                moneyFields.forEach(field => {
+                    const raw = row[field];
+                    if (raw === undefined || raw === null || raw === '') return;
+                    const normalized = String(raw)
+                        .replace(/[^0-9,.-]/g, '')
+                        .replace(/\.(?=\d{3}(?:\D|$))/g, '')
+                        .replace(',', '.');
+                    const number = Number(normalized);
+                    if (Number.isFinite(number)) totals[field] += number;
+                });
+            });
+
+            const subtotal = document.createElement('tr');
+            subtotal.className = 'bg-amber-100 border-t-2 border-amber-400 font-extrabold text-blue-950';
+            const subtotalNo = document.createElement('td');
+            subtotalNo.className = 'p-3 text-center';
+            subtotal.appendChild(subtotalNo);
+
+            displayHeaders.forEach((h, index) => {
+                const td = document.createElement('td');
+                td.className = 'p-3 text-xs';
+                const key = String(h).toLowerCase();
+                if (index === 0) {
+                    td.innerText = 'SUBTOTAL';
+                } else if (key === 'nama_sekolah' || key === 'npsn' || key === 'paket_id') {
+                    td.innerText = '';
+                } else if (moneyFields.includes(key)) {
+                    td.innerText = 'Rp ' + Math.round(totals[key]).toLocaleString('id-ID');
+                } else if (key === 'id' || key === 'minggu_ke') {
+                    td.innerText = String(data.length);
+                } else {
+                    td.innerText = '';
+                }
+                subtotal.appendChild(td);
+            });
+
+            if (showActionColumn) {
+                const tdAction = document.createElement('td');
+                tdAction.className = 'p-3 text-center text-xs';
+                tdAction.innerText = '-';
+                subtotal.appendChild(tdAction);
+            }
+            bodyEl.appendChild(subtotal);
+        }
     }
     
     async function cetakRekapProgresFisikSekolah() {
