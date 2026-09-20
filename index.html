@@ -1421,302 +1421,190 @@ label {
 </style>
 
 
-<style id="sivit-modern-aptos-theme">
+<style id="sivit-responsive-mobile-tablet-audit">
 /* =========================================================
-   PATCH 8.5.8 — MODERN FORMAL EDUCATION THEME
-   Visual-only override: preserves existing structure and behavior.
+   PATCH 8.5.8 — RESPONSIVE MOBILE & TABLET AUDIT
+   CSS-only compatibility layer. Preserve existing architecture,
+   functions, modal behavior, logo, identity, and data flow.
    ========================================================= */
-:root {
-  --sivit-bg: #eef3f8;
-  --sivit-surface: #ffffff;
-  --sivit-surface-soft: #f6f9fc;
-  --sivit-primary: #123b63;
-  --sivit-primary-2: #1d5b91;
-  --sivit-accent: #00a6c8;
-  --sivit-accent-2: #5b5ce2;
-  --sivit-gold: #d6a84f;
-  --sivit-text: #172b43;
-  --sivit-muted: #61758b;
-  --sivit-border: #d5e0eb;
-  --sivit-success: #087f5b;
-  --sivit-warning: #b7791f;
-  --sivit-danger: #c2413b;
-  --sivit-shadow: 0 14px 34px rgba(18, 59, 99, .10);
-  --sivit-shadow-hover: 0 18px 42px rgba(18, 59, 99, .18);
+
+*, *::before, *::after { box-sizing: border-box; }
+html { width: 100%; max-width: 100%; overflow-x: hidden; }
+body { width: 100%; max-width: 100%; overflow-x: hidden; }
+img, svg, canvas, video { max-width: 100%; }
+button, input, select, textarea { max-width: 100%; }
+
+/* Keep wide data grids usable without forcing the whole page wider. */
+.overflow-x-auto {
+  max-width: 100%;
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+.overflow-x-auto table {
+  min-width: max-content;
 }
 
-html { scroll-behavior: smooth; }
-body,
-button,
-input,
-select,
-textarea,
-table,
-.tooltip,
-.dropdown,
-.modal,
-.card,
-.nav-link {
-  font-family: Aptos, "Aptos Display", "Segoe UI", system-ui, sans-serif !important;
+/* Prevent long identifiers, NPSN, package IDs, and URLs from breaking cards. */
+td, th, label, p, span, a, button {
+  overflow-wrap: anywhere;
 }
 
-h1, h2, h3, h4, h5, h6,
-.section-title,
-.modal-title,
-.dashboard-title {
-  font-family: Aptos Display, Aptos, "Segoe UI", system-ui, sans-serif !important;
-  letter-spacing: -.025em;
-}
+/* Tablet layout: reduce large spacing while retaining comfortable touch targets. */
+@media (min-width: 769px) and (max-width: 1100px) {
+  main.flex-1 {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
 
-body {
-  background:
-    radial-gradient(circle at 8% 0%, rgba(0,166,200,.09), transparent 28rem),
-    radial-gradient(circle at 92% 8%, rgba(91,92,226,.08), transparent 30rem),
-    var(--sivit-bg) !important;
-  color: var(--sivit-text) !important;
-}
+  #dashboardDinasContainer {
+    max-width: 100%;
+  }
 
-button,
-.btn,
-[role="button"],
-.nav-link,
-.menu-item,
-.sivit-menu-group,
-.menu-group,
-[data-menu-group] {
-  transition: background-color .18s ease, color .18s ease, border-color .18s ease,
-              box-shadow .18s ease, transform .18s ease, opacity .18s ease !important;
-}
+  #dashboardDinasContainer .grid {
+    gap: .75rem !important;
+  }
 
-button:hover,
-.btn:hover,
-[role="button"]:hover {
-  transform: translateY(-1px);
-}
+  #dashboardDinasContainer .text-3xl,
+  #dashboardDinasContainer .text-2xl {
+    font-size: 1.35rem !important;
+    line-height: 1.2 !important;
+  }
 
-button:active,
-.btn:active,
-[role="button"]:active {
-  transform: translateY(0) scale(.985);
-}
-
-button:focus-visible,
-input:focus-visible,
-select:focus-visible,
-textarea:focus-visible,
-a:focus-visible {
-  outline: 3px solid rgba(0,166,200,.35) !important;
-  outline-offset: 3px !important;
-}
-
-header,
-.app-header,
-.navbar,
-#mainHeader,
-#appHeader {
-  background: linear-gradient(115deg, #102b49 0%, #123b63 52%, #1d5b91 100%) !important;
-  box-shadow: 0 8px 26px rgba(16,43,73,.22) !important;
-}
-
-.sivit-menu-group,
-.menu-group,
-.nav-group,
-[data-menu-group] {
-  border: 1px solid rgba(255,255,255,.13) !important;
-  background: rgba(255,255,255,.055) !important;
-  border-radius: 13px !important;
-}
-
-.sivit-menu-group:hover,
-.menu-group:hover,
-.nav-group:hover,
-[data-menu-group]:hover {
-  background: rgba(0,166,200,.16) !important;
-  border-color: rgba(120,231,246,.40) !important;
-}
-
-.sivit-menu-group.active,
-.menu-group.active,
-.nav-group.active,
-[data-menu-group].active {
-  background: linear-gradient(100deg, rgba(0,166,200,.24), rgba(91,92,226,.18)) !important;
-  border-color: rgba(120,231,246,.55) !important;
-}
-
-.card,
-.panel,
-.dashboard-card,
-.kpi-card,
-.modal-content,
-.table-container,
-section[class*="card"] {
-  border: 1px solid var(--sivit-border) !important;
-  border-radius: 18px !important;
-  box-shadow: var(--sivit-shadow) !important;
-  background: rgba(255,255,255,.96) !important;
-  animation: sivitFadeUp .42s ease both;
-}
-
-.card:hover,
-.panel:hover,
-.dashboard-card:hover,
-.kpi-card:hover {
-  box-shadow: var(--sivit-shadow-hover) !important;
-}
-
-.kpi-card {
-  position: relative;
-  overflow: hidden;
-}
-
-.kpi-card::before,
-.dashboard-card::before {
-  content: "";
-  position: absolute;
-  inset: 0 auto auto 0;
-  width: 100%;
-  height: 4px;
-  background: linear-gradient(90deg, var(--sivit-accent), var(--sivit-accent-2), var(--sivit-gold));
-  opacity: .95;
-}
-
-.kpi-card:nth-child(3n+1)::before { background: linear-gradient(90deg, #00a6c8, #1d8fb4); }
-.kpi-card:nth-child(3n+2)::before { background: linear-gradient(90deg, #5b5ce2, #7778f0); }
-.kpi-card:nth-child(3n)::before { background: linear-gradient(90deg, #d6a84f, #e8c875); }
-
-.section-title,
-.dashboard-title {
-  color: var(--sivit-primary) !important;
-  font-weight: 800 !important;
-}
-
-.section-title::after {
-  background: linear-gradient(90deg, var(--sivit-accent), var(--sivit-gold)) !important;
-  height: 3px !important;
-  border-radius: 999px !important;
-}
-
-table {
-  border-color: var(--sivit-border) !important;
-}
-
-thead,
-thead tr {
-  background: linear-gradient(100deg, #123b63, #1d5b91) !important;
-  color: #fff !important;
-}
-
-thead th {
-  color: #fff !important;
-  font-weight: 800 !important;
-  letter-spacing: .015em;
-}
-
-tbody tr {
-  transition: background-color .18s ease, transform .18s ease !important;
-}
-
-tbody tr:nth-child(even) { background: #f7fafc !important; }
-tbody tr:hover { background: #e8f7fb !important; }
-
-input,
-select,
-textarea {
-  background: #fff !important;
-  color: var(--sivit-text) !important;
-  border: 1px solid #bdccdc !important;
-  border-radius: 11px !important;
-  transition: border-color .18s ease, box-shadow .18s ease, background-color .18s ease !important;
-}
-
-input:hover,
-select:hover,
-textarea:hover { border-color: #7ba1c2 !important; }
-input:focus,
-select:focus,
-textarea:focus {
-  border-color: var(--sivit-accent) !important;
-  box-shadow: 0 0 0 4px rgba(0,166,200,.12) !important;
-}
-
-button,
-.btn {
-  border-radius: 11px !important;
-  font-weight: 700 !important;
-}
-
-button.primary,
-.btn-primary,
-button[class*="bg-blue"],
-button[class*="bg-indigo"] {
-  background: linear-gradient(110deg, #123b63, #1d5b91) !important;
-  border-color: #123b63 !important;
-  color: #fff !important;
-  box-shadow: 0 5px 14px rgba(18,59,99,.18) !important;
-}
-
-button.primary:hover,
-.btn-primary:hover,
-button[class*="bg-blue"]:hover,
-button[class*="bg-indigo"]:hover {
-  background: linear-gradient(110deg, #0d2d4c, #164a78) !important;
-  box-shadow: 0 8px 20px rgba(18,59,99,.27) !important;
-}
-
-.badge,
-.status-badge,
-.notification-badge {
-  border-radius: 999px !important;
-  font-weight: 800 !important;
-  box-shadow: 0 2px 8px rgba(18,59,99,.10) !important;
-}
-
-.modal-backdrop,
-.fixed.inset-0[class*="bg-black"] {
-  backdrop-filter: blur(5px) !important;
-  background: rgba(8,25,43,.56) !important;
-}
-
-.modal-content {
-  animation: sivitModalIn .24s ease both !important;
-}
-
-img,
-.logo,
-#authContainer img {
-  transition: filter .2s ease, opacity .2s ease !important;
-}
-
-img:hover { opacity: .97; }
-
-@keyframes sivitFadeUp {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes sivitModalIn {
-  from { opacity: 0; transform: translateY(14px) scale(.985); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: .01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: .01ms !important;
-    scroll-behavior: auto !important;
+  .modal-content,
+  #verifikasi-modal > div,
+  #modalRiwayatPagu > div {
+    max-width: calc(100vw - 2rem) !important;
   }
 }
 
+/* Phone layout: stack dense controls and keep content inside the viewport. */
 @media (max-width: 768px) {
-  .card,
-  .panel,
-  .dashboard-card,
-  .kpi-card,
+  body { min-width: 0 !important; }
+
+  header, nav, main, section, aside, footer,
+  .max-w-7xl, .max-w-6xl, .max-w-5xl, .max-w-4xl {
+    max-width: 100% !important;
+  }
+
+  main.flex-1 {
+    padding: .75rem !important;
+  }
+
+  header {
+    gap: .5rem !important;
+  }
+
+  header h1,
+  header .text-xl,
+  header .text-2xl {
+    font-size: 1rem !important;
+    line-height: 1.25 !important;
+  }
+
+  .sivit-menu-group,
+  .menu-group,
+  .nav-group,
+  [data-menu-group] {
+    width: 100%;
+  }
+
+  button,
+  [role="button"] {
+    min-height: 38px;
+  }
+
+  input, select, textarea {
+    min-height: 40px;
+    font-size: 16px !important; /* prevents iOS auto-zoom */
+  }
+
+  .grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  #dashboardDinasContainer {
+    width: 100%;
+    max-width: 100%;
+    max-height: none !important;
+    overflow: visible !important;
+    position: static !important;
+  }
+
+  #dashboardDinasContainer .grid,
+  #dashboardDinasContainer .flex {
+    min-width: 0;
+  }
+
+  #dashboardDinasContainer .text-3xl,
+  #dashboardDinasContainer .text-2xl,
+  #dashboardDinasContainer .text-xl {
+    font-size: 1.1rem !important;
+    line-height: 1.25 !important;
+  }
+
+  .modal,
+  #dataModal,
+  #verifikasi-modal,
+  #modalRiwayatPagu {
+    padding: .5rem !important;
+    align-items: flex-start !important;
+    overflow-y: auto !important;
+  }
+
   .modal-content,
-  .table-container {
+  #dataModal > div,
+  #verifikasi-modal > div,
+  #modalRiwayatPagu > div {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: calc(100dvh - 1rem) !important;
+    overflow-y: auto !important;
     border-radius: 14px !important;
-    box-shadow: 0 8px 22px rgba(18,59,99,.09) !important;
+  }
+
+  table {
+    font-size: 11px;
+  }
+
+  th, td {
+    white-space: normal;
+    vertical-align: top;
+  }
+
+  .overflow-x-auto table {
+    min-width: 680px;
+  }
+
+  /* Avoid sticky desktop behavior on small screens. */
+  [style*="position: sticky"],
+  .sticky {
+    position: static !important;
+  }
+
+  /* Make action rows wrap instead of pushing the viewport sideways. */
+  .flex.items-center,
+  .flex.justify-between,
+  .flex.justify-end {
+    flex-wrap: wrap;
+  }
+}
+
+/* Very small phones. */
+@media (max-width: 390px) {
+  main.flex-1 { padding: .5rem !important; }
+  .rounded-2xl { border-radius: 12px !important; }
+  .rounded-xl { border-radius: 10px !important; }
+  button { padding-left: .7rem !important; padding-right: .7rem !important; }
+}
+
+/* Landscape phones/tablets: permit horizontal data scrolling but not page overflow. */
+@media (max-width: 1100px) and (orientation: landscape) {
+  #dashboardDinasContainer { max-width: 100%; }
+  .modal-content,
+  #verifikasi-modal > div,
+  #modalRiwayatPagu > div {
+    max-height: calc(100dvh - 1rem) !important;
   }
 }
 </style>
