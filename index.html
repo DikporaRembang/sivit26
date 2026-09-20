@@ -2186,77 +2186,114 @@ td, th, label, p, span, a, button {
         }
     }
 
-    function toggleNotifDropdown() {
-        let dropdown = document.getElementById('notifDropdown');
-        dropdown.classList.toggle('hidden');
+    // PATCH 8.5.9 — SINKRONISASI NOTIFIKASI
+    let notifPollingTimer = null;
+    let notifRequestInFlight = false;
+    let notifLastTarget = '';
+
+    function getCurrentNotifTarget() {
+        if (!currentUser) return '';
+        return currentUser.role === 'DINAS' ? 'DINAS' : String(currentUser.username || '').trim();
     }
 
-    function loadNotifikasi(penerima) {
+    function startNotifPolling() {
+        stopNotifPolling();
+        if (!currentUser) return;
+        notifLastTarget = getCurrentNotifTarget();
+        notifPollingTimer = setInterval(function() {
+            if (currentUser && document.visibilityState !== 'hidden') {
+                loadNotifikasi(notifLastTarget, true);
+            }
+        }, 15000);
+    }
+
+    function stopNotifPolling() {
+        if (notifPollingTimer) {
+            clearInterval(notifPollingTimer);
+            notifPollingTimer = null;
+        }
+    }
+
+    function toggleNotifDropdown() {
+        let dropdown = document.getElementById('notifDropdown');
+        let willOpen = dropdown.classList.contains('hidden');
+        dropdown.classList.toggle('hidden');
+        if (willOpen) {
+            let target = getCurrentNotifTarget();
+            if (target) loadNotifikasi(target, false);
+        }
+    }
+
+    function loadNotifikasi(penerima, silent) {
         let container = document.getElementById('notifListContainer');
-        fetch(`${WEB_APP_URL}?token=${encodeURIComponent(currentUser?.token || "")}&action=getNotifikasi&penerima=${encodeURIComponent(penerima)}`)
+        let badge = document.getElementById('notifBadge');
+        if (!container || !currentUser || notifRequestInFlight) return;
+
+        let target = penerima || getCurrentNotifTarget();
+        if (!target) return;
+        notifLastTarget = target;
+        notifRequestInFlight = true;
+
+        fetch(`${WEB_APP_URL}?token=${encodeURIComponent(currentUser.token || '')}&action=getNotifikasi&penerima=${encodeURIComponent(target)}`, {
+            cache: 'no-store'
+        })
             .then(res => res.json())
             .then(response => {
-                if(response.status === 'success') {
-                    let listNotif = response.data || [];
-                    let badge = document.getElementById('notifBadge');
-                    
-                    if (listNotif.length > 0) {
-                        badge.innerText = listNotif.length;
-                        badge.classList.remove('hidden');
-                        
-                        container.innerHTML = "";
-                        listNotif.reverse().forEach(n => {
-                            let div = document.createElement('div');
-                            div.className = "p-3 hover:bg-blue-800/40 transition-colors flex flex-col justify-between";
+                if (response.status !== 'success') {
+                    throw new Error(response.pesan || response.message || 'Gagal mengambil notifikasi.');
+                }
 
-                            let content = document.createElement('div');
+                let listNotif = Array.isArray(response.data) ? response.data.slice() : [];
+                listNotif.reverse();
 
-                            let message = document.createElement('p');
-                            message.className = "text-blue-100 font-medium mb-1";
-                            message.textContent = n.pesan || '';
-                            content.appendChild(message);
+                if (listNotif.length > 0) {
+                    badge.innerText = String(listNotif.length);
+                    badge.classList.remove('hidden');
+                    container.innerHTML = '';
 
-                            let time = document.createElement('span');
-                            time.className = "text-[9px] text-amber-300 font-semibold";
+                    listNotif.forEach(function(n) {
+                        let div = document.createElement('div');
+                        div.className = 'p-3 hover:bg-blue-800/40 transition-colors flex flex-col justify-between';
+                        let content = document.createElement('div');
 
-                            let clockIcon = document.createElement('i');
-                            clockIcon.className = "fa-regular fa-clock mr-1";
-                            time.appendChild(clockIcon);
-                            time.appendChild(document.createTextNode(n.waktu || '-'));
+                        let message = document.createElement('p');
+                        message.className = 'text-blue-100 font-medium mb-1';
+                        message.textContent = n.pesan || '';
+                        content.appendChild(message);
 
-                            content.appendChild(time);
-                            div.appendChild(content);
+                        let time = document.createElement('span');
+                        time.className = 'text-[9px] text-amber-300 font-semibold';
+                        let clockIcon = document.createElement('i');
+                        clockIcon.className = 'fa-regular fa-clock mr-1';
+                        time.appendChild(clockIcon);
+                        time.appendChild(document.createTextNode(n.waktu || n.time_stamp || '-'));
+                        content.appendChild(time);
+                        div.appendChild(content);
 
-                            let notifId = n.id || n.id_notif || n.id_notifikasi;
-                            if (notifId) {
-                                let button = document.createElement('button');
-                                button.type = 'button';
-                                button.className = "mt-2 self-end px-2 py-1 bg-amber-500 hover:bg-amber-400 text-blue-950 font-bold rounded text-[10px] cursor-pointer";
-
-                                let checkIcon = document.createElement('i');
-                                checkIcon.className = "fa-solid fa-check mr-1";
-                                button.appendChild(checkIcon);
-                                button.appendChild(document.createTextNode(' Selesai / Eksekusi'));
-
-                                button.addEventListener('click', function() {
-                                    eksekusiDanHapusNotifikasi(notifId);
-                                });
-
-                                div.appendChild(button);
-                            }
-
-                            container.appendChild(div);
-                        });
-                    } else {
-                        badge.classList.add('hidden');
-                        container.innerHTML = `<div class="p-4 text-center text-blue-300">Tidak ada notifikasi baru.</div>`;
-                    }
+                        let notifId = n.id || n.id_notif || n.id_notifikasi;
+                        if (notifId) {
+                            let button = document.createElement('button');
+                            button.type = 'button';
+                            button.className = 'mt-2 self-end px-2 py-1 bg-amber-500 hover:bg-amber-400 text-blue-950 font-bold rounded text-[10px] cursor-pointer';
+                            let checkIcon = document.createElement('i');
+                            checkIcon.className = 'fa-solid fa-check mr-1';
+                            button.appendChild(checkIcon);
+                            button.appendChild(document.createTextNode(' Selesai / Eksekusi'));
+                            button.addEventListener('click', function() { eksekusiDanHapusNotifikasi(notifId); });
+                            div.appendChild(button);
+                        }
+                        container.appendChild(div);
+                    });
+                } else {
+                    badge.classList.add('hidden');
+                    container.innerHTML = '<div class="p-4 text-center text-blue-300">Tidak ada notifikasi baru.</div>';
                 }
             })
             .catch(error => {
-                console.error("Gagal memuat notifikasi", error);
-                container.innerHTML = `<div class="p-4 text-center text-red-400">Gagal memuat notifikasi.</div>`;
-            });
+                console.error('Gagal memuat notifikasi:', error);
+                if (!silent) container.innerHTML = '<div class="p-4 text-center text-red-400">Gagal memuat notifikasi.</div>';
+            })
+            .finally(() => { notifRequestInFlight = false; });
     }
 
     function eksekusiDanHapusNotifikasi(idNotifikasi) {
@@ -2388,6 +2425,7 @@ async function handleRegister(e) {
     }
 
     async function logout() {
+      stopNotifPolling();
         try {
             if (currentUser?.token) {
                 await fetch(WEB_APP_URL, {
@@ -2505,7 +2543,8 @@ async function handleRegister(e) {
       document.getElementById('userNpsnDisplay').innerText = "NPSN/ID: " + currentUser.username + " | Role: " + currentUser.role;
 
       let targetPenerima = (currentUser.role === 'DINAS') ? 'DINAS' : currentUser.username;
-      loadNotifikasi(targetPenerima);
+      loadNotifikasi(targetPenerima, true);
+      startNotifPolling();
 
       if (currentUser.role === 'SEKOLAH' && currentUser.sekolah) {
         document.getElementById('sekolahIdentitasCard').classList.remove('hidden');
