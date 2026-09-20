@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22%3E%3Crect width=%2264%22 height=%2264%22 rx=%2214%22 fill=%22%23173b63%22/%3E%3Cpath d=%22M17 42 32 12 47 42 32 34Z%22 fill=%22%23d6b36a%22/%3E%3C/svg%3E">
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- PATCH8.5.19: Warm nature theme + single EXIF photo source -->
@@ -611,8 +609,91 @@ body {
    BUTTON UMUM YANG DIBUAT DINAMIS
    ========================================================= */
 
+#actionButtonContainer {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 8px !important;
+    min-width: 0 !important;
+}
+
 #actionButtonContainer button {
     transition: all 0.18s ease !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    min-height: 34px !important;
+    min-width: 0 !important;
+    white-space: nowrap !important;
+    line-height: 1.2 !important;
+    flex: 0 0 auto !important;
+}
+
+#actionButtonContainer button span {
+    display: inline-block !important;
+    white-space: nowrap !important;
+}
+
+#tableBody td:last-child {
+    min-width: 150px !important;
+    width: 1% !important;
+    white-space: normal !important;
+    vertical-align: middle !important;
+}
+
+#tableBody td:last-child > div {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    min-width: 140px !important;
+}
+
+#tableBody td:last-child button {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 4px !important;
+    min-height: 30px !important;
+    min-width: 34px !important;
+    max-width: 100% !important;
+    padding: 6px 9px !important;
+    white-space: nowrap !important;
+    word-break: normal !important;
+    writing-mode: horizontal-tb !important;
+    transform: none !important;
+    line-height: 1.2 !important;
+}
+
+#tableBody td:last-child button i {
+    flex: 0 0 auto !important;
+}
+
+@media (max-width: 900px) {
+    #actionButtonContainer {
+        width: 100% !important;
+        justify-content: flex-start !important;
+    }
+
+    #actionButtonContainer button {
+        flex: 1 1 auto !important;
+    }
+
+    #tableBody td:last-child {
+        min-width: 125px !important;
+    }
+
+    #tableBody td:last-child > div {
+        min-width: 115px !important;
+    }
+
+    #tableBody td:last-child button {
+        font-size: 10px !important;
+        padding: 5px 7px !important;
+    }
 }
 
 /* =========================================================
@@ -2110,25 +2191,6 @@ body {
 </style>
 
 <!-- PATCH8.5.21: diagnostic login response handling, responsive layout, and EXIF single upload -->
-
-<style id="sivit-auth-visibility-fix">
-/* PATCH8.5.23: Auth/dashboard visibility fix with inline important switching.
-   The themed auth CSS uses display:flex!important, which can override
-   Tailwind's .hidden utility. Keep screen switching authoritative. */
-#authContainer.hidden,
-#dashboardContainer.hidden {
-  display: none !important;
-}
-
-#authContainer:not(.hidden) {
-  display: flex !important;
-}
-
-#dashboardContainer:not(.hidden) {
-  display: flex !important;
-}
-</style>
-  <link rel="icon" href="data:," />
 </head>
 <body class="bg-gradient-to-br from-blue-950 via-blue-900 to-slate-900 min-h-screen text-white font-sans antialiased flex flex-col justify-between">
 
@@ -2511,7 +2573,7 @@ body {
                         <h3 class="text-base font-bold text-slate-900 tracking-tight" id="contentTitle">Pilih Menu</h3>
                         <p class="text-xs text-slate-600 font-semibold" id="contentSubtitle">Kelola dan pantau data pekerjaan.</p>
                     </div>
-                    <div id="actionButtonContainer" class="flex items-center space-x-2"></div>
+                    <div id="actionButtonContainer" class="flex flex-wrap items-center justify-end gap-2 min-w-0"></div>
                 </div>
 
                 <!-- Kurva S & Grafik Container dengan Tombol Ekspor JPEG -->
@@ -2978,29 +3040,14 @@ async function handleRegister(e) {
         }
     }
     
-    function applyScreenVisibility(screen) {
-        const auth = document.getElementById('authContainer');
-        const dash = document.getElementById('dashboardContainer');
-        if (!auth || !dash) return;
-
-        const showAuth = screen === 'auth';
-        auth.classList.toggle('hidden', !showAuth);
-        dash.classList.toggle('hidden', showAuth);
-
-        // Use inline !important so theme CSS cannot override screen switching.
-        auth.style.setProperty('display', showAuth ? 'flex' : 'none', 'important');
-        dash.style.setProperty('display', showAuth ? 'none' : 'flex', 'important');
-        auth.setAttribute('aria-hidden', showAuth ? 'false' : 'true');
-        dash.setAttribute('aria-hidden', showAuth ? 'true' : 'false');
-    }
-
     function handleSessionExpired(response) {
         if (response && response.status === 'error' && /sesi login|token sesi|login kembali/i.test(response.pesan || '')) {
             localStorage.removeItem('sivit_user');
             currentUser = null;
             const auth = document.getElementById('authContainer');
             const dash = document.getElementById('dashboardContainer');
-            applyScreenVisibility('auth');
+            if (auth) auth.classList.remove('hidden');
+            if (dash) dash.classList.add('hidden');
             return true;
         }
         return false;
@@ -3021,12 +3068,12 @@ async function handleRegister(e) {
         } finally {
             localStorage.removeItem('sivit_user');
             currentUser = null;
-            applyScreenVisibility('auth');
+            document.getElementById('authContainer').classList.remove('hidden');
+            document.getElementById('dashboardContainer').classList.add('hidden');
         }
     }
 
     window.onload = function() {
-        applyScreenVisibility('auth');
         try {
             const saved = localStorage.getItem('sivit_user');
 
@@ -3119,7 +3166,8 @@ async function handleRegister(e) {
     }
     
     function initDashboard() {
-      applyScreenVisibility('dashboard');
+      document.getElementById('authContainer').classList.add('hidden');
+      document.getElementById('dashboardContainer').classList.remove('hidden');
       document.getElementById('userNameDisplay').innerText = currentUser.nama_pengguna;
       document.getElementById('userNpsnDisplay').innerText = "NPSN/ID: " + currentUser.username + " | Role: " + currentUser.role;
 
@@ -4414,34 +4462,34 @@ async function handleRegister(e) {
 
             if (showActionColumn) {
                 let tdAct = document.createElement('td');
-                tdAct.className = "p-3 text-center whitespace-nowrap";
+                tdAct.className = "p-3 text-center whitespace-normal align-middle";
                 
                 let btnGroup = document.createElement('div');
-                btnGroup.className = "inline-flex flex-row items-center justify-center gap-1.5";
+                btnGroup.className = "flex flex-wrap items-center justify-center gap-1.5 min-w-0";
                 tdAct.appendChild(btnGroup);
 
                 if (sheetName === 'sekolah_pending') {
                     let btnApprove = document.createElement('button');
-                    btnApprove.className = "px-2.5 py-1 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 rounded-lg text-[11px] font-bold border border-emerald-300 cursor-pointer shadow-xs";
+                    btnApprove.className = "px-2.5 py-1 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 rounded-lg text-[11px] font-bold border border-emerald-300 cursor-pointer shadow-xs whitespace-nowrap";
                     btnApprove.innerHTML = `<i class="fa-solid fa-check mr-1"></i> Setujui`;
                     btnApprove.onclick = () => verifyReg(row.username || row.npsn, 'DISETUJUI');
                     btnGroup.appendChild(btnApprove);
 
                     let btnReject = document.createElement('button');
-                    btnReject.className = "px-2.5 py-1 bg-red-100 hover:bg-red-200 text-red-800 rounded-lg text-[11px] font-bold border border-red-300 cursor-pointer shadow-xs";
+                    btnReject.className = "px-2.5 py-1 bg-red-100 hover:bg-red-200 text-red-800 rounded-lg text-[11px] font-bold border border-red-300 cursor-pointer shadow-xs whitespace-nowrap";
                     btnReject.innerHTML = `<i class="fa-solid fa-xmark mr-1"></i> Tolak`;
                     btnReject.onclick = () => verifyReg(row.username || row.npsn, 'DITOLAK');
                     btnGroup.appendChild(btnReject);
                 } else {
                     if (sheetName === 'paket_pekerjaan_sd') {
                         let btnCetakPDF = document.createElement('button');
-                        btnCetakPDF.className = "px-2.5 py-1 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-[11px] font-bold border border-emerald-600 cursor-pointer shadow-xs";
+                        btnCetakPDF.className = "px-2.5 py-1 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-[11px] font-bold border border-emerald-600 cursor-pointer shadow-xs whitespace-nowrap";
                         btnCetakPDF.innerHTML = `<i class="fa-solid fa-print mr-1"></i> Cetak PDF`;
                         btnCetakPDF.onclick = () => cetakLaporanResmi(row.paket_id, row.npsn);
                         btnGroup.appendChild(btnCetakPDF);
 
                         let btnRiwayat = document.createElement('button');
-                        btnRiwayat.className = "px-2.5 py-1 bg-cyan-100 hover:bg-cyan-200 text-cyan-900 rounded-lg text-[11px] font-bold border border-cyan-300 cursor-pointer shadow-xs";
+                        btnRiwayat.className = "px-2.5 py-1 bg-cyan-100 hover:bg-cyan-200 text-cyan-900 rounded-lg text-[11px] font-bold border border-cyan-300 cursor-pointer shadow-xs whitespace-nowrap";
                         btnRiwayat.innerHTML = `<i class="fa-solid fa-clock-rotate-left mr-1"></i> Riwayat Pagu`;
                         btnRiwayat.onclick = () => bukaRiwayatPagu(row.npsn || currentUser.username, row.paket_id);
                         btnGroup.appendChild(btnRiwayat);
@@ -4450,13 +4498,13 @@ async function handleRegister(e) {
                             let statusPagu = String(row.status_pagu || '').trim().toUpperCase();
                             if (statusPagu === 'DIAJUKAN') {
                                 let btnApprovePagu = document.createElement('button');
-                                btnApprovePagu.className = "px-2.5 py-1 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 rounded-lg text-[11px] font-bold border border-emerald-300 cursor-pointer shadow-xs";
+                                btnApprovePagu.className = "px-2.5 py-1 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 rounded-lg text-[11px] font-bold border border-emerald-300 cursor-pointer shadow-xs whitespace-nowrap";
                                 btnApprovePagu.innerHTML = `<i class="fa-solid fa-check mr-1"></i> Setujui`;
                                 btnApprovePagu.onclick = () => verifikasiPaguDinas(row.paket_id, 'DISETUJUI');
                                 btnGroup.appendChild(btnApprovePagu);
 
                                 let btnRejectPagu = document.createElement('button');
-                                btnRejectPagu.className = "px-2.5 py-1 bg-red-100 hover:bg-red-200 text-red-800 rounded-lg text-[11px] font-bold border border-red-300 cursor-pointer shadow-xs";
+                                btnRejectPagu.className = "px-2.5 py-1 bg-red-100 hover:bg-red-200 text-red-800 rounded-lg text-[11px] font-bold border border-red-300 cursor-pointer shadow-xs whitespace-nowrap";
                                 btnRejectPagu.innerHTML = `<i class="fa-solid fa-xmark mr-1"></i> Tolak`;
                                 btnRejectPagu.onclick = () => verifikasiPaguDinas(row.paket_id, 'DITOLAK');
                                 btnGroup.appendChild(btnRejectPagu);
@@ -4466,7 +4514,7 @@ async function handleRegister(e) {
 
                     if (currentUser.role === 'DINAS' && sheetName === 'laporan_progres') {
                         let btnVerif = document.createElement('button');
-                        btnVerif.className = "px-2.5 py-1 bg-amber-100 hover:bg-amber-200 text-amber-900 rounded-lg text-[11px] font-bold border border-amber-300 cursor-pointer shadow-xs";
+                        btnVerif.className = "px-2.5 py-1 bg-amber-100 hover:bg-amber-200 text-amber-900 rounded-lg text-[11px] font-bold border border-amber-300 cursor-pointer shadow-xs whitespace-nowrap";
                         btnVerif.innerHTML = `<i class="fa-solid fa-clipboard-check mr-1"></i> Verifikasi`;
                         let idLap = row.id || row.id_laporan || row.paket_id || Object.values(row)[0];
                         btnVerif.onclick = () => openVerifikasiModal(idLap);
@@ -4490,7 +4538,7 @@ async function handleRegister(e) {
 
                     if (allowEdit) {
                         let btnEdit = document.createElement('button');
-                        btnEdit.className = "px-2.5 py-1 bg-blue-100 hover:bg-blue-200 text-blue-900 rounded-lg text-[11px] font-bold border border-blue-300 cursor-pointer shadow-xs";
+                        btnEdit.className = "px-2.5 py-1 bg-blue-100 hover:bg-blue-200 text-blue-900 rounded-lg text-[11px] font-bold border border-blue-300 cursor-pointer shadow-xs whitespace-nowrap";
                         btnEdit.innerHTML = `<i class="fa-solid fa-pen-to-square"></i>`;
                         btnEdit.onclick = () => openModalForm(row);
                         btnGroup.appendChild(btnEdit);
@@ -4510,7 +4558,7 @@ async function handleRegister(e) {
 
                     if (currentUser.role === 'DINAS' && sheetName !== 'users') {
                         let btnDel = document.createElement('button');
-                        btnDel.className = "px-2.5 py-1 bg-red-100 hover:bg-red-200 text-red-800 rounded-lg text-[11px] font-bold border border-red-300 ml-1 cursor-pointer shadow-xs";
+                        btnDel.className = "px-2.5 py-1 bg-red-100 hover:bg-red-200 text-red-800 rounded-lg text-[11px] font-bold border border-red-300 ml-1 cursor-pointer shadow-xs whitespace-nowrap";
                         btnDel.innerHTML = `<i class="fa-solid fa-trash"></i>`;
                         btnDel.onclick = () => deleteRowData(row._rowIndex);
                         btnGroup.appendChild(btnDel);
