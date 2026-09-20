@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <link rel="icon" href="data:," />
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- PATCH8.5.19: Warm nature theme + single EXIF photo source -->
@@ -2844,6 +2843,12 @@ function togglePasswordVisibility(inputId, iconId) {
             return false;
         }
 
+        const restoreButton = () => {
+            if (!submitButton) return;
+            submitButton.disabled = false;
+            submitButton.textContent = submitButton.dataset.originalText || 'Masuk Sistem';
+        };
+
         if (submitButton) {
             submitButton.disabled = true;
             submitButton.dataset.originalText = submitButton.textContent || 'Masuk Sistem';
@@ -2851,12 +2856,6 @@ function togglePasswordVisibility(inputId, iconId) {
         }
 
         try {
-            const payload = {
-                action: 'login',
-                username: u,
-                password: p
-            };
-
             const response = await fetch(WEB_APP_URL, {
                 method: 'POST',
                 mode: 'cors',
@@ -2864,48 +2863,71 @@ function togglePasswordVisibility(inputId, iconId) {
                 headers: {
                     'Content-Type': 'text/plain;charset=utf-8'
                 },
-                body: JSON.stringify(payload)
+                body: JSON.stringify({
+                    action: 'login',
+                    username: u,
+                    password: p
+                })
             });
 
             const rawText = await response.text();
-            let data;
+            let result;
 
             try {
-                data = JSON.parse(rawText);
+                result = JSON.parse(rawText);
             } catch (parseError) {
                 console.error('Respons login bukan JSON:', rawText);
                 throw new Error(
-                    'Server mengirim respons yang bukan JSON. HTTP ' +
-                    response.status + '. Periksa deployment Web App dan aksesnya.'
+                    'Respons server bukan JSON. HTTP ' + response.status +
+                    '. Periksa URL Web App, deployment, dan izin akses.'
                 );
             }
 
-            if (!response.ok) {
-                throw new Error(data.pesan || ('HTTP ' + response.status));
+            console.log('Respons login SIVIT26:', result);
+
+            if (!response.ok || !result || result.status !== 'success') {
+                throw new Error(
+                    (result && (result.pesan || result.message)) ||
+                    ('Login ditolak server. HTTP ' + response.status)
+                );
             }
 
-            if (data && data.status === 'success' && data.data) {
-                currentUser = data.data;
-                localStorage.setItem('sivit_user', JSON.stringify(currentUser));
-                await Promise.resolve(initDashboard());
-                return true;
+            // Autentikasi berhasil. Jangan memasukkan kegagalan dashboard
+            // ke dalam pesan "Login gagal".
+            const loginUser = result.data || result.user || result.result;
+            if (!loginUser) {
+                throw new Error('Server menyatakan login berhasil, tetapi data pengguna kosong.');
             }
 
-            alert((data && (data.pesan || data.message)) || 'Login ditolak oleh server.');
-            return false;
+            currentUser = loginUser;
+            localStorage.setItem('sivit_user', JSON.stringify(currentUser));
+            restoreButton();
+
+            try {
+                const dashboardResult = initDashboard();
+                if (dashboardResult && typeof dashboardResult.then === 'function') {
+                    await dashboardResult;
+                }
+            } catch (dashboardError) {
+                console.error('Login berhasil, tetapi dashboard gagal dimuat:', dashboardError);
+                alert(
+                    'Login berhasil, tetapi dashboard gagal dimuat.\n\n' +
+                    (dashboardError && dashboardError.message
+                        ? dashboardError.message
+                        : String(dashboardError))
+                );
+            }
+
+            return true;
         } catch (error) {
             console.error('Detail login SIVIT26:', error);
             alert(
                 'Login gagal.\n\n' +
-                (error && error.message ? error.message : String(error)) +
-                '\n\nPastikan URL Web App benar, deployment aktif, dan aksesnya dapat dibuka pengguna.'
+                (error && error.message ? error.message : String(error))
             );
             return false;
         } finally {
-            if (submitButton) {
-                submitButton.disabled = false;
-                submitButton.textContent = submitButton.dataset.originalText || 'Masuk Sistem';
-            }
+            restoreButton();
         }
     }
 
@@ -5488,7 +5510,7 @@ async function cetakLaporanResmi(paketId, npsn) {
             <html>
             <head>
                 <title>Laporan Revitalisasi SD - ${paket.nama_menu || 'Paket Pekerjaan'} (${targetNpsn})</title>
-                <script src="https://cdn.tailwindcss.com"></script>
+                <script src="https://cdn.tailwindcss.com"><\/script>
                 <style>
                     @media print {
                         body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
