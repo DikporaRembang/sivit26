@@ -1115,6 +1115,311 @@ table {
 }
 
 </style>
+
+<style id="sivit-formal-education-theme">
+/* =========================================================
+   PATCH 8.5.7 — FORMAL EDUCATION THEME
+   Visual-only override. No JS, data flow, modal, logo, or architecture changes.
+   ========================================================= */
+@import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Source+Sans+3:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --sivit-primary: #173b63 !important;
+  --sivit-primary-dark: #102b49 !important;
+  --sivit-primary-soft: #edf3f8 !important;
+  --sivit-bg: #f3f6f9 !important;
+  --sivit-surface: #ffffff !important;
+  --sivit-surface-soft: #f8fafc !important;
+  --sivit-text: #1f2937 !important;
+  --sivit-text-soft: #64748b !important;
+  --sivit-border: #d9e2ec !important;
+  --sivit-success: #176b52 !important;
+  --sivit-warning: #a16207 !important;
+  --sivit-danger: #b42318 !important;
+  --sivit-accent: #b08d57 !important;
+  --sivit-shadow: 0 3px 14px rgba(23, 59, 99, .06) !important;
+  --sivit-shadow-lg: 0 14px 38px rgba(23, 59, 99, .12) !important;
+}
+
+html, body {
+  font-family: 'Source Sans 3', 'Segoe UI', sans-serif !important;
+  background: var(--sivit-bg) !important;
+  color: var(--sivit-text) !important;
+  letter-spacing: .005em;
+}
+
+h1, h2, h3, h4, h5, h6,
+.section-title,
+.modal-title,
+.card-title {
+  font-family: 'Libre Baskerville', Georgia, serif !important;
+  letter-spacing: -.015em;
+}
+
+button, input, select, textarea, table, th, td {
+  font-family: 'Source Sans 3', 'Segoe UI', sans-serif !important;
+}
+
+/* Background and main surfaces */
+#appContainer, #mainApp, main, .main-content {
+  background: var(--sivit-bg) !important;
+}
+
+.bg-white,
+.card,
+.modal-content,
+#authContainer > div,
+#dashboardDinasContainer > div,
+section.bg-white {
+  border-color: var(--sivit-border) !important;
+  box-shadow: var(--sivit-shadow) !important;
+}
+
+/* Main header / navigation */
+header, nav, .app-header, .sidebar, aside {
+  border-color: var(--sivit-border) !important;
+}
+
+header, .app-header {
+  background: linear-gradient(135deg, #102b49 0%, #173b63 62%, #245579 100%) !important;
+  color: #fff !important;
+  box-shadow: 0 5px 18px rgba(16, 43, 73, .16) !important;
+}
+
+header a, header button, .app-header a, .app-header button {
+  color: inherit !important;
+}
+
+/* Keep all existing logos and identity images unchanged */
+img[src*="logo"],
+#authContainer img,
+header img,
+.app-header img {
+  object-fit: contain;
+}
+
+/* Formal accordion groups */
+.sivit-menu-group,
+.menu-group,
+.nav-group,
+[data-menu-group] {
+  border: 1px solid var(--sivit-border) !important;
+  border-radius: 12px !important;
+  background: rgba(255,255,255,.92) !important;
+  box-shadow: 0 2px 8px rgba(23,59,99,.035) !important;
+  overflow: hidden;
+}
+
+.sivit-menu-group > button,
+.menu-group > button,
+.nav-group > button,
+[data-menu-group] > button {
+  background: linear-gradient(180deg, #fff 0%, #f7fafc 100%) !important;
+  color: #173b63 !important;
+  font-weight: 700 !important;
+  border-color: var(--sivit-border) !important;
+  transition: background .18s ease, color .18s ease, box-shadow .18s ease;
+}
+
+.sivit-menu-group > button:hover,
+.menu-group > button:hover,
+.nav-group > button:hover,
+[data-menu-group] > button:hover {
+  background: #edf3f8 !important;
+  color: #102b49 !important;
+}
+
+.sivit-menu-group button i,
+.menu-group button i,
+.nav-group button i,
+[data-menu-group] button i {
+  color: #7c6240 !important;
+}
+
+.sivit-menu-group .submenu,
+.menu-group .submenu,
+.nav-group .submenu,
+[data-menu-group] .submenu {
+  background: #fbfcfe !important;
+  border-top: 1px solid var(--sivit-border) !important;
+}
+
+.sivit-menu-group .submenu button,
+.menu-group .submenu button,
+.nav-group .submenu button,
+[data-menu-group] .submenu button {
+  color: #475569 !important;
+  border-left: 3px solid transparent !important;
+  transition: background .18s ease, color .18s ease, border-color .18s ease;
+}
+
+.sivit-menu-group .submenu button:hover,
+.menu-group .submenu button:hover,
+.nav-group .submenu button:hover,
+[data-menu-group] .submenu button:hover,
+.sivit-menu-group .submenu button.active,
+.menu-group .submenu button.active,
+.nav-group .submenu button.active,
+[data-menu-group] .submenu button.active {
+  background: #edf3f8 !important;
+  color: #173b63 !important;
+  border-left-color: #b08d57 !important;
+}
+
+/* Buttons */
+button,
+.btn,
+input[type="button"],
+input[type="submit"] {
+  border-radius: 8px;
+  transition: background .18s ease, border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+}
+
+button:hover,
+.btn:hover,
+input[type="button"]:hover,
+input[type="submit"]:hover {
+  box-shadow: 0 3px 10px rgba(23,59,99,.10);
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid rgba(176,141,87,.38) !important;
+  outline-offset: 2px;
+}
+
+/* Primary Tailwind blue utilities -> institutional navy */
+.bg-blue-600, .bg-blue-700 { background-color: #173b63 !important; }
+.bg-blue-500 { background-color: #245579 !important; }
+.hover\:bg-blue-700:hover, .hover\:bg-blue-800:hover { background-color: #102b49 !important; }
+.text-blue-600, .text-blue-700, .text-blue-800 { color: #173b63 !important; }
+.border-blue-500, .border-blue-600 { border-color: #173b63 !important; }
+.bg-blue-50, .bg-blue-100 { background-color: #edf3f8 !important; }
+.border-blue-200, .border-blue-300 { border-color: #c9d8e6 !important; }
+
+/* KPI cards */
+#dashboardDinasContainer .rounded-xl,
+#dashboardDinasContainer .rounded-lg {
+  border-color: var(--sivit-border) !important;
+}
+
+#dashboardDinasContainer .text-3xl,
+#dashboardDinasContainer .text-2xl,
+#dashboardDinasContainer .text-xl {
+  color: #173b63 !important;
+  font-weight: 800 !important;
+}
+
+#dashboardDinasContainer .text-blue-600,
+#dashboardDinasContainer .text-indigo-600 {
+  color: #173b63 !important;
+}
+
+#dashboardDinasContainer .text-emerald-600,
+#dashboardDinasContainer .text-green-600 {
+  color: #176b52 !important;
+}
+
+#dashboardDinasContainer .text-amber-600,
+#dashboardDinasContainer .text-orange-600 {
+  color: #a16207 !important;
+}
+
+/* Tables */
+table {
+  border-color: var(--sivit-border) !important;
+}
+
+thead, th {
+  background: #edf3f8 !important;
+  color: #173b63 !important;
+  font-weight: 700 !important;
+}
+
+tbody tr:nth-child(even) {
+  background: #fbfcfe;
+}
+
+tbody tr:hover {
+  background: #f1f6fa !important;
+}
+
+/* Forms */
+input, select, textarea {
+  border-color: #cbd5e1 !important;
+  border-radius: 8px !important;
+  color: #1f2937 !important;
+  background: #fff !important;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: #6d8eaa !important;
+  box-shadow: 0 0 0 3px rgba(36,85,121,.12) !important;
+}
+
+label {
+  color: #334155 !important;
+  font-weight: 600 !important;
+}
+
+/* Modals and dialogs */
+.modal,
+[role="dialog"] {
+  backdrop-filter: blur(3px);
+}
+
+.modal-content,
+[role="dialog"] > div {
+  border: 1px solid var(--sivit-border) !important;
+  border-radius: 14px !important;
+  box-shadow: var(--sivit-shadow-lg) !important;
+}
+
+/* Notification badge and status accents */
+#notifBadge, .notification-badge {
+  background: #a16207 !important;
+  border: 2px solid #fff !important;
+}
+
+.text-red-500, .text-red-600 { color: #b42318 !important; }
+.text-green-500, .text-green-600 { color: #176b52 !important; }
+.text-yellow-500, .text-yellow-600 { color: #a16207 !important; }
+
+/* Education-inspired accent: restrained gold line */
+.section-title {
+  position: relative;
+  color: #173b63 !important;
+  font-weight: 700;
+}
+
+.section-title::after {
+  content: "";
+  display: block;
+  width: 42px;
+  height: 2px;
+  margin-top: 7px;
+  background: #b08d57;
+  border-radius: 999px;
+}
+
+/* Respect existing responsive architecture */
+@media (max-width: 768px) {
+  .sivit-menu-group,
+  .menu-group,
+  .nav-group,
+  [data-menu-group] {
+    border-radius: 10px !important;
+  }
+
+  .section-title {
+    font-size: .95rem;
+  }
+}
+</style>
+
 </head>
 <body class="bg-gradient-to-br from-blue-950 via-blue-900 to-slate-900 min-h-screen text-white font-sans antialiased flex flex-col justify-between">
 
