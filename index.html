@@ -1333,6 +1333,45 @@ table {
   border-color: var(--sivit-border) !important;
 }
 
+/* PATCH8.5.14: Header feed lebih terbaca pada banyak kolom. */
+#tableHead th {
+  background: #edf3f8 !important;
+  color: #173b63 !important;
+  font-weight: 800 !important;
+  font-size: 10px !important;
+  line-height: 1.25 !important;
+  text-align: center !important;
+  vertical-align: middle !important;
+  white-space: normal !important;
+  word-break: normal !important;
+  overflow-wrap: normal !important;
+  min-width: 86px;
+}
+
+#tableBody td {
+  vertical-align: middle !important;
+  white-space: normal !important;
+  word-break: normal !important;
+  overflow-wrap: anywhere !important;
+  line-height: 1.35 !important;
+}
+
+#tableHead th:nth-child(5),
+#tableHead th:nth-child(6),
+#tableHead th:nth-child(14),
+#tableHead th:nth-child(16) {
+  min-width: 150px;
+}
+
+#tableHead th:nth-child(7),
+#tableHead th:nth-child(8),
+#tableHead th:nth-child(9),
+#tableHead th:nth-child(10),
+#tableHead th:nth-child(11),
+#tableHead th:nth-child(12) {
+  min-width: 105px;
+}
+
 thead, th {
   background: #edf3f8 !important;
   color: #173b63 !important;
@@ -2024,7 +2063,7 @@ td, th, label, p, span, a, button {
                 </div>
 
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse text-xs">
+                    <table class="w-full min-w-[1600px] text-left border-collapse text-xs">
                         <thead id="tableHead" class="bg-blue-950 text-white uppercase tracking-wider border-b-2 border-amber-400 font-extrabold"></thead>
                         <tbody id="tableBody" class="divide-y divide-slate-200 text-slate-900 font-semibold"></tbody>
                     </table>
@@ -3693,8 +3732,16 @@ async function handleRegister(e) {
 
         displayHeaders.forEach(h => {
             let th = document.createElement('th');
-            th.className = "p-3";
+            const headerKey = String(h).toLowerCase();
+            th.className = "p-3 text-center align-middle whitespace-normal leading-tight";
             th.innerText = h.replace(/_/g, ' ').toUpperCase();
+            if (['nama_menu', 'catatan_dinas', 'lokasi_koordinat'].includes(headerKey)) {
+                th.style.minWidth = '180px';
+            } else if (['penggunaan_anggaran', 'foto_dokumentasi', 'status_verifikasi'].includes(headerKey)) {
+                th.style.minWidth = '125px';
+            } else if (['minggu_ke', 'tanggal_lapor', 'target_kurva_s', 'realisasi_fisik'].includes(headerKey)) {
+                th.style.minWidth = '105px';
+            }
             trHead.appendChild(th);
         });
 
@@ -3725,7 +3772,7 @@ async function handleRegister(e) {
 
             displayHeaders.forEach(h => {
                 let td = document.createElement('td');
-                td.className = "p-3 text-slate-900 text-xs truncate max-w-xs font-bold";
+                td.className = "p-3 text-slate-900 text-xs align-middle whitespace-normal break-words font-semibold";
                 let val = row[h] !== undefined ? row[h] : "";
 
                 if (isRekapDinas && h.toLowerCase() === 'nama_sekolah') {
@@ -6274,6 +6321,21 @@ currentHeaders.forEach(h => {
                 input.value = activeRowData ? (activeRowData[h] !== undefined ? activeRowData[h] : "") : "";
             }
 
+            // PATCH8.5.14: saat edit paket oleh SEKOLAH, hanya PAGU USULAN yang boleh diedit.
+            const lockPaketField =
+                currentUser.role === 'SEKOLAH' &&
+                typeof currentActiveSheet !== 'undefined' &&
+                currentActiveSheet === 'paket_pekerjaan_sd' &&
+                !!activeRowData &&
+                hLower !== 'pagu_usulan';
+
+            if (lockPaketField && input) {
+                input.disabled = true;
+                input.readOnly = true;
+                input.title = 'Field ini tidak dapat diubah oleh SEKOLAH.';
+                input.classList.add('opacity-70', 'cursor-not-allowed');
+            }
+
             if (input && !div.contains(input)) {
                 div.appendChild(input);
             }
@@ -6565,7 +6627,16 @@ currentHeaders.forEach(h => {
                 : "DIAJUKAN";
                 }
                 
-           } else if (hLower === 'penggunaan_anggaran') {
+            } else if (hLower === 'catatan_dinas' && currentUser.role === 'SEKOLAH') {
+                input = document.createElement('textarea');
+                input.name = h;
+                input.readOnly = true;
+                input.disabled = true;
+                input.rows = 2;
+                input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-blue-300 cursor-not-allowed";
+                input.value = activeRowData && activeRowData[h] ? activeRowData[h] : 'Diisi oleh DINAS';
+            } else if (hLower === 'penggunaan_anggaran') {
+
 
                 let wrapper = document.createElement('div');
                 wrapper.className = "relative";
