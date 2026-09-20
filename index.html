@@ -7278,13 +7278,19 @@ if (currentUser && currentUser.role === 'SEKOLAH') {
             let metaFoto = document.getElementById('metadata-foto');
 
             // PATCH8.5.15: field terpisah untuk waktu pengambilan dari EXIF.
-            let waktuPengambilanInput = document.getElementById('waktu-pengambilan-foto');
+            // PATCH8.5.17: gunakan field waktu yang sudah ada jika dibuat oleh form dinamis.
+            // Jangan membuat input file/upload tambahan untuk waktu pengambilan foto.
+            let waktuPengambilanInput = document.getElementById('waktu-pengambilan-foto')
+                || document.getElementById('waktuPengambilanFotoField')
+                || document.querySelector('input[name="waktu_pengambilan_foto"]');
             if (!waktuPengambilanInput) {
                 waktuPengambilanInput = document.createElement('input');
                 waktuPengambilanInput.type = 'hidden';
                 waktuPengambilanInput.id = 'waktu-pengambilan-foto';
                 waktuPengambilanInput.name = 'waktu_pengambilan_foto';
                 inputFile.parentElement.appendChild(waktuPengambilanInput);
+            } else {
+                waktuPengambilanInput.readOnly = true;
             }
 
             if (!metaFoto) {
@@ -7343,6 +7349,9 @@ if (currentUser && currentUser.role === 'SEKOLAH') {
                 if (waktuPengambilanInput) {
                     waktuPengambilanInput.value = tanggalWaktuFoto || '';
                 }
+                document.querySelectorAll('input[name="waktu_pengambilan_foto"]').forEach(function(field) {
+                    field.value = tanggalWaktuFoto || '';
+                });
 
                 // =====================================================
                 // 2. GPS DARI EXIF
@@ -7481,7 +7490,7 @@ if (currentUser && currentUser.role === 'SEKOLAH') {
                     realisasi_fisik: document.getElementById('realisasi-fisik').value,
                     penggunaan_anggaran: document.getElementById('penggunaan-anggaran').value.replace(/\./g, ''),
                     lokasi_koordinat: document.getElementById('koordinat-lokasi').value,
-                    waktu_pengambilan_foto: document.getElementById('waktu-pengambilan-foto')?.value || '',
+                    waktu_pengambilan_foto: (document.getElementById('waktu-pengambilan-foto') || document.getElementById('waktuPengambilanFotoField') || document.querySelector('input[name="waktu_pengambilan_foto"]'))?.value || '',
                     minggu_ke: document.getElementById('minggu-ke-laporan')?.value || '',
                     tanggal_lapor: document.getElementById('tanggal-laporan').value,
                     status_verifikasi: document.getElementById('status-verifikasi-laporan').value,
