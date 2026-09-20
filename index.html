@@ -6355,7 +6355,40 @@ currentHeaders.forEach(h => {
         } 
         // Kondisi 3: Sheet 'laporan_progres'
         else if (typeof currentActiveSheet !== 'undefined' && currentActiveSheet === 'laporan_progres') {
-            if (hLower.includes('foto_dokumentasi') || hLower.includes('foto')) {
+            if (hLower === 'catatan_pekerjaan') {
+                input = document.createElement('textarea');
+                input.name = h;
+                input.rows = 3;
+                input.value = activeRowData && activeRowData[h] !== undefined
+                    ? String(activeRowData[h] || '')
+                    : '';
+                input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
+
+                if (!currentUser || String(currentUser.role || '').toUpperCase() !== 'DINAS') {
+                    input.readOnly = true;
+                    input.placeholder = 'Catatan pekerjaan diisi oleh DINAS.';
+                    input.classList.add('bg-blue-950/60', 'text-blue-300', 'cursor-not-allowed');
+                } else {
+                    input.placeholder = 'Isi catatan pekerjaan / arahan DINAS...';
+                }
+            } else if (hLower === 'user_id') {
+                input = document.createElement('input');
+                input.type = "text";
+                input.name = h;
+                input.readOnly = true;
+                input.value = activeRowData && activeRowData[h]
+                    ? String(activeRowData[h])
+                    : String(currentUser?.nama_pengguna || currentUser?.username || '');
+                input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-300 cursor-not-allowed";
+            } else if (hLower === 'tanggal_upload') {
+                input = document.createElement('input');
+                input.type = "text";
+                input.name = h;
+                input.readOnly = true;
+                input.value = activeRowData && activeRowData[h] ? String(activeRowData[h]) : '';
+                input.placeholder = 'Otomatis dari metadata file foto setelah upload.';
+                input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-300 cursor-not-allowed";
+            } else if (hLower.includes('foto_dokumentasi') || hLower.includes('foto')) {
                 div.className = "space-y-2 p-3 bg-blue-950/60 rounded-xl border border-amber-400/30";
                 
                 input = document.createElement('input');
@@ -7452,7 +7485,9 @@ if (currentUser && currentUser.role === 'SEKOLAH') {
                     minggu_ke: document.getElementById('minggu-ke-laporan')?.value || '',
                     tanggal_lapor: document.getElementById('tanggal-laporan').value,
                     status_verifikasi: document.getElementById('status-verifikasi-laporan').value,
-                    user_id: currentUser?.id || currentUser?.user_id || currentUser?.username || '',
+                    user_id: currentUser?.nama_pengguna || currentUser?.username || '',
+                    catatan_pekerjaan: '',
+                    tanggal_upload: '',
                     catatan_dinas: ""
                 }
             };
