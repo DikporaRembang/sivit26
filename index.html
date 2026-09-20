@@ -2033,67 +2033,125 @@ async function handleRegister(e) {
     }
 
     function renderSidebar() {
-        let container = document.getElementById('sidebarMenuContainer');
-        container.innerHTML = "";
+        const container = document.getElementById('sidebarMenuContainer');
+        container.innerHTML = '';
 
-        let menus = [];
-        if (currentUser.role === 'DINAS') {
-            menus = [
-                { name: 'Paket Pekerjaan SD', sheet: 'paket_pekerjaan_sd', icon: 'fa-boxes-packing' },
-                { name: 'Verifikasi Sekolah', sheet: 'sekolah_pending', icon: 'fa-user-check' },
-                { name: 'Peta Persebaran (GIS)', sheet: 'peta_gis', icon: 'fa-map-location-dot' },
-                { name: 'Laporan Progres', sheet: 'laporan_progres', icon: 'fa-chart-line' },
-                { name: 'Kurva S & Grafik', sheet: 'kurva_s', icon: 'fa-chart-area' },
-                { name: 'Data Sekolah', sheet: 'sekolah', icon: 'fa-school' },
-                { name: 'Manajemen User', sheet: 'users', icon: 'fa-users-gear' }
-            ];
-        } else {
-            menus = [
-                { name: 'Paket Pekerjaan Saya', sheet: 'paket_pekerjaan_sd', icon: 'fa-box' },
-                { name: 'Peta Persebaran (GIS)', sheet: 'peta_gis', icon: 'fa-map-location-dot' },
-                { name: 'Laporan Progres Fisik', sheet: 'laporan_progres', icon: 'fa-clipboard-list' },
-                { name: 'Kurva S & Grafik', sheet: 'kurva_s', icon: 'fa-chart-area' },
-                { name: 'Profil & Tim Teknis', sheet: 'users', icon: 'fa-user-gear' }
-            ];
-        }
-
-            menus.forEach(m => {
-                let btn = document.createElement('button');
-                btn.className = "w-full flex items-center space-x-2.5 px-3 py-2 rounded-xl text-left font-semibold text-blue-200 hover:bg-blue-900/60 hover:text-amber-400 transition-all text-xs cursor-pointer";
-                btn.innerHTML = `
-                    <i class="fa-solid ${m.icon} w-4 text-center"></i>
-                    <span>${m.name}</span>
-    `            ;
-                // Tandai menu yang sedang aktif
-                if (m.sheet === currentActiveSheet) {
-                    btn.classList.add('active');
+        const groups = currentUser.role === 'DINAS'
+            ? [
+                {
+                    title: '1. Pengguna',
+                    icon: 'fa-users',
+                    items: [
+                        { name: 'Data Sekolah', sheet: 'sekolah', icon: 'fa-school' },
+                        { name: 'Manajemen User', sheet: 'users', icon: 'fa-users-gear' },
+                        { name: 'Verifikasi Sekolah', sheet: 'sekolah_pending', icon: 'fa-user-check' }
+                    ]
+                },
+                {
+                    title: '2. Data',
+                    icon: 'fa-database',
+                    items: [
+                        { name: 'Paket Pekerjaan SD', sheet: 'paket_pekerjaan_sd', icon: 'fa-boxes-packing' },
+                        { name: 'Laporan Progres', sheet: 'laporan_progres', icon: 'fa-chart-line' }
+                    ]
+                },
+                {
+                    title: '3. Monitor',
+                    icon: 'fa-chart-line',
+                    items: [
+                        { name: 'Kurva S & Grafik', sheet: 'kurva_s', icon: 'fa-chart-area' },
+                        { name: 'Peta Persebaran (GIS)', sheet: 'peta_gis', icon: 'fa-map-location-dot' }
+                    ],
+                    dashboardNote: 'Dashboard Monitoring DINAS tampil pada area monitor yang relevan.'
                 }
-                btn.onclick = () => {
-                    // Hapus status aktif dari semua menu
-                    container.querySelectorAll('button').forEach(item => {
-                        item.classList.remove('active');
-                    });
-                    // Tandai menu yang diklik
-                    btn.classList.add('active');
-                    // Muat data
-                    loadTableData(m.sheet, m.name);
-                };
-                container.appendChild(btn);
-            });
+            ]
+            : [
+                {
+                    title: '1. Atur Pengguna',
+                    icon: 'fa-user-gear',
+                    items: [
+                        { name: 'Profil & Tim Teknis', sheet: 'users', icon: 'fa-user-gear' }
+                    ]
+                },
+                {
+                    title: '2. Isi Data',
+                    icon: 'fa-pen-to-square',
+                    items: [
+                        { name: 'Paket Pekerjaan Saya', sheet: 'paket_pekerjaan_sd', icon: 'fa-box' },
+                        { name: 'Laporan Progres Fisik', sheet: 'laporan_progres', icon: 'fa-clipboard-list' }
+                    ]
+                },
+                {
+                    title: '3. Pantau Pekerjaan',
+                    icon: 'fa-chart-line',
+                    items: [
+                        { name: 'Kurva S & Grafik', sheet: 'kurva_s', icon: 'fa-chart-area' },
+                        { name: 'Peta Persebaran (GIS)', sheet: 'peta_gis', icon: 'fa-map-location-dot' }
+                    ]
+                }
+            ];
 
-            // Petunjuk Penggunaan SIVIT26 2026 — buka PDF di tab baru, tanpa atribut download.
-            const panduanLink = document.createElement('a');
-            panduanLink.href = 'https://dikporarembang.github.io/sivit26/Panduan_Penggunaan_SIVIT26_2026.pdf';
-            panduanLink.target = '_blank';
-            panduanLink.rel = 'noopener noreferrer';
-            panduanLink.className = 'mt-3 w-full flex items-center space-x-2.5 px-3 py-2 rounded-xl text-left font-semibold text-amber-300 hover:bg-blue-900/60 hover:text-amber-200 transition-all text-xs cursor-pointer border-t border-blue-950 pt-3';
-            panduanLink.innerHTML = `
-                <i class="fa-solid fa-book-open w-4 text-center"></i>
-                <span>Petunjuk Penggunaan</span>
+        const createMenuButton = (item) => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'w-full flex items-center space-x-2.5 px-3 py-2 rounded-xl text-left font-semibold text-blue-200 hover:bg-blue-900/60 hover:text-amber-400 transition-all text-xs cursor-pointer';
+            btn.innerHTML = `
+                <i class="fa-solid ${item.icon} w-4 text-center"></i>
+                <span>${escapeHtml(item.name)}</span>
             `;
-            panduanLink.title = 'Buka Panduan Penggunaan SIVIT26 2026';
-            container.appendChild(panduanLink);
-        }
+
+            if (item.sheet === currentActiveSheet) btn.classList.add('active');
+
+            btn.onclick = () => {
+                container.querySelectorAll('button[data-sivit-menu="true"]').forEach(el => el.classList.remove('active'));
+                btn.classList.add('active');
+                loadTableData(item.sheet, item.name);
+            };
+            btn.dataset.sivitMenu = 'true';
+            return btn;
+        };
+
+        groups.forEach(group => {
+            const groupBlock = document.createElement('div');
+            groupBlock.className = 'mb-3';
+
+            const heading = document.createElement('div');
+            heading.className = 'px-3 pt-3 pb-1 text-[10px] uppercase tracking-wider font-extrabold text-amber-300/90 flex items-center space-x-2';
+            heading.innerHTML = `<i class="fa-solid ${group.icon} w-4 text-center"></i><span>${escapeHtml(group.title)}</span>`;
+            groupBlock.appendChild(heading);
+
+            group.items.forEach(item => groupBlock.appendChild(createMenuButton(item)));
+
+            if (group.dashboardNote) {
+                const note = document.createElement('div');
+                note.className = 'px-3 pt-1 text-[10px] leading-relaxed text-blue-300/80';
+                note.textContent = group.dashboardNote;
+                groupBlock.appendChild(note);
+            }
+
+            container.appendChild(groupBlock);
+        });
+
+        // Kelompok bantuan dipisahkan dari menu operasional.
+        const helpGroup = document.createElement('div');
+        helpGroup.className = 'mt-2 border-t border-blue-950 pt-2';
+
+        const helpHeading = document.createElement('div');
+        helpHeading.className = 'px-3 pt-2 pb-1 text-[10px] uppercase tracking-wider font-extrabold text-amber-300/90 flex items-center space-x-2';
+        helpHeading.innerHTML = '<i class="fa-solid fa-circle-question w-4 text-center"></i><span>4. Bantuan</span>';
+        helpGroup.appendChild(helpHeading);
+
+        const panduanLink = document.createElement('a');
+        panduanLink.href = 'https://dikporarembang.github.io/sivit26/Panduan_Penggunaan_SIVIT26_2026.pdf';
+        panduanLink.target = '_blank';
+        panduanLink.rel = 'noopener noreferrer';
+        panduanLink.className = 'w-full flex items-center space-x-2.5 px-3 py-2 rounded-xl text-left font-semibold text-amber-300 hover:bg-blue-900/60 hover:text-amber-200 transition-all text-xs cursor-pointer';
+        panduanLink.innerHTML = '<i class="fa-solid fa-book-open w-4 text-center"></i><span>Petunjuk Penggunaan</span>';
+        panduanLink.title = 'Buka Panduan Penggunaan SIVIT26 2026';
+        helpGroup.appendChild(panduanLink);
+
+        container.appendChild(helpGroup);
+    }
 
     function escapeHtml(value) {
         return String(value === undefined || value === null ? '' : value)
