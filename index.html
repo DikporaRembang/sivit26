@@ -2100,46 +2100,96 @@ async function handleRegister(e) {
                 <span>${escapeHtml(item.name)}</span>
             `;
 
-            if (item.sheet === currentActiveSheet) btn.classList.add('active');
+            btn.dataset.sivitMenu = 'true';
+            btn.dataset.sheet = item.sheet;
+
+            if (item.sheet === currentActiveSheet) {
+                btn.classList.add('active');
+            }
 
             btn.onclick = () => {
                 container.querySelectorAll('button[data-sivit-menu="true"]').forEach(el => el.classList.remove('active'));
                 btn.classList.add('active');
                 loadTableData(item.sheet, item.name);
             };
-            btn.dataset.sivitMenu = 'true';
+
             return btn;
+        };
+
+        const setGroupState = (group, submenu, toggleButton, expanded) => {
+            submenu.classList.toggle('hidden', !expanded);
+            toggleButton.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+            toggleButton.querySelector('[data-group-chevron]').className =
+                `fa-solid fa-chevron-${expanded ? 'down' : 'right'} text-[10px] transition-transform`;
+            group.dataset.expanded = expanded ? 'true' : 'false';
         };
 
         groups.forEach(group => {
             const groupBlock = document.createElement('div');
-            groupBlock.className = 'mb-3';
+            groupBlock.className = 'mb-2 rounded-xl border border-blue-900/60 bg-blue-950/20 overflow-hidden';
+            groupBlock.dataset.sivitGroup = 'true';
+            groupBlock.dataset.expanded = 'false';
 
-            const heading = document.createElement('div');
-            heading.className = 'px-3 pt-3 pb-1 text-[10px] uppercase tracking-wider font-extrabold text-amber-300/90 flex items-center space-x-2';
-            heading.innerHTML = `<i class="fa-solid ${group.icon} w-4 text-center"></i><span>${escapeHtml(group.title)}</span>`;
-            groupBlock.appendChild(heading);
+            const hasActiveItem = group.items.some(item => item.sheet === currentActiveSheet);
+            const toggleButton = document.createElement('button');
+            toggleButton.type = 'button';
+            toggleButton.className = 'w-full flex items-center justify-between gap-2 px-3 py-3 text-left text-amber-200 hover:bg-blue-900/60 transition-all';
+            toggleButton.setAttribute('aria-expanded', 'false');
+            toggleButton.innerHTML = `
+                <span class="flex items-center gap-2 min-w-0">
+                    <i class="fa-solid ${group.icon} w-4 text-center text-amber-300"></i>
+                    <span class="text-[11px] font-extrabold uppercase tracking-wide">${escapeHtml(group.title)}</span>
+                </span>
+                <i data-group-chevron class="fa-solid fa-chevron-right text-[10px] transition-transform"></i>
+            `;
 
-            group.items.forEach(item => groupBlock.appendChild(createMenuButton(item)));
+            const submenu = document.createElement('div');
+            submenu.className = 'hidden px-2 pb-2 space-y-1';
+            submenu.dataset.sivitSubmenu = 'true';
+
+            group.items.forEach(item => submenu.appendChild(createMenuButton(item)));
 
             if (group.dashboardNote) {
                 const note = document.createElement('div');
-                note.className = 'px-3 pt-1 text-[10px] leading-relaxed text-blue-300/80';
+                note.className = 'px-2 pt-1 pb-1 text-[10px] leading-relaxed text-blue-300/80';
                 note.textContent = group.dashboardNote;
-                groupBlock.appendChild(note);
+                submenu.appendChild(note);
             }
 
+            toggleButton.onclick = () => {
+                const isExpanded = groupBlock.dataset.expanded === 'true';
+                setGroupState(groupBlock, submenu, toggleButton, !isExpanded);
+            };
+
+            groupBlock.appendChild(toggleButton);
+            groupBlock.appendChild(submenu);
             container.appendChild(groupBlock);
+
+            // Buka otomatis hanya kelompok yang memuat menu aktif.
+            setGroupState(groupBlock, submenu, toggleButton, hasActiveItem);
         });
 
-        // Kelompok bantuan dipisahkan dari menu operasional.
+        // Kelompok bantuan tetap terpisah dari menu operasional.
         const helpGroup = document.createElement('div');
-        helpGroup.className = 'mt-2 border-t border-blue-950 pt-2';
+        helpGroup.className = 'mt-3 rounded-xl border border-blue-900/60 bg-blue-950/20 overflow-hidden';
+        helpGroup.dataset.sivitGroup = 'true';
+        helpGroup.dataset.expanded = 'false';
 
-        const helpHeading = document.createElement('div');
-        helpHeading.className = 'px-3 pt-2 pb-1 text-[10px] uppercase tracking-wider font-extrabold text-amber-300/90 flex items-center space-x-2';
-        helpHeading.innerHTML = '<i class="fa-solid fa-circle-question w-4 text-center"></i><span>4. Bantuan</span>';
-        helpGroup.appendChild(helpHeading);
+        const helpToggle = document.createElement('button');
+        helpToggle.type = 'button';
+        helpToggle.className = 'w-full flex items-center justify-between gap-2 px-3 py-3 text-left text-amber-200 hover:bg-blue-900/60 transition-all';
+        helpToggle.setAttribute('aria-expanded', 'false');
+        helpToggle.innerHTML = `
+            <span class="flex items-center gap-2 min-w-0">
+                <i class="fa-solid fa-circle-question w-4 text-center text-amber-300"></i>
+                <span class="text-[11px] font-extrabold uppercase tracking-wide">4. Bantuan</span>
+            </span>
+            <i data-group-chevron class="fa-solid fa-chevron-right text-[10px] transition-transform"></i>
+        `;
+
+        const helpSubmenu = document.createElement('div');
+        helpSubmenu.className = 'hidden px-2 pb-2 space-y-1';
+        helpSubmenu.dataset.sivitSubmenu = 'true';
 
         const panduanLink = document.createElement('a');
         panduanLink.href = 'https://dikporarembang.github.io/sivit26/Panduan_Penggunaan_SIVIT26_2026.pdf';
@@ -2148,8 +2198,15 @@ async function handleRegister(e) {
         panduanLink.className = 'w-full flex items-center space-x-2.5 px-3 py-2 rounded-xl text-left font-semibold text-amber-300 hover:bg-blue-900/60 hover:text-amber-200 transition-all text-xs cursor-pointer';
         panduanLink.innerHTML = '<i class="fa-solid fa-book-open w-4 text-center"></i><span>Petunjuk Penggunaan</span>';
         panduanLink.title = 'Buka Panduan Penggunaan SIVIT26 2026';
-        helpGroup.appendChild(panduanLink);
+        helpSubmenu.appendChild(panduanLink);
 
+        helpToggle.onclick = () => {
+            const isExpanded = helpGroup.dataset.expanded === 'true';
+            setGroupState(helpGroup, helpSubmenu, helpToggle, !isExpanded);
+        };
+
+        helpGroup.appendChild(helpToggle);
+        helpGroup.appendChild(helpSubmenu);
         container.appendChild(helpGroup);
     }
 
