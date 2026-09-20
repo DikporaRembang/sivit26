@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SIVIT26 - Sistem Informasi Pemantauan Revitalisasi SD Kabupaten Rembang 2026</title>
+    <!-- PATCH8.5.19: Warm nature theme + single EXIF photo source -->
+<title>SIVIT26 - Sistem Informasi Pemantauan Revitalisasi SD Kabupaten Rembang 2026</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -1644,6 +1645,463 @@ td, th, label, p, span, a, button {
   #verifikasi-modal > div,
   #modalRiwayatPagu > div {
     max-height: calc(100dvh - 1rem) !important;
+  }
+}
+</style>
+
+<style id="sivit-cream-brown-theme-patch8518">
+/* =========================================================
+   PATCH 8.5.18 — CREAM / DARK BROWN VISUAL THEME
+   Visual-only layer. Existing logo, identity, loading behavior,
+   and application logic are preserved.
+   ========================================================= */
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap');
+
+:root {
+  --sivit-primary: #5a3828 !important;
+  --sivit-primary-dark: #3b241a !important;
+  --sivit-primary-soft: #f0e4d4 !important;
+  --sivit-bg: #f3eadf !important;
+  --sivit-surface: #fffaf2 !important;
+  --sivit-surface-soft: #f8f0e6 !important;
+  --sivit-text: #3b2a21 !important;
+  --sivit-text-soft: #806b5d !important;
+  --sivit-border: #d8c4ad !important;
+  --sivit-success: #718044 !important;
+  --sivit-warning: #b77a2c !important;
+  --sivit-danger: #a94c3d !important;
+  --sivit-accent: #c69a5a !important;
+  --sivit-shadow: 0 4px 18px rgba(74, 45, 29, .08) !important;
+  --sivit-shadow-lg: 0 18px 48px rgba(74, 45, 29, .18) !important;
+}
+
+html, body, button, input, select, textarea, table, th, td {
+  font-family: 'DM Sans', 'Segoe UI', sans-serif !important;
+}
+
+h1, h2, h3, h4, h5, h6,
+#modalTitle, .modal-title, .section-title, .card-title {
+  font-family: 'Playfair Display', Georgia, serif !important;
+  color: var(--sivit-primary) !important;
+}
+
+body, #appContainer, #mainApp, main, .main-content {
+  background: var(--sivit-bg) !important;
+  color: var(--sivit-text) !important;
+}
+
+header, .app-header {
+  background: linear-gradient(135deg, #3b241a 0%, #5a3828 58%, #7b6042 100%) !important;
+  color: #fffaf2 !important;
+  border-color: #8d6c4b !important;
+  box-shadow: 0 7px 24px rgba(59, 36, 26, .18) !important;
+}
+
+#dataModal, #verifikasi-modal, #modalRiwayatPagu {
+  background: rgba(59, 36, 26, .58) !important;
+  backdrop-filter: blur(7px) !important;
+}
+
+#dataModal > div, #verifikasi-modal > div, #modalRiwayatPagu > div,
+.modal-content {
+  background: var(--sivit-surface) !important;
+  color: var(--sivit-text) !important;
+  border: 1px solid var(--sivit-border) !important;
+  border-radius: 20px !important;
+  box-shadow: var(--sivit-shadow-lg) !important;
+}
+
+#dataModal .border-b, #dataModal .border-t,
+#verifikasi-modal .border-b, #modalRiwayatPagu .border-b {
+  border-color: var(--sivit-border) !important;
+}
+
+#dataModal label, #verifikasi-modal label, #modalRiwayatPagu label,
+#formFieldsContainer label {
+  color: #5a3828 !important;
+  font-weight: 800 !important;
+  letter-spacing: .07em !important;
+}
+
+#dataModal input, #dataModal select, #dataModal textarea,
+#verifikasi-modal input, #verifikasi-modal select, #verifikasi-modal textarea,
+#modalRiwayatPagu input, #modalRiwayatPagu select, #modalRiwayatPagu textarea {
+  background: #fffdf8 !important;
+  color: #3b2a21 !important;
+  border-color: #d8c4ad !important;
+  border-radius: 12px !important;
+}
+
+#dataModal input:focus, #dataModal select:focus, #dataModal textarea:focus,
+#verifikasi-modal input:focus, #verifikasi-modal select:focus, #verifikasi-modal textarea:focus {
+  border-color: #9a7748 !important;
+  box-shadow: 0 0 0 3px rgba(154, 119, 72, .16) !important;
+  outline: none !important;
+}
+
+#dataModal button[type="button"], #verifikasi-modal button[type="button"] {
+  background: #f0e4d4 !important;
+  color: #6b5141 !important;
+  border: 1px solid #d8c4ad !important;
+}
+
+#dataModal button[type="button"]:hover, #verifikasi-modal button[type="button"]:hover {
+  background: #e5d2bc !important;
+}
+
+#btnSaveModal {
+  background: linear-gradient(135deg, #5a3828, #7b6042) !important;
+  color: #fffaf2 !important;
+  border-radius: 12px !important;
+  box-shadow: 0 7px 15px rgba(90, 56, 40, .18) !important;
+}
+
+#btnSaveModal:hover {
+  background: linear-gradient(135deg, #3b241a, #5a3828) !important;
+}
+
+#tableHead {
+  background: #5a3828 !important;
+  color: #fffaf2 !important;
+  border-bottom-color: #c69a5a !important;
+}
+
+#tableBody td { color: #3b2a21 !important; }
+#tableBody tr:hover { background: #f8f0e6 !important; }
+
+#formFieldsContainer .bg-blue-950\/60,
+#formFieldsContainer .bg-blue-950,
+#formFieldsContainer .bg-gray-800 {
+  background: #f0e4d4 !important;
+  color: #5a3828 !important;
+  border-color: #cdb397 !important;
+}
+
+#formFieldsContainer .text-blue-200,
+#formFieldsContainer .text-blue-300,
+#formFieldsContainer .text-amber-300,
+#formFieldsContainer .text-amber-400 {
+  color: #806348 !important;
+}
+
+#formFieldsContainer .bg-amber-500,
+#formFieldsContainer label[for^="fileInput_"] {
+  background: #c69a5a !important;
+  color: #3b241a !important;
+  border-color: #b2854c !important;
+}
+
+#formFieldsContainer label[for^="fileInput_"]:hover,
+#formFieldsContainer .bg-amber-500:hover {
+  background: #d6ad73 !important;
+}
+
+#sivitLoading {
+  background: rgba(243, 234, 223, .78) !important;
+}
+
+.sivit-loading-box {
+  background: rgba(255, 250, 242, .97) !important;
+  border-color: #d8c4ad !important;
+  color: #3b2a21 !important;
+  box-shadow: 0 20px 50px rgba(59, 36, 26, .18) !important;
+}
+
+.sivit-loading-ring {
+  border-color: rgba(90, 56, 40, .16) !important;
+  border-top-color: #5a3828 !important;
+  border-right-color: #9a7748 !important;
+  box-shadow: 0 0 12px rgba(154, 119, 72, .22) !important;
+}
+
+.sivit-loading-ring::before {
+  border-color: rgba(113, 128, 68, .30) !important;
+}
+
+.sivit-loading-logo-wrap::after {
+  background: radial-gradient(circle, rgba(198, 154, 90, .22), transparent 70%) !important;
+}
+
+.sivit-loading-text { color: #5a3828 !important; }
+.sivit-loading-subtext { color: #806b5d !important; }
+
+/* Hindari pemaksaan style gelap pada field metadata yang read-only. */
+input[name="waktu_pengambilan_foto"],
+input[name="tanggal_upload"] {
+  background: #f0e4d4 !important;
+  color: #806348 !important;
+}
+</style>
+
+
+<style id="sivit-patch-8-5-19-theme">
+/* =========================================================
+   PATCH8.5.19 — SIVIT26 WARM NATURE / CREAM & DARK BROWN
+   Visual layer only. Existing logo, identity, loading behavior,
+   data flow, and single EXIF photo source are preserved.
+   ========================================================= */
+:root {
+  --sivit-primary: #6b432f !important;
+  --sivit-primary-dark: #4b2d20 !important;
+  --sivit-primary-soft: #f2e5d5 !important;
+  --sivit-bg: #f5eee4 !important;
+  --sivit-surface: #fffaf3 !important;
+  --sivit-surface-soft: #f8f0e5 !important;
+  --sivit-text: #3d2a21 !important;
+  --sivit-text-soft: #806b5d !important;
+  --sivit-border: #d9c6b2 !important;
+  --sivit-success: #73834a !important;
+  --sivit-warning: #c69a5a !important;
+  --sivit-shadow: 0 4px 18px rgba(75,45,32,.08) !important;
+  --sivit-shadow-lg: 0 18px 45px rgba(75,45,32,.16) !important;
+}
+
+html, body {
+  background: #f5eee4 !important;
+  color: #3d2a21 !important;
+  font-family: "DM Sans", Inter, ui-sans-serif, system-ui, sans-serif !important;
+}
+
+body {
+  background: linear-gradient(135deg, #f8f1e8 0%, #ead8c2 100%) !important;
+}
+
+/* Login: panel kiri tetap mempertahankan logo/identitas lama. */
+#authContainer {
+  position: relative !important;
+  isolation: isolate !important;
+  display: flex !important;
+  align-items: stretch !important;
+  justify-content: flex-start !important;
+  min-height: 100vh !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  background:
+    radial-gradient(circle at 10% 8%, rgba(190,157,111,.20), transparent 28%),
+    linear-gradient(135deg, #f7efe4 0%, #ead8c2 100%) !important;
+}
+
+#authContainer::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 52%;
+  background:
+    radial-gradient(circle at 8% 6%, rgba(171,151,91,.22), transparent 27%),
+    linear-gradient(145deg, #203b28 0%, #173322 58%, #10281b 100%);
+  clip-path: polygon(0 0, 100% 0, 94% 100%, 0 100%);
+  z-index: -1;
+}
+
+#authContainer::after {
+  content: "Bersama Membangun\\A Pendidikan yang\\A Lebih Baik";
+  white-space: pre;
+  position: absolute;
+  inset: 0 0 0 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8% 6% 8% 11%;
+  color: #fffaf3;
+  font-family: "DM Sans", Inter, sans-serif;
+  font-size: clamp(1.5rem, 3vw, 3.6rem);
+  font-weight: 800;
+  line-height: 1.08;
+  letter-spacing: -.04em;
+  text-shadow: 0 3px 18px rgba(59,42,33,.24);
+  background:
+    linear-gradient(180deg, rgba(92,67,45,.14), rgba(59,42,33,.36)),
+    radial-gradient(ellipse at 72% 25%, rgba(255,250,243,.92) 0 2%, transparent 2.5%),
+    linear-gradient(145deg, #cdb28f 0%, #e7d4b8 42%, #9b7755 100%);
+  clip-path: polygon(6% 0, 100% 0, 100% 100%, 0 100%);
+  z-index: -1;
+}
+
+#authContainer > div {
+  position: relative !important;
+  z-index: 2 !important;
+  width: min(100%, 570px) !important;
+  max-width: 570px !important;
+  min-height: 100vh !important;
+  margin: 0 !important;
+  padding: clamp(2rem, 6vw, 5rem) clamp(1.5rem, 5vw, 4.5rem) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: rgba(24,53,35,.94) !important;
+  box-shadow: 12px 0 42px rgba(59,42,33,.14) !important;
+  color: #fffaf3 !important;
+  backdrop-filter: blur(12px);
+  clip-path: polygon(0 0, 100% 0, 94% 100%, 0 100%);
+}
+
+#authContainer h1 {
+  color: #c7e48a !important;
+  font-family: "DM Sans", Inter, sans-serif !important;
+  font-weight: 800 !important;
+  letter-spacing: -.04em !important;
+}
+
+#authContainer p,
+#authContainer label {
+  color: #eadfd1 !important;
+}
+
+#authContainer .mt-3 {
+  background: rgba(255,250,243,.08) !important;
+  border-color: rgba(226,204,174,.34) !important;
+  color: #eadfd1 !important;
+}
+
+#authContainer .mt-3 p:first-child {
+  color: #fffaf3 !important;
+}
+
+#authContainer .mt-3 p:last-child {
+  color: #cbb9a7 !important;
+}
+
+#authContainer .border-b {
+  border-color: rgba(226,204,174,.32) !important;
+}
+
+#tabLogin, #tabRegister {
+  color: #cbb9a7 !important;
+}
+
+#tabLogin {
+  color: #c7e48a !important;
+  border-color: #c7e48a !important;
+}
+
+#authContainer input {
+  background: rgba(255,250,243,.08) !important;
+  color: #fffaf3 !important;
+  border: 1px solid rgba(226,204,174,.48) !important;
+  border-radius: 14px !important;
+}
+
+#authContainer input::placeholder {
+  color: #cbb9a7 !important;
+}
+
+#authContainer input:focus {
+  border-color: #c7e48a !important;
+  box-shadow: 0 0 0 3px rgba(199,228,138,.16) !important;
+}
+
+#formLogin button[type="submit"],
+#formRegister button[type="submit"] {
+  background: linear-gradient(135deg, #91b64d, #6f9338) !important;
+  color: #fffaf3 !important;
+  border: 0 !important;
+  border-radius: 14px !important;
+  box-shadow: 0 8px 22px rgba(111,147,56,.24) !important;
+}
+
+#formLogin button[type="submit"]:hover,
+#formRegister button[type="submit"]:hover {
+  background: linear-gradient(135deg, #a4c966, #7da647) !important;
+}
+
+#authContainer button:not([type="submit"]) {
+  color: #eadfd1 !important;
+}
+
+#authContainer button:not([type="submit"]):hover {
+  color: #c7e48a !important;
+}
+
+/* Field metadata: tetap otomatis dan bukan file picker kedua. */
+#formFieldsContainer input[name="waktu_pengambilan_foto"],
+#formFieldsContainer input[name="tanggal_upload"] {
+  background: #f0e4d4 !important;
+  color: #806348 !important;
+  border-color: #d2b99d !important;
+}
+
+#formFieldsContainer .bg-blue-950\/60,
+#formFieldsContainer .bg-blue-950,
+#formFieldsContainer .bg-blue-900\/40 {
+  background: #f3e7d8 !important;
+  color: #4b2d20 !important;
+  border-color: #d2b99d !important;
+}
+
+#formFieldsContainer .border-blue-700,
+#formFieldsContainer .border-blue-800 {
+  border-color: #d2b99d !important;
+}
+
+#formFieldsContainer .text-blue-300,
+#formFieldsContainer .text-blue-200,
+#formFieldsContainer .text-amber-300,
+#formFieldsContainer .text-amber-400 {
+  color: #806348 !important;
+}
+
+#formFieldsContainer .bg-amber-500,
+#formFieldsContainer label[for^="fileInput_"] {
+  background: #c69a5a !important;
+  color: #3b241a !important;
+  border-color: #b2854c !important;
+}
+
+#formFieldsContainer .bg-amber-500:hover,
+#formFieldsContainer label[for^="fileInput_"]:hover {
+  background: #d6ad73 !important;
+}
+
+/* Loading: identitas dan animasi lama tetap; warna mengikuti palet baru. */
+#sivitLoading {
+  background: rgba(243,234,223,.84) !important;
+}
+
+.sivit-loading-box {
+  background: rgba(255,250,242,.98) !important;
+  border-color: #d8c4ad !important;
+  color: #3b2a21 !important;
+  box-shadow: 0 20px 50px rgba(59,36,26,.18) !important;
+}
+
+.sivit-loading-ring {
+  border-color: rgba(90,56,40,.16) !important;
+  border-top-color: #5a3828 !important;
+  border-right-color: #c69a5a !important;
+  box-shadow: 0 0 12px rgba(154,119,72,.22) !important;
+}
+
+.sivit-loading-ring::before {
+  border-color: rgba(113,128,68,.34) !important;
+}
+
+.sivit-loading-logo-wrap::after {
+  background: radial-gradient(circle, rgba(198,154,90,.22), transparent 70%) !important;
+}
+
+.sivit-loading-text { color: #5a3828 !important; }
+.sivit-loading-subtext { color: #806b5d !important; }
+
+@media (max-width: 900px) {
+  #authContainer {
+    display: block !important;
+    overflow: auto !important;
+  }
+  #authContainer::before {
+    width: 100%;
+    clip-path: none;
+  }
+  #authContainer::after {
+    display: none;
+  }
+  #authContainer > div {
+    width: 100% !important;
+    max-width: none !important;
+    min-height: 100vh !important;
+    clip-path: none;
+    box-shadow: none !important;
   }
 }
 </style>
@@ -6388,7 +6846,17 @@ currentHeaders.forEach(h => {
                 input.value = activeRowData && activeRowData[h] ? String(activeRowData[h]) : '';
                 input.placeholder = 'Otomatis dari metadata file foto setelah upload.';
                 input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-300 cursor-not-allowed";
-            } else if (hLower.includes('foto_dokumentasi') || hLower.includes('foto')) {
+            } else if (hLower === 'waktu_pengambilan_foto') {
+                // PATCH8.5.18: field metadata saja — tidak boleh membuat file picker kedua.
+                input = document.createElement('input');
+                input.type = "text";
+                input.name = h;
+                input.id = 'waktuPengambilanFotoField';
+                input.readOnly = true;
+                input.value = activeRowData && activeRowData[h] ? String(activeRowData[h]) : '';
+                input.placeholder = 'Otomatis dari metadata EXIF foto dokumentasi.';
+                input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-300 cursor-not-allowed";
+            } else if (hLower === 'foto_dokumentasi') {
                 div.className = "space-y-2 p-3 bg-blue-950/60 rounded-xl border border-amber-400/30";
                 
                 input = document.createElement('input');
@@ -6504,10 +6972,9 @@ currentHeaders.forEach(h => {
 
                             // PATCH8.5.15: kosongkan bila metadata EXIF tidak tersedia.
                             // Jangan memakai waktu sekarang karena itu bukan waktu pengambilan foto.
-                            const captureTimeField = document.querySelector('input[name="waktu_pengambilan_foto"]');
-                            if (captureTimeField) {
+                            document.querySelectorAll('input[name="waktu_pengambilan_foto"]').forEach(function(captureTimeField) {
                                 captureTimeField.value = formattedDate || '';
-                            }
+                            });
 
                             metaInfo.innerHTML =
                                 `<span class="text-emerald-400 font-bold">
@@ -7254,184 +7721,11 @@ if (currentUser && currentUser.role === 'SEKOLAH') {
         });
     }
 
-    // D. EKSTRAKSI METADATA EXIF DARI FOTO
-    //    - GPS tetap masuk ke lokasi_koordinat
-    //    - Tanggal/waktu EXIF hanya ditampilkan sebagai metadata foto
-    //    - Tanggal Lapor TIDAK diubah oleh metadata EXIF
+    // D. EXTRAKSI METADATA EXIF
+    // Ditangani oleh handler tunggal pada field foto_dokumentasi dinamis.
+    // PATCH8.5.18: tidak ada listener legacy #file-foto agar tidak terjadi
+    // input upload ganda untuk waktu_pengambilan_foto.
 
-    const inputFile = document.getElementById('file-foto');
-
-    if (inputFile) {
-        inputFile.addEventListener('change', function(e) {
-
-            const file = e.target.files[0];
-            if (!file) return;
-
-            const lokasiField = document.getElementById('koordinat-lokasi');
-
-            if (lokasiField) {
-                lokasiField.value = "Mengambil metadata foto...";
-            }
-
-            // Cari elemen informasi metadata foto.
-            // Jika belum ada, buat otomatis di bawah input foto.
-            let metaFoto = document.getElementById('metadata-foto');
-
-            // PATCH8.5.15: field terpisah untuk waktu pengambilan dari EXIF.
-            // PATCH8.5.17: gunakan field waktu yang sudah ada jika dibuat oleh form dinamis.
-            // Jangan membuat input file/upload tambahan untuk waktu pengambilan foto.
-            let waktuPengambilanInput = document.getElementById('waktu-pengambilan-foto')
-                || document.getElementById('waktuPengambilanFotoField')
-                || document.querySelector('input[name="waktu_pengambilan_foto"]');
-            if (!waktuPengambilanInput) {
-                waktuPengambilanInput = document.createElement('input');
-                waktuPengambilanInput.type = 'hidden';
-                waktuPengambilanInput.id = 'waktu-pengambilan-foto';
-                waktuPengambilanInput.name = 'waktu_pengambilan_foto';
-                inputFile.parentElement.appendChild(waktuPengambilanInput);
-            } else {
-                waktuPengambilanInput.readOnly = true;
-            }
-
-            if (!metaFoto) {
-                metaFoto = document.createElement('div');
-                metaFoto.id = 'metadata-foto';
-                metaFoto.className =
-                    'mt-2 p-2 rounded-lg bg-blue-950/60 border border-blue-700 text-[11px] text-blue-200 space-y-1';
-
-                inputFile.parentElement.appendChild(metaFoto);
-            }
-
-            metaFoto.innerHTML =
-                '<span class="text-amber-300">Membaca metadata foto...</span>';
-
-            EXIF.getData(file, function() {
-
-                // =====================================================
-                // 1. TANGGAL & WAKTU PENGAMBILAN FOTO DARI EXIF
-                // =====================================================
-
-                let exifDate =
-                    EXIF.getTag(this, "DateTimeOriginal") ||
-                    EXIF.getTag(this, "DateTime") ||
-                    null;
-
-                let tanggalWaktuFoto = '';
-                
-                if (exifDate) {
-
-                    // Format umum EXIF:
-                    // YYYY:MM:DD HH:MM:SS
-
-                    const parts = String(exifDate).split(' ');
-
-                    if (parts.length >= 2) {
-
-                        const tanggal = parts[0].replace(/:/g, '-');
-                        const waktu = parts[1];
-
-                        const dateParts = tanggal.split('-');
-
-                        if (dateParts.length === 3) {
-                            tanggalWaktuFoto =
-                                `${dateParts[2]}/${dateParts[1]}/${dateParts[0]} ${waktu}`;
-                        } else {
-                            tanggalWaktuFoto = String(exifDate);
-                        }
-
-                    } else {
-
-                        tanggalWaktuFoto = String(exifDate);
-                    }
-                }
-
-                // PATCH8.5.15: simpan hanya waktu EXIF, bukan waktu upload.
-                if (waktuPengambilanInput) {
-                    waktuPengambilanInput.value = tanggalWaktuFoto || '';
-                }
-                document.querySelectorAll('input[name="waktu_pengambilan_foto"]').forEach(function(field) {
-                    field.value = tanggalWaktuFoto || '';
-                });
-
-                // =====================================================
-                // 2. GPS DARI EXIF
-                // =====================================================
-
-                let lat = EXIF.getTag(this, "GPSLatitude");
-                let latRef = EXIF.getTag(this, "GPSLatitudeRef");
-
-                let lon = EXIF.getTag(this, "GPSLongitude");
-                let lonRef = EXIF.getTag(this, "GPSLongitudeRef");
-    
-                let koordinat = "";
-
-                if (lat && lon) {
-
-                    try {
-
-                        let latitude = convertDMSToDD(lat, latRef);
-                        let longitude = convertDMSToDD(lon, lonRef);
-
-                        koordinat =
-                            `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
-
-                        if (lokasiField) {
-                            lokasiField.value = koordinat;
-                        }
-
-                    } catch (err) {
-
-                        console.error(
-                            'Gagal mengonversi GPS EXIF:',
-                            err
-                        );
-
-                        koordinat = "GPS tidak dapat dibaca";
-
-                        if (lokasiField) {
-                            lokasiField.value = koordinat;
-                        }
-                    }
-
-                } else {
-
-                    koordinat =
-                        "GPS tidak ditemukan pada metadata foto";
-
-                    if (lokasiField) {
-                        lokasiField.value = koordinat;
-                    }
-                }
-
-                // =====================================================
-                // 3. TAMPILKAN METADATA FOTO
-                // =====================================================
-
-                metaFoto.innerHTML = `
-                    <div class="font-bold text-emerald-400">
-                        <i class="fa-solid fa-circle-check"></i>
-                        Foto berhasil dibaca
-                    </div>
-
-                    <div>
-                        <span class="text-blue-400">Nama file:</span>
-                        ${file.name}
-                    </div>
-
-                    <div>
-                        <span class="text-blue-400">Waktu pengambilan:</span>
-                        ${tanggalWaktuFoto}
-                    </div>
-
-                    <div>
-                        <span class="text-blue-400">Koordinat GPS:</span>
-                        ${koordinat}
-                    </div>
-                `;
-
-            });
-        });
-    }
     async function ambilDataSekolahByNpsn(npsn) {
         try {
             const res = await fetch(
