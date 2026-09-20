@@ -3735,7 +3735,7 @@ async function handleRegister(e) {
             const headerKey = String(h).toLowerCase();
             th.className = "p-3 text-center align-middle whitespace-normal leading-tight";
             th.innerText = h.replace(/_/g, ' ').toUpperCase();
-            if (['nama_menu', 'catatan_dinas', 'lokasi_koordinat'].includes(headerKey)) {
+            if (['nama_menu', 'catatan_dinas', 'lokasi_koordinat', 'waktu_pengambilan_foto'].includes(headerKey)) {
                 th.style.minWidth = '180px';
             } else if (['penggunaan_anggaran', 'foto_dokumentasi', 'status_verifikasi'].includes(headerKey)) {
                 th.style.minWidth = '125px';
@@ -3788,6 +3788,10 @@ async function handleRegister(e) {
                 if ((h.toLowerCase() === 'pagu' || h.toLowerCase() === 'pagu_lama' || h.toLowerCase() === 'pagu_baru' || h.toLowerCase() === 'penggunaan_anggaran') && !isNaN(val) && val !== "") {
                     let angkaNum = Number(val);
                     val = "Rp " + angkaNum.toLocaleString('id-ID');
+                }
+
+                if (h.toLowerCase() === 'waktu_pengambilan_foto' && val) {
+                    val = String(val);
                 }
 
                 if (h.toLowerCase() === 'paket_id') {
@@ -6313,6 +6317,15 @@ currentHeaders.forEach(h => {
                 input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-blue-300 cursor-not-allowed";
                 input.value = typeof convertToInputDate === 'function' ? convertToInputDate(activeRowData && activeRowData[h] ? activeRowData[h] : "") : "";
                 if (typeof hitungTanggalSelesai === 'function') setTimeout(hitungTanggalSelesai, 200);
+            } else if (hLower === 'waktu_pengambilan_foto') {
+                input = document.createElement('input');
+                input.type = 'text';
+                input.name = h;
+                input.id = 'waktuPengambilanFotoField';
+                input.readOnly = true;
+                input.className = "w-full px-3.5 py-2.5 bg-blue-950/60 border border-blue-800 rounded-xl text-xs text-amber-300 cursor-not-allowed";
+                input.placeholder = 'Diambil dari metadata EXIF foto';
+                input.value = activeRowData && activeRowData[h] ? String(activeRowData[h]) : '';
             } else {
                 input = document.createElement('input');
                 input.type = "text";
@@ -6456,16 +6469,11 @@ currentHeaders.forEach(h => {
                                 }
                             }
 
-                            if (!formattedDate) {
-                                let now = new Date();
-
-                                formattedDate =
-                                    `${String(now.getDate()).padStart(2, '0')}/` +
-                                    `${String(now.getMonth() + 1).padStart(2, '0')}/` +
-                                    `${now.getFullYear()} ` +
-                                    `${String(now.getHours()).padStart(2, '0')}:` +
-                                    `${String(now.getMinutes()).padStart(2, '0')}:` +
-                                    `${String(now.getSeconds()).padStart(2, '0')}`;
+                            // PATCH8.5.15: kosongkan bila metadata EXIF tidak tersedia.
+                            // Jangan memakai waktu sekarang karena itu bukan waktu pengambilan foto.
+                            const captureTimeField = document.querySelector('input[name="waktu_pengambilan_foto"]');
+                            if (captureTimeField) {
+                                captureTimeField.value = formattedDate || '';
                             }
 
                             metaInfo.innerHTML =
@@ -7236,6 +7244,16 @@ if (currentUser && currentUser.role === 'SEKOLAH') {
             // Jika belum ada, buat otomatis di bawah input foto.
             let metaFoto = document.getElementById('metadata-foto');
 
+            // PATCH8.5.15: field terpisah untuk waktu pengambilan dari EXIF.
+            let waktuPengambilanInput = document.getElementById('waktu-pengambilan-foto');
+            if (!waktuPengambilanInput) {
+                waktuPengambilanInput = document.createElement('input');
+                waktuPengambilanInput.type = 'hidden';
+                waktuPengambilanInput.id = 'waktu-pengambilan-foto';
+                waktuPengambilanInput.name = 'waktu_pengambilan_foto';
+                inputFile.parentElement.appendChild(waktuPengambilanInput);
+            }
+
             if (!metaFoto) {
                 metaFoto = document.createElement('div');
                 metaFoto.id = 'metadata-foto';
@@ -7259,8 +7277,8 @@ if (currentUser && currentUser.role === 'SEKOLAH') {
                     EXIF.getTag(this, "DateTime") ||
                     null;
 
-                let tanggalWaktuFoto = "-";
-
+                let tanggalWaktuFoto = '';
+                
                 if (exifDate) {
 
                     // Format umum EXIF:
@@ -7286,6 +7304,11 @@ if (currentUser && currentUser.role === 'SEKOLAH') {
 
                         tanggalWaktuFoto = String(exifDate);
                     }
+                }
+
+                // PATCH8.5.15: simpan hanya waktu EXIF, bukan waktu upload.
+                if (waktuPengambilanInput) {
+                    waktuPengambilanInput.value = tanggalWaktuFoto || '';
                 }
 
                 // =====================================================
@@ -7425,9 +7448,11 @@ if (currentUser && currentUser.role === 'SEKOLAH') {
                     realisasi_fisik: document.getElementById('realisasi-fisik').value,
                     penggunaan_anggaran: document.getElementById('penggunaan-anggaran').value.replace(/\./g, ''),
                     lokasi_koordinat: document.getElementById('koordinat-lokasi').value,
+                    waktu_pengambilan_foto: document.getElementById('waktu-pengambilan-foto')?.value || '',
                     minggu_ke: document.getElementById('minggu-ke-laporan')?.value || '',
                     tanggal_lapor: document.getElementById('tanggal-laporan').value,
                     status_verifikasi: document.getElementById('status-verifikasi-laporan').value,
+                    user_id: currentUser?.id || currentUser?.user_id || currentUser?.username || '',
                     catatan_dinas: ""
                 }
             };
