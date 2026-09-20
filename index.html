@@ -1894,15 +1894,14 @@ body {
 }
 
 #authContainer::after {
-  content: "Bersama Membangun\A Pendidikan yang\A Lebih Baik";
+  content: "Bersama Membangun\\A Pendidikan yang\\A Lebih Baik";
   white-space: pre;
   position: absolute;
   inset: 0 0 0 50%;
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  text-align: left;
-  padding: 18% 5% 8% 11%;
+  justify-content: center;
+  padding: 8% 6% 8% 11%;
   color: #fffaf3;
   font-family: "DM Sans", Inter, sans-serif;
   font-size: clamp(1.5rem, 3vw, 3.6rem);
@@ -2107,7 +2106,6 @@ body {
 }
 </style>
 
-<!-- PATCH8.5.20: fix pseudo text escaping, responsive login layout, and handler exposure -->
 </head>
 <body class="bg-gradient-to-br from-blue-950 via-blue-900 to-slate-900 min-h-screen text-white font-sans antialiased flex flex-col justify-between">
 
@@ -2666,9 +2664,7 @@ body {
         return val;
     }
 
-    window.handleRegister = handleRegister;
-
-function togglePasswordVisibility(inputId, iconId) {
+    function togglePasswordVisibility(inputId, iconId) {
         let input = document.getElementById(inputId);
         let icon = document.getElementById(iconId);
         if (input.type === "password") {
@@ -2854,11 +2850,9 @@ function togglePasswordVisibility(inputId, iconId) {
             }
         } catch (err) {
             console.error(err);
-            alert('Login gagal terhubung ke server. Periksa koneksi dan URL Web App SIVIT26.');
+            alert('Gagal terhubung ke server.');
         }
     }
-
-window.handleLogin = handleLogin;
 
 async function handleRegister(e) {
         e.preventDefault();
@@ -5946,72 +5940,7 @@ async function cetakLaporanResmi(paketId, npsn) {
                 display: table-header-group;
             }
         }
-    
-
-/* PATCH8.5.20 — responsive login layout */
-#authContainer {
-  min-height: 100svh !important;
-  width: 100% !important;
-}
-
-#authContainer > div {
-  box-sizing: border-box !important;
-}
-
-@media (max-width: 1100px) {
-  #authContainer::before {
-    width: 100% !important;
-    clip-path: none !important;
-  }
-
-  #authContainer::after {
-    display: none !important;
-  }
-
-  #authContainer > div {
-    width: min(100%, 620px) !important;
-    max-width: 620px !important;
-    min-height: 100svh !important;
-    margin: 0 auto !important;
-    padding: clamp(1.25rem, 5vw, 3rem) clamp(1rem, 5vw, 2.5rem) !important;
-    clip-path: none !important;
-    border-radius: 0 !important;
-    box-shadow: none !important;
-    background: rgba(24,53,35,.97) !important;
-  }
-}
-
-@media (max-width: 640px) {
-  #authContainer > div {
-    width: 100% !important;
-    max-width: none !important;
-    padding: 1.25rem 1rem 1.5rem !important;
-  }
-
-  #authContainer h1 {
-    font-size: clamp(1.55rem, 8vw, 2.2rem) !important;
-  }
-
-  #authContainer input,
-  #authContainer button[type="submit"] {
-    min-height: 46px !important;
-    font-size: 0.95rem !important;
-  }
-
-  #authContainer .mt-3 {
-    font-size: 0.72rem !important;
-  }
-}
-
-@media (min-width: 1101px) {
-  #authContainer::after {
-    font-size: clamp(1.4rem, 2.45vw, 3rem) !important;
-    padding-right: 4% !important;
-  }
-}
-
-/* Keep the login handlers accessible to inline onsubmit attributes. */
-</style>
+    </style>
 </head>
 <body>
     ${htmlBody}
