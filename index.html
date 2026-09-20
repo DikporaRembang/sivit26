@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
+    <link rel="icon" href="data:," />
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- PATCH8.5.19: Warm nature theme + single EXIF photo source -->
 <title>SIVIT26 - Sistem Informasi Pemantauan Revitalisasi SD Kabupaten Rembang 2026</title>
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%231b3b2a'/%3E%3Cpath d='M18 40c14-1 22-10 28-24-16 2-27 10-28 24Z' fill='%23a6c957'/%3E%3Cpath d='M20 47c7-9 15-15 27-21' fill='none' stroke='%23f4e7d3' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -4789,81 +4789,7 @@ async function handleRegister(e) {
                 </head>
                 <body>
                     ${sections}
-                
-<script>
-/* PATCH8.5.22: Accessibility label association + inline favicon.
-   Does not alter login/report business logic. */
-(function () {
-    'use strict';
-
-    function isFormControl(el) {
-        return !!el && /^(INPUT|SELECT|TEXTAREA)$/.test(el.tagName);
-    }
-
-    function ensureControlId(control, index) {
-        if (control.id) return control.id;
-        var name = (control.getAttribute('name') || control.getAttribute('type') || 'field')
-            .toLowerCase().replace(/[^a-z0-9_-]+/g, '-');
-        var id = 'sivit26-' + name + '-' + index;
-        var suffix = 1;
-        while (document.getElementById(id)) {
-            id = 'sivit26-' + name + '-' + index + '-' + suffix++;
-        }
-        control.id = id;
-        return id;
-    }
-
-    function findAssociatedControl(label) {
-        var nested = label.querySelector('input, select, textarea');
-        if (nested) return nested;
-
-        var parent = label.parentElement;
-        if (!parent) return null;
-
-        var sibling = label.nextElementSibling;
-        while (sibling) {
-            if (isFormControl(sibling)) return sibling;
-            var nestedSibling = sibling.querySelector && sibling.querySelector('input, select, textarea');
-            if (nestedSibling) return nestedSibling;
-            sibling = sibling.nextElementSibling;
-        }
-
-        return parent.querySelector('input, select, textarea');
-    }
-
-    function repairLabelAssociations(root) {
-        var scope = root && root.querySelectorAll ? root : document;
-        var labels = scope.querySelectorAll('label:not([for])');
-        labels.forEach(function (label, index) {
-            var control = findAssociatedControl(label);
-            if (!control) return;
-            label.setAttribute('for', ensureControlId(control, index));
-        });
-    }
-
-    function runAccessibilityRepair() {
-        repairLabelAssociations(document);
-    }
-
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', runAccessibilityRepair, { once: true });
-    } else {
-        runAccessibilityRepair();
-    }
-
-    if (window.MutationObserver) {
-        var observer = new MutationObserver(function (mutations) {
-            var shouldRepair = mutations.some(function (mutation) {
-                return mutation.addedNodes && mutation.addedNodes.length > 0;
-            });
-            if (shouldRepair) runAccessibilityRepair();
-        });
-        observer.observe(document.documentElement, { childList: true, subtree: true });
-    }
-})();
-</script>
-
-</body>
+                </body>
                 </html>
             `);
             printWindow.document.close();
@@ -5562,7 +5488,7 @@ async function cetakLaporanResmi(paketId, npsn) {
             <html>
             <head>
                 <title>Laporan Revitalisasi SD - ${paket.nama_menu || 'Paket Pekerjaan'} (${targetNpsn})</title>
-                <script src="https://cdn.tailwindcss.com"><\/script>
+                <script src="https://cdn.tailwindcss.com"></script>
                 <style>
                     @media print {
                         body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
