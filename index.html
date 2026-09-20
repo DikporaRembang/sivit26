@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- PATCH8.5.19: Warm nature theme + single EXIF photo source -->
 <title>SIVIT26 - Sistem Informasi Pemantauan Revitalisasi SD Kabupaten Rembang 2026</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%231b3b2a'/%3E%3Cpath d='M18 40c14-1 22-10 28-24-16 2-27 10-28 24Z' fill='%23a6c957'/%3E%3Cpath d='M20 47c7-9 15-15 27-21' fill='none' stroke='%23f4e7d3' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -1894,7 +1895,7 @@ body {
 }
 
 #authContainer::after {
-  content: "Revitalisasi pendidikan\A Wujudkan sekolah\A yang berkualitas";
+  content: "Bersama Membangun\A Pendidikan yang\A Lebih Baik";
   white-space: pre;
   position: absolute;
   inset: 0 0 0 50%;
@@ -2108,8 +2109,6 @@ body {
 </style>
 
 <!-- PATCH8.5.21: diagnostic login response handling, responsive layout, and EXIF single upload -->
-<!-- PATCH8.5.22: prevent harmless favicon 404 in browser console -->
-<link rel="icon" href="data:,">
 </head>
 <body class="bg-gradient-to-br from-blue-950 via-blue-900 to-slate-900 min-h-screen text-white font-sans antialiased flex flex-col justify-between">
 
@@ -2888,25 +2887,7 @@ function togglePasswordVisibility(inputId, iconId) {
             if (data && data.status === 'success' && data.data) {
                 currentUser = data.data;
                 localStorage.setItem('sivit_user', JSON.stringify(currentUser));
-
-                // PATCH8.5.22: login berhasil harus langsung memindahkan UI
-                // ke dashboard dan memastikan overlay loading tidak mengunci layar.
-                const authContainer = document.getElementById('authContainer');
-                const dashboardContainer = document.getElementById('dashboardContainer');
-                if (authContainer) authContainer.classList.add('hidden');
-                if (dashboardContainer) dashboardContainer.classList.remove('hidden');
-
-                showLoading('Menyiapkan dashboard...');
-                try {
-                    await initDashboard();
-                } catch (dashboardError) {
-                    console.error('Login berhasil, tetapi inisialisasi dashboard gagal:', dashboardError);
-                    const subtitle = document.getElementById('contentSubtitle');
-                    if (subtitle) subtitle.textContent = 'Login berhasil. Sebagian data dashboard gagal dimuat.';
-                    alert('Login berhasil, tetapi dashboard gagal dimuat. Periksa Console untuk detail error.');
-                } finally {
-                    hideLoading();
-                }
+                await Promise.resolve(initDashboard());
                 return true;
             }
 
@@ -3102,7 +3083,7 @@ async function handleRegister(e) {
         selectPaket.value = currentPaketVal;
     }
     
-    async function initDashboard() {
+    function initDashboard() {
       document.getElementById('authContainer').classList.add('hidden');
       document.getElementById('dashboardContainer').classList.remove('hidden');
       document.getElementById('userNameDisplay').innerText = currentUser.nama_pengguna;
@@ -3130,10 +3111,10 @@ async function handleRegister(e) {
 
         if (isTimTeknisKosong) {
           alert("Selamat datang! Silakan lengkapi data Perencana dan Pengawas terlebih dahulu sebelum mengakses menu lainnya.");
-          await loadTableData('users', 'Profil & Tim Teknis');
+          loadTableData('users', 'Profil & Tim Teknis');
         } else {
           // Jika sudah terisi, langsung arahkan ke Paket Pekerjaan Saya
-          await loadTableData('paket_pekerjaan_sd', 'Paket Pekerjaan Saya');
+          loadTableData('paket_pekerjaan_sd', 'Paket Pekerjaan Saya');
         }
       }
     }
@@ -4808,7 +4789,81 @@ async function handleRegister(e) {
                 </head>
                 <body>
                     ${sections}
-                </body>
+                
+<script>
+/* PATCH8.5.22: Accessibility label association + inline favicon.
+   Does not alter login/report business logic. */
+(function () {
+    'use strict';
+
+    function isFormControl(el) {
+        return !!el && /^(INPUT|SELECT|TEXTAREA)$/.test(el.tagName);
+    }
+
+    function ensureControlId(control, index) {
+        if (control.id) return control.id;
+        var name = (control.getAttribute('name') || control.getAttribute('type') || 'field')
+            .toLowerCase().replace(/[^a-z0-9_-]+/g, '-');
+        var id = 'sivit26-' + name + '-' + index;
+        var suffix = 1;
+        while (document.getElementById(id)) {
+            id = 'sivit26-' + name + '-' + index + '-' + suffix++;
+        }
+        control.id = id;
+        return id;
+    }
+
+    function findAssociatedControl(label) {
+        var nested = label.querySelector('input, select, textarea');
+        if (nested) return nested;
+
+        var parent = label.parentElement;
+        if (!parent) return null;
+
+        var sibling = label.nextElementSibling;
+        while (sibling) {
+            if (isFormControl(sibling)) return sibling;
+            var nestedSibling = sibling.querySelector && sibling.querySelector('input, select, textarea');
+            if (nestedSibling) return nestedSibling;
+            sibling = sibling.nextElementSibling;
+        }
+
+        return parent.querySelector('input, select, textarea');
+    }
+
+    function repairLabelAssociations(root) {
+        var scope = root && root.querySelectorAll ? root : document;
+        var labels = scope.querySelectorAll('label:not([for])');
+        labels.forEach(function (label, index) {
+            var control = findAssociatedControl(label);
+            if (!control) return;
+            label.setAttribute('for', ensureControlId(control, index));
+        });
+    }
+
+    function runAccessibilityRepair() {
+        repairLabelAssociations(document);
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', runAccessibilityRepair, { once: true });
+    } else {
+        runAccessibilityRepair();
+    }
+
+    if (window.MutationObserver) {
+        var observer = new MutationObserver(function (mutations) {
+            var shouldRepair = mutations.some(function (mutation) {
+                return mutation.addedNodes && mutation.addedNodes.length > 0;
+            });
+            if (shouldRepair) runAccessibilityRepair();
+        });
+        observer.observe(document.documentElement, { childList: true, subtree: true });
+    }
+})();
+</script>
+
+</body>
                 </html>
             `);
             printWindow.document.close();
