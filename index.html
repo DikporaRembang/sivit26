@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <link rel="icon" href="data:," />
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- PATCH8.5.19: Warm nature theme + single EXIF photo source -->
@@ -2109,6 +2108,30 @@ body {
 </style>
 
 <!-- PATCH8.5.21: diagnostic login response handling, responsive layout, and EXIF single upload -->
+
+<!-- PATCH8.5.22: EARLY TAB HANDLER + FAVICON FALLBACK -->
+<link rel="icon" href="data:,">
+<script>
+(function () {
+  if (typeof window.switchTab !== 'function') {
+    window.switchTab = function (tabName) {
+      var formLogin = document.getElementById('formLogin');
+      var formRegister = document.getElementById('formRegister');
+      var tabLogin = document.getElementById('tabLogin');
+      var tabRegister = document.getElementById('tabRegister');
+      if (!formLogin || !formRegister || !tabLogin || !tabRegister) return;
+      var activeClass = 'flex-1 pb-3 font-semibold text-amber-400 border-b-2 border-amber-400 transition-all text-sm cursor-pointer';
+      var inactiveClass = 'flex-1 pb-3 font-semibold text-blue-300/60 border-b-2 border-transparent transition-all text-sm cursor-pointer';
+      var isRegister = tabName === 'register';
+      formLogin.classList.toggle('hidden', isRegister);
+      formRegister.classList.toggle('hidden', !isRegister);
+      tabLogin.className = isRegister ? inactiveClass : activeClass;
+      tabRegister.className = isRegister ? activeClass : inactiveClass;
+    };
+  }
+})();
+</script>
+
 </head>
 <body class="bg-gradient-to-br from-blue-950 via-blue-900 to-slate-900 min-h-screen text-white font-sans antialiased flex flex-col justify-between">
 
@@ -2137,8 +2160,8 @@ body {
         </div>
 
         <div class="flex border-b border-blue-800 mb-6">
-            <button id="tabLogin" onclick="switchTab('login')" class="flex-1 pb-3 font-semibold text-amber-400 border-b-2 border-amber-400 transition-all text-sm cursor-pointer">Masuk</button>
-            <button id="tabRegister" onclick="switchTab('register')" class="flex-1 pb-3 font-semibold text-blue-300/60 border-b-2 border-transparent transition-all text-sm cursor-pointer">Daftar Sekolah</button>
+            <button id="tabLogin" onclick="window.switchTab('login')" class="flex-1 pb-3 font-semibold text-amber-400 border-b-2 border-amber-400 transition-all text-sm cursor-pointer">Masuk</button>
+            <button id="tabRegister" onclick="window.switchTab('register')" class="flex-1 pb-3 font-semibold text-blue-300/60 border-b-2 border-transparent transition-all text-sm cursor-pointer">Daftar Sekolah</button>
         </div>
 
         <form id="formLogin" onsubmit="handleLogin(event)" class="space-y-4">
@@ -5488,7 +5511,7 @@ async function cetakLaporanResmi(paketId, npsn) {
             <html>
             <head>
                 <title>Laporan Revitalisasi SD - ${paket.nama_menu || 'Paket Pekerjaan'} (${targetNpsn})</title>
-                <script src="https://cdn.tailwindcss.com"></script>
+                <script src="https://cdn.tailwindcss.com"><\/script>
                 <style>
                     @media print {
                         body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
