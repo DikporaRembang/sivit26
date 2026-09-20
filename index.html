@@ -1894,7 +1894,7 @@ body {
 }
 
 #authContainer::after {
-  content: "Revitalisasi Pendidikan\A mewujudkan sekolah\A yang berkualitas";
+  content: "Revitalisasi pendidikan\A Wujudkan sekolah\A yang berkualitas";
   white-space: pre;
   position: absolute;
   inset: 0 0 0 50%;
@@ -2108,6 +2108,8 @@ body {
 </style>
 
 <!-- PATCH8.5.21: diagnostic login response handling, responsive layout, and EXIF single upload -->
+<!-- PATCH8.5.22: prevent harmless favicon 404 in browser console -->
+<link rel="icon" href="data:,">
 </head>
 <body class="bg-gradient-to-br from-blue-950 via-blue-900 to-slate-900 min-h-screen text-white font-sans antialiased flex flex-col justify-between">
 
@@ -2843,12 +2845,6 @@ function togglePasswordVisibility(inputId, iconId) {
             return false;
         }
 
-        const restoreButton = () => {
-            if (!submitButton) return;
-            submitButton.disabled = false;
-            submitButton.textContent = submitButton.dataset.originalText || 'Masuk Sistem';
-        };
-
         if (submitButton) {
             submitButton.disabled = true;
             submitButton.dataset.originalText = submitButton.textContent || 'Masuk Sistem';
@@ -2856,6 +2852,12 @@ function togglePasswordVisibility(inputId, iconId) {
         }
 
         try {
+            const payload = {
+                action: 'login',
+                username: u,
+                password: p
+            };
+
             const response = await fetch(WEB_APP_URL, {
                 method: 'POST',
                 mode: 'cors',
@@ -2863,71 +2865,66 @@ function togglePasswordVisibility(inputId, iconId) {
                 headers: {
                     'Content-Type': 'text/plain;charset=utf-8'
                 },
-                body: JSON.stringify({
-                    action: 'login',
-                    username: u,
-                    password: p
-                })
+                body: JSON.stringify(payload)
             });
 
             const rawText = await response.text();
-            let result;
+            let data;
 
             try {
-                result = JSON.parse(rawText);
+                data = JSON.parse(rawText);
             } catch (parseError) {
                 console.error('Respons login bukan JSON:', rawText);
                 throw new Error(
-                    'Respons server bukan JSON. HTTP ' + response.status +
-                    '. Periksa URL Web App, deployment, dan izin akses.'
+                    'Server mengirim respons yang bukan JSON. HTTP ' +
+                    response.status + '. Periksa deployment Web App dan aksesnya.'
                 );
             }
 
-            console.log('Respons login SIVIT26:', result);
-
-            if (!response.ok || !result || result.status !== 'success') {
-                throw new Error(
-                    (result && (result.pesan || result.message)) ||
-                    ('Login ditolak server. HTTP ' + response.status)
-                );
+            if (!response.ok) {
+                throw new Error(data.pesan || ('HTTP ' + response.status));
             }
 
-            // Autentikasi berhasil. Jangan memasukkan kegagalan dashboard
-            // ke dalam pesan "Login gagal".
-            const loginUser = result.data || result.user || result.result;
-            if (!loginUser) {
-                throw new Error('Server menyatakan login berhasil, tetapi data pengguna kosong.');
-            }
+            if (data && data.status === 'success' && data.data) {
+                currentUser = data.data;
+                localStorage.setItem('sivit_user', JSON.stringify(currentUser));
 
-            currentUser = loginUser;
-            localStorage.setItem('sivit_user', JSON.stringify(currentUser));
-            restoreButton();
+                // PATCH8.5.22: login berhasil harus langsung memindahkan UI
+                // ke dashboard dan memastikan overlay loading tidak mengunci layar.
+                const authContainer = document.getElementById('authContainer');
+                const dashboardContainer = document.getElementById('dashboardContainer');
+                if (authContainer) authContainer.classList.add('hidden');
+                if (dashboardContainer) dashboardContainer.classList.remove('hidden');
 
-            try {
-                const dashboardResult = initDashboard();
-                if (dashboardResult && typeof dashboardResult.then === 'function') {
-                    await dashboardResult;
+                showLoading('Menyiapkan dashboard...');
+                try {
+                    await initDashboard();
+                } catch (dashboardError) {
+                    console.error('Login berhasil, tetapi inisialisasi dashboard gagal:', dashboardError);
+                    const subtitle = document.getElementById('contentSubtitle');
+                    if (subtitle) subtitle.textContent = 'Login berhasil. Sebagian data dashboard gagal dimuat.';
+                    alert('Login berhasil, tetapi dashboard gagal dimuat. Periksa Console untuk detail error.');
+                } finally {
+                    hideLoading();
                 }
-            } catch (dashboardError) {
-                console.error('Login berhasil, tetapi dashboard gagal dimuat:', dashboardError);
-                alert(
-                    'Login berhasil, tetapi dashboard gagal dimuat.\n\n' +
-                    (dashboardError && dashboardError.message
-                        ? dashboardError.message
-                        : String(dashboardError))
-                );
+                return true;
             }
 
-            return true;
+            alert((data && (data.pesan || data.message)) || 'Login ditolak oleh server.');
+            return false;
         } catch (error) {
             console.error('Detail login SIVIT26:', error);
             alert(
                 'Login gagal.\n\n' +
-                (error && error.message ? error.message : String(error))
+                (error && error.message ? error.message : String(error)) +
+                '\n\nPastikan URL Web App benar, deployment aktif, dan aksesnya dapat dibuka pengguna.'
             );
             return false;
         } finally {
-            restoreButton();
+            if (submitButton) {
+                submitButton.disabled = false;
+                submitButton.textContent = submitButton.dataset.originalText || 'Masuk Sistem';
+            }
         }
     }
 
@@ -3105,7 +3102,7 @@ async function handleRegister(e) {
         selectPaket.value = currentPaketVal;
     }
     
-    function initDashboard() {
+    async function initDashboard() {
       document.getElementById('authContainer').classList.add('hidden');
       document.getElementById('dashboardContainer').classList.remove('hidden');
       document.getElementById('userNameDisplay').innerText = currentUser.nama_pengguna;
@@ -3133,10 +3130,10 @@ async function handleRegister(e) {
 
         if (isTimTeknisKosong) {
           alert("Selamat datang! Silakan lengkapi data Perencana dan Pengawas terlebih dahulu sebelum mengakses menu lainnya.");
-          loadTableData('users', 'Profil & Tim Teknis');
+          await loadTableData('users', 'Profil & Tim Teknis');
         } else {
           // Jika sudah terisi, langsung arahkan ke Paket Pekerjaan Saya
-          loadTableData('paket_pekerjaan_sd', 'Paket Pekerjaan Saya');
+          await loadTableData('paket_pekerjaan_sd', 'Paket Pekerjaan Saya');
         }
       }
     }
