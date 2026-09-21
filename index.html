@@ -2203,6 +2203,27 @@ body {
 }
 </style>
 
+
+<style id="sivit-responsive-hardening-v4">
+/* V4: mobile/tablet layout hardening; visual and lifecycle safeguards only. */
+html, body { max-width:100%; overflow-x:hidden !important; }
+#appContainer, #mainApp, main, .main-content { min-width:0 !important; max-width:100% !important; }
+.sivit-compact-data-table { table-layout:auto; }
+.sivit-compact-data-table th, .sivit-compact-data-table td { vertical-align:middle; }
+.sivit-action-cluster { grid-template-columns:repeat(2, minmax(30px, 32px)) !important; gap:4px !important; max-width:72px; }
+.sivit-action-icon { touch-action:manipulation; flex:0 0 30px; }
+@media (max-width: 768px) {
+  .sivit-compact-data-table { min-width:680px !important; }
+  .sivit-compact-data-table th, .sivit-compact-data-table td { padding: .45rem .35rem !important; }
+  .sivit-action-cluster { grid-template-columns:repeat(2, 32px) !important; gap:5px !important; }
+  .sivit-action-icon { width:32px !important; height:32px !important; min-width:32px !important; }
+  #dataModal, #verifikasi-modal, #modalRiwayatPagu { overscroll-behavior:contain; }
+}
+@media (min-width:769px) and (max-width:1100px) {
+  .sivit-compact-data-table th, .sivit-compact-data-table td { padding: .5rem .4rem !important; }
+}
+</style>
+
 </head>
 <body class="bg-gradient-to-br from-blue-950 via-blue-900 to-slate-900 min-h-screen text-white font-sans antialiased flex flex-col justify-between">
 
@@ -4908,7 +4929,38 @@ async function handleRegister(e) {
                 </head>
                 <body>
                     ${sections}
-                </body>
+                
+<script id="sivit-overlay-lifecycle-v4">
+(function () {
+  const overlayIds = ['dataModal', 'verifikasi-modal', 'modalRiwayatPagu'];
+  function hideOverlay(el) {
+    if (!el) return;
+    el.classList.add('hidden');
+    el.classList.remove('flex');
+    el.setAttribute('aria-hidden', 'true');
+  }
+  window.sivitCloseOtherOverlays = function (activeId) {
+    overlayIds.forEach(function (id) {
+      if (id !== activeId) hideOverlay(document.getElementById(id));
+    });
+  };
+  window.sivitPrepareOverlay = function (id) {
+    window.sivitCloseOtherOverlays(id);
+    const el = document.getElementById(id);
+    if (el) el.setAttribute('aria-hidden', 'false');
+    return el;
+  };
+  document.addEventListener('keydown', function (event) {
+    if (event.key !== 'Escape') return;
+    const active = overlayIds.map(id => document.getElementById(id))
+      .find(el => el && !el.classList.contains('hidden'));
+    if (!active) return;
+    hideOverlay(active);
+  }, { passive: true });
+})();
+</script>
+
+</body>
                 </html>
             `);
             printWindow.document.close();
@@ -6636,6 +6688,7 @@ async function cetakLaporanResmi(paketId, npsn) {
     }
 
     function openVerifikasiModal(idLaporan) {
+        if (window.sivitPrepareOverlay) window.sivitPrepareOverlay('verifikasi-modal');
         document.getElementById('verif-id-laporan').value = idLaporan;
         document.getElementById('verif-catatan').value = "";
         let modal = document.getElementById('verifikasi-modal');
@@ -6682,6 +6735,7 @@ async function cetakLaporanResmi(paketId, npsn) {
     }
 
 async function openModalForm(rowData = null) {
+    if (window.sivitPrepareOverlay) window.sivitPrepareOverlay('dataModal');
     // Khusus Paket Pekerjaan: pastikan dropdown nama_menu sudah punya referensi.
     if (typeof currentActiveSheet !== 'undefined' && currentActiveSheet === 'paket_pekerjaan_sd') {
         try {
@@ -7498,6 +7552,7 @@ function hitungTanggalSelesai() {
 }
 
 function closeModal() {
+    if (window.sivitCloseOtherOverlays) window.sivitCloseOtherOverlays('__none__');
     let modal = document.getElementById('dataModal');
     modal.classList.add('hidden');
     modal.classList.remove('flex');
@@ -7827,6 +7882,7 @@ async function verifikasiPaguDinas(paketId, keputusan) {
 }
 
 async function bukaRiwayatPagu(npsn, paketId) {
+    if (window.sivitPrepareOverlay) window.sivitPrepareOverlay('modalRiwayatPagu');
     let modal = document.getElementById('modalRiwayatPagu');
     let tbody = document.getElementById('riwayatTableBody');
     let infoNamaSekolah = document.getElementById('infoNamaSekolah');
