@@ -6330,6 +6330,203 @@ async function cetakLaporanResmi(paketId, npsn) {
 
 /* Keep the login handlers accessible to inline onsubmit attributes. */
 </style>
+
+<style id="sivit-elegant-buttons-v8">
+/* =========================================================
+   SIVIT26 V8 — ELEGANT BUTTON SYSTEM
+   Tampilan saja: tidak mengubah fungsi onclick/form/action.
+   ========================================================= */
+:root {
+    --sivit-btn-radius: 10px;
+    --sivit-btn-height: 36px;
+    --sivit-btn-shadow: 0 2px 7px rgba(15, 23, 42, .07);
+    --sivit-btn-shadow-hover: 0 5px 14px rgba(15, 23, 42, .13);
+}
+
+/* Dasar tombol: konsisten, bersih, dan nyaman disentuh */
+#dashboardContainer button,
+#dataModal button,
+#verifikasi-modal button,
+#modalRiwayatPagu button {
+    min-height: var(--sivit-btn-height);
+    border-radius: var(--sivit-btn-radius) !important;
+    font-family: inherit;
+    font-weight: 650;
+    letter-spacing: .005em;
+    line-height: 1.2;
+    transition:
+        background-color .18s ease,
+        border-color .18s ease,
+        box-shadow .18s ease,
+        transform .18s ease,
+        color .18s ease;
+}
+
+#dashboardContainer button:hover,
+#dataModal button:hover,
+#verifikasi-modal button:hover,
+#modalRiwayatPagu button:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--sivit-btn-shadow-hover);
+}
+
+#dashboardContainer button:active,
+#dataModal button:active,
+#verifikasi-modal button:active,
+#modalRiwayatPagu button:active {
+    transform: translateY(0);
+    box-shadow: var(--sivit-btn-shadow);
+}
+
+#dashboardContainer button:focus-visible,
+#dataModal button:focus-visible,
+#verifikasi-modal button:focus-visible,
+#modalRiwayatPagu button:focus-visible {
+    outline: 3px solid rgba(59, 130, 246, .28) !important;
+    outline-offset: 2px;
+}
+
+/* Tombol aksi tabel: tidak boleh memecah teks secara vertikal */
+#tableBody td:last-child {
+    white-space: nowrap !important;
+    min-width: 112px;
+    vertical-align: middle !important;
+}
+
+#tableBody td:last-child button,
+#tableBody td:last-child a {
+    display: inline-flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    width: auto !important;
+    min-width: 34px !important;
+    min-height: 34px !important;
+    padding: 7px 10px !important;
+    margin: 2px !important;
+    white-space: nowrap !important;
+    word-break: keep-all !important;
+    overflow-wrap: normal !important;
+    writing-mode: horizontal-tb !important;
+    text-orientation: mixed !important;
+    border: 1px solid rgba(148, 163, 184, .38) !important;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, .06) !important;
+}
+
+/* Aksi utama / persetujuan */
+#tableBody td:last-child button.bg-emerald-600,
+#tableBody td:last-child button.bg-green-600 {
+    background: #0f766e !important;
+    color: #fff !important;
+    border-color: #0f766e !important;
+}
+
+#tableBody td:last-child button.bg-red-600,
+#tableBody td:last-child button.bg-red-500 {
+    background: #fff1f2 !important;
+    color: #be123c !important;
+    border-color: #fecdd3 !important;
+}
+
+#tableBody td:last-child button.bg-blue-600,
+#tableBody td:last-child button.bg-blue-700 {
+    background: #eff6ff !important;
+    color: #1d4ed8 !important;
+    border-color: #bfdbfe !important;
+}
+
+/* Tombol Cetak PDF dan Riwayat Pagu */
+#tableBody button[title*="Cetak"],
+#tableBody button[title*="cetak"],
+#tableBody button[title*="Riwayat"],
+#tableBody button[title*="riwayat"] {
+    min-width: 36px !important;
+    width: 36px !important;
+    height: 36px !important;
+    padding: 0 !important;
+    border-radius: 10px !important;
+}
+
+/* Tombol header: lebih ringan daripada tombol aksi */
+#dashboardContainer > header button {
+    min-height: 36px;
+    padding: 8px 12px !important;
+    border-radius: 10px !important;
+}
+
+/* Tombol menu: tidak ikut membesar berlebihan */
+#sidebarMenuContainer button,
+#sidebarMenuContainer a {
+    border-radius: 10px !important;
+    transition: background-color .18s ease, color .18s ease, transform .18s ease;
+}
+
+/* Tombol modal */
+#dataModal button,
+#verifikasi-modal button,
+#modalRiwayatPagu button {
+    padding: 9px 14px;
+}
+
+/* Tombol utama simpan / submit */
+#btnSaveModal,
+#formLogin button[type="submit"],
+#formRegister button[type="submit"] {
+    min-height: 42px !important;
+    border-radius: 12px !important;
+    font-weight: 750 !important;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, .16) !important;
+}
+
+/* Tombol batal / tutup */
+#dataModal button[type="button"],
+#verifikasi-modal button[type="button"],
+#modalRiwayatPagu button[onclick*="close"] {
+    background: #f8fafc !important;
+    color: #475569 !important;
+    border: 1px solid #cbd5e1 !important;
+}
+
+/* Jangan membuat tombol menjadi terlalu kecil pada layar sentuh */
+@media (max-width: 768px) {
+    #tableBody td:last-child {
+        min-width: 104px;
+    }
+
+    #tableBody td:last-child button,
+    #tableBody td:last-child a {
+        min-height: 38px !important;
+        min-width: 38px !important;
+        padding: 8px !important;
+    }
+
+    #dashboardContainer button,
+    #dataModal button,
+    #verifikasi-modal button,
+    #modalRiwayatPagu button {
+        -webkit-tap-highlight-color: transparent;
+    }
+}
+
+/* Hormati pengaturan pengurangan animasi */
+@media (prefers-reduced-motion: reduce) {
+    #dashboardContainer button,
+    #dataModal button,
+    #verifikasi-modal button,
+    #modalRiwayatPagu button {
+        transition: none !important;
+    }
+
+    #dashboardContainer button:hover,
+    #dataModal button:hover,
+    #verifikasi-modal button:hover,
+    #modalRiwayatPagu button:hover {
+        transform: none !important;
+    }
+}
+</style>
+
 </head>
 <body>
     ${htmlBody}
