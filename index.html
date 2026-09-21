@@ -1117,6 +1117,63 @@ table {
     text-align: center;
 }
 
+
+
+/* =========================================================
+   LOGIN -> DASHBOARD TRANSITION V6
+   Satu lapisan transisi, tanpa mengubah struktur halaman.
+   ========================================================= */
+body.sivit-screen-transitioning {
+    overflow: hidden !important;
+}
+
+body.sivit-screen-transitioning #authContainer,
+body.sivit-screen-transitioning #dashboardContainer {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 100dvh !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    will-change: transform;
+    backface-visibility: hidden;
+}
+
+body.sivit-screen-transitioning #authContainer {
+    z-index: 2 !important;
+    transform: translate3d(0, 0, 0);
+}
+
+body.sivit-screen-transitioning #dashboardContainer {
+    z-index: 1 !important;
+    transform: translate3d(100%, 0, 0);
+}
+
+body.sivit-screen-transitioning.sivit-transition-running #authContainer {
+    animation: sivitAuthExitV6 620ms cubic-bezier(.65, 0, .35, 1) forwards;
+}
+
+body.sivit-screen-transitioning.sivit-transition-running #dashboardContainer {
+    animation: sivitDashboardEnterV6 620ms cubic-bezier(.65, 0, .35, 1) forwards;
+}
+
+@keyframes sivitAuthExitV6 {
+    from { transform: translate3d(0, 0, 0); }
+    to { transform: translate3d(-100%, 0, 0); }
+}
+
+@keyframes sivitDashboardEnterV6 {
+    from { transform: translate3d(100%, 0, 0); }
+    to { transform: translate3d(0, 0, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    body.sivit-screen-transitioning.sivit-transition-running #authContainer,
+    body.sivit-screen-transitioning.sivit-transition-running #dashboardContainer {
+        animation-duration: 1ms !important;
+    }
+}
 </style>
 
 <style id="sivit-formal-education-theme">
@@ -3002,7 +3059,7 @@ function togglePasswordVisibility(inputId, iconId) {
             if (data && data.status === 'success' && data.data) {
                 currentUser = data.data;
                 localStorage.setItem('sivit_user', JSON.stringify(currentUser));
-                await Promise.resolve(initDashboard());
+                await Promise.resolve(initDashboard(true));
                 return true;
             }
 
@@ -3073,20 +3130,86 @@ async function handleRegister(e) {
         }
     }
     
-    function applyScreenVisibility(screen) {
+    let sivitTransitionTimer = null;
+    // V7: cegah overlay loading pertama menutupi transisi Login -> Dashboard.
+    // Loading untuk proses berikutnya tetap dapat digunakan.
+    let sivitSuppressFirstDashboardLoading = false;
+
+    function clearSivitScreenTransition() {
+        if (sivitTransitionTimer) {
+            clearTimeout(sivitTransitionTimer);
+            sivitTransitionTimer = null;
+        }
+
+        document.body.classList.remove(
+            'sivit-screen-transitioning',
+            'sivit-transition-running'
+        );
+
+        const auth = document.getElementById('authContainer');
+        const dash = document.getElementById('dashboardContainer');
+
+        [auth, dash].forEach(el => {
+            if (!el) return;
+            el.classList.remove('sivit-auth-exit', 'sivit-dashboard-enter');
+            el.style.removeProperty('position');
+            el.style.removeProperty('inset');
+            el.style.removeProperty('width');
+            el.style.removeProperty('height');
+            el.style.removeProperty('min-height');
+            el.style.removeProperty('overflow-y');
+            el.style.removeProperty('overflow-x');
+            el.style.removeProperty('z-index');
+            el.style.removeProperty('transform');
+            el.style.removeProperty('opacity');
+        });
+    }
+
+    function applyScreenVisibility(screen, animate = false) {
         const auth = document.getElementById('authContainer');
         const dash = document.getElementById('dashboardContainer');
         if (!auth || !dash) return;
 
+        clearSivitScreenTransition();
         const showAuth = screen === 'auth';
-        auth.classList.toggle('hidden', !showAuth);
-        dash.classList.toggle('hidden', showAuth);
 
-        // Use inline !important so theme CSS cannot override screen switching.
-        auth.style.setProperty('display', showAuth ? 'flex' : 'none', 'important');
-        dash.style.setProperty('display', showAuth ? 'none' : 'flex', 'important');
-        auth.setAttribute('aria-hidden', showAuth ? 'false' : 'true');
-        dash.setAttribute('aria-hidden', showAuth ? 'true' : 'false');
+        if (showAuth || !animate) {
+            auth.classList.toggle('hidden', !showAuth);
+            dash.classList.toggle('hidden', showAuth);
+            auth.style.setProperty('display', showAuth ? 'flex' : 'none', 'important');
+            dash.style.setProperty('display', showAuth ? 'none' : 'flex', 'important');
+            auth.setAttribute('aria-hidden', showAuth ? 'false' : 'true');
+            dash.setAttribute('aria-hidden', showAuth ? 'true' : 'false');
+            return;
+        }
+
+        // Animasi hanya setelah autentikasi berhasil.
+        // Jangan biarkan loading awal menutupi transisi ini.
+        sivitSuppressFirstDashboardLoading = true;
+        document.body.classList.add('sivit-screen-transitioning');
+
+        auth.classList.remove('hidden');
+        dash.classList.remove('hidden');
+        auth.style.setProperty('display', 'flex', 'important');
+        dash.style.setProperty('display', 'flex', 'important');
+        auth.setAttribute('aria-hidden', 'false');
+        dash.setAttribute('aria-hidden', 'false');
+
+        // Memulai animasi pada frame berikutnya agar posisi awal diterapkan
+        // sebelum browser menjalankan transisi.
+        requestAnimationFrame(() => {
+            document.body.classList.add('sivit-transition-running');
+        });
+
+        sivitTransitionTimer = setTimeout(() => {
+            clearSivitScreenTransition();
+            auth.classList.add('hidden');
+            auth.style.setProperty('display', 'none', 'important');
+            dash.classList.remove('hidden');
+            dash.style.setProperty('display', 'flex', 'important');
+            auth.setAttribute('aria-hidden', 'true');
+            dash.setAttribute('aria-hidden', 'false');
+        }, 680);
     }
 
     function handleSessionExpired(response) {
@@ -3116,6 +3239,7 @@ async function handleRegister(e) {
         } finally {
             localStorage.removeItem('sivit_user');
             currentUser = null;
+            clearSivitScreenTransition();
             applyScreenVisibility('auth');
         }
     }
@@ -3213,8 +3337,8 @@ async function handleRegister(e) {
         selectPaket.value = currentPaketVal;
     }
     
-    function initDashboard() {
-      applyScreenVisibility('dashboard');
+    function initDashboard(animateTransition = false) {
+      applyScreenVisibility('dashboard', animateTransition);
       document.getElementById('userNameDisplay').innerText = currentUser.nama_pengguna;
       document.getElementById('userNpsnDisplay').innerText = "NPSN/ID: " + currentUser.username + " | Role: " + currentUser.role;
 
@@ -4930,35 +5054,7 @@ async function handleRegister(e) {
                 <body>
                     ${sections}
                 
-<script id="sivit-overlay-lifecycle-v4">
-(function () {
-  const overlayIds = ['dataModal', 'verifikasi-modal', 'modalRiwayatPagu'];
-  function hideOverlay(el) {
-    if (!el) return;
-    el.classList.add('hidden');
-    el.classList.remove('flex');
-    el.setAttribute('aria-hidden', 'true');
-  }
-  window.sivitCloseOtherOverlays = function (activeId) {
-    overlayIds.forEach(function (id) {
-      if (id !== activeId) hideOverlay(document.getElementById(id));
-    });
-  };
-  window.sivitPrepareOverlay = function (id) {
-    window.sivitCloseOtherOverlays(id);
-    const el = document.getElementById(id);
-    if (el) el.setAttribute('aria-hidden', 'false');
-    return el;
-  };
-  document.addEventListener('keydown', function (event) {
-    if (event.key !== 'Escape') return;
-    const active = overlayIds.map(id => document.getElementById(id))
-      .find(el => el && !el.classList.contains('hidden'));
-    if (!active) return;
-    hideOverlay(active);
-  }, { passive: true });
-})();
-</script>
+
 
 </body>
                 </html>
@@ -7559,6 +7655,13 @@ function closeModal() {
 }
 
 function showLoading(message = 'Memproses data...') {
+
+    // V7: loading pertama setelah login tidak ditampilkan agar
+    // transisi Login -> Dashboard terlihat jelas.
+    if (typeof sivitSuppressFirstDashboardLoading !== 'undefined' && sivitSuppressFirstDashboardLoading) {
+        sivitSuppressFirstDashboardLoading = false;
+        return;
+    }
 
     const loading =
         document.getElementById('sivitLoading');
