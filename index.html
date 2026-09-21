@@ -4484,7 +4484,7 @@ async function handleRegister(e) {
                         if (statusVerif !== 'DITOLAK' && statusVerif !== 'REJECTED') allowEdit = false;
                     }
 
-                    if (currentUser.role === 'DINAS' && sheetName === 'laporan_progres') {
+                    if (currentUser.role === 'DINAS' && (sheetName === 'paket_pekerjaan_sd' || sheetName === 'laporan_progres')) {
                         allowEdit = false;
                     }
 
