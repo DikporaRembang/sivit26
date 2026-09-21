@@ -4492,7 +4492,7 @@ async function handleRegister(e) {
                         let btnEdit = document.createElement('button');
                         btnEdit.className = "px-2.5 py-1 bg-blue-100 hover:bg-blue-200 text-blue-900 rounded-lg text-[11px] font-bold border border-blue-300 cursor-pointer shadow-xs";
                         btnEdit.innerHTML = `<i class="fa-solid fa-pen-to-square"></i>`;
-                        btnEdit.onclick = () => openModalForm(row);
+                        btnEdit.onclick = () => { currentActiveSheet = sheetName; openModalForm(row); };
                         btnGroup.appendChild(btnEdit);
                     } else if (currentUser.role === 'SEKOLAH' && sheetName === 'laporan_progres') {
                         let statusVerif = String(row.status_verifikasi || '').trim();
@@ -6719,7 +6719,7 @@ currentHeaders.forEach(h => {
         // Field identitas, kredensial, dan audit tidak boleh diedit dari form umum.
         else if (currentUser.role === 'DINAS' && typeof currentActiveSheet !== 'undefined' && currentActiveSheet === 'users') {
             const userImmutableFields = ['id', 'username', 'role', 'password', 'last_login'];
-            const userEditableFields = ['nama_pengguna', 'perencana', 'pengawas', 'status', 'catatan_dinas'];
+            const userEditableFields = ['nama_pengguna', 'perencana', 'pengawas'];
 
             input = document.createElement('input');
             input.type = 'text';
@@ -6743,7 +6743,7 @@ currentHeaders.forEach(h => {
             const isExistingUser = !!activeRowData;
             if ((isExistingUser && userImmutableFields.includes(hLower)) || !userEditableFields.includes(hLower)) {
                 input.readOnly = true;
-                input.disabled = false;
+                input.disabled = true;
                 input.classList.add('bg-blue-950/60', 'text-blue-300', 'cursor-not-allowed');
                 input.title = 'Field ini dikelola sistem atau tidak dapat diubah melalui formulir umum.';
                 if (hLower === 'password') input.value = '••••••••';
