@@ -6597,6 +6597,11 @@ async function cetakLaporanResmi(paketId, npsn) {
     }
 
 async function openModalForm(rowData = null) {
+    // Pengamanan lapis frontend: DINAS hanya boleh memverifikasi paket, bukan membuka form edit/tambah.
+    if (currentUser?.role === 'DINAS' && currentActiveSheet === 'paket_pekerjaan_sd') {
+        alert('DINAS hanya dapat memverifikasi PAGU Paket Pekerjaan SD. Perubahan data paket dilakukan oleh SEKOLAH.');
+        return;
+    }
     // Khusus Paket Pekerjaan: pastikan dropdown nama_menu sudah punya referensi.
     if (typeof currentActiveSheet !== 'undefined' && currentActiveSheet === 'paket_pekerjaan_sd') {
         try {
@@ -7474,6 +7479,12 @@ function hideLoading() {
 }
     
 async function handleFormSubmit(e) {
+    // Pengamanan lapis frontend: cegah pengiriman form paket oleh DINAS meskipun form dipanggil secara manual.
+    if (currentUser?.role === 'DINAS' && currentActiveSheet === 'paket_pekerjaan_sd') {
+        e?.preventDefault?.();
+        alert('DINAS tidak memiliki hak untuk mengubah Paket Pekerjaan SD. Gunakan menu verifikasi PAGU.');
+        return;
+    }
     e.preventDefault();
 
     let form = e.target;
