@@ -4484,7 +4484,7 @@ async function handleRegister(e) {
                         if (statusVerif !== 'DITOLAK' && statusVerif !== 'REJECTED') allowEdit = false;
                     }
 
-                    if (currentUser.role === 'DINAS' && (sheetName === 'paket_pekerjaan_sd' || sheetName === 'laporan_progres')) {
+                    if (currentUser.role === 'DINAS' && sheetName === 'laporan_progres') {
                         allowEdit = false;
                     }
 
@@ -6597,11 +6597,6 @@ async function cetakLaporanResmi(paketId, npsn) {
     }
 
 async function openModalForm(rowData = null) {
-    // Pengamanan lapis frontend: DINAS hanya boleh memverifikasi paket, bukan membuka form edit/tambah.
-    if (currentUser?.role === 'DINAS' && currentActiveSheet === 'paket_pekerjaan_sd') {
-        alert('DINAS hanya dapat memverifikasi PAGU Paket Pekerjaan SD. Perubahan data paket dilakukan oleh SEKOLAH.');
-        return;
-    }
     // Khusus Paket Pekerjaan: pastikan dropdown nama_menu sudah punya referensi.
     if (typeof currentActiveSheet !== 'undefined' && currentActiveSheet === 'paket_pekerjaan_sd') {
         try {
@@ -6652,10 +6647,16 @@ async function openModalForm(rowData = null) {
         formRowIndexEl.value = activeRowData && activeRowData._rowIndex !== undefined ? activeRowData._rowIndex : "";
     }
     
-    // Pengaturan Judul Modal & Tombol Simpan
-    if (currentUser.role === 'SEKOLAH' && typeof currentActiveSheet !== 'undefined' && currentActiveSheet === 'users') {
-        modalTitle.innerText = "Isi / Update Profil & Tim Teknis";
-        btnSave.innerText = "Simpan Tim Teknis";
+    // Pengaturan judul modal & tombol secara eksplisit berdasarkan konteks.
+    // Jangan menggunakan fallback Paket Pekerjaan untuk sheet users.
+    if (typeof currentActiveSheet !== 'undefined' && currentActiveSheet === 'users') {
+        if (currentUser.role === 'SEKOLAH') {
+            modalTitle.innerText = "Profil & Tim Teknis";
+            btnSave.innerText = "Simpan Tim Teknis";
+        } else if (currentUser.role === 'DINAS') {
+            modalTitle.innerText = rowData ? "Edit Pengguna" : "Tambah Pengguna";
+            btnSave.innerText = rowData ? "Simpan Perubahan" : "Simpan Pengguna";
+        }
     } else if (!rowData) {
         modalTitle.innerText = (typeof currentActiveSheet !== 'undefined' && currentActiveSheet === 'laporan_progres') ? "Tambah Laporan Progres Baru" : "Tambah Paket Pekerjaan Baru";
         btnSave.innerText = (typeof currentActiveSheet !== 'undefined' && currentActiveSheet === 'laporan_progres') ? "Tambah Laporan" : "Tambah Paket";
@@ -6714,29 +6715,40 @@ currentHeaders.forEach(h => {
             }
             div.appendChild(input);
         } 
-        // Kondisi 1.5: Role DINAS mengedit sheet 'users' (Manajemen Pengguna & Status Verifikasi)
+        // Kondisi 1.5: Role DINAS mengelola sheet users.
+        // Field identitas, kredensial, dan audit tidak boleh diedit dari form umum.
         else if (currentUser.role === 'DINAS' && typeof currentActiveSheet !== 'undefined' && currentActiveSheet === 'users') {
+            const userImmutableFields = ['id', 'username', 'role', 'password', 'last_login'];
+            const userEditableFields = ['nama_pengguna', 'perencana', 'pengawas', 'status', 'catatan_dinas'];
+
+            input = document.createElement('input');
+            input.type = 'text';
+            input.name = h;
+            input.value = val === null || val === undefined ? '' : val;
+            input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
+
             if (hLower === 'status') {
                 input = document.createElement('select');
                 input.name = h;
                 input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white font-bold focus:ring-2 focus:ring-amber-400 focus:outline-none";
-                
                 ['DIAJUKAN', 'DISETUJUI', 'DITOLAK'].forEach(optStatus => {
                     let opt = document.createElement('option');
                     opt.value = optStatus;
                     opt.innerText = optStatus;
-                    if (String(val).toUpperCase() === optStatus) {
-                        opt.selected = true;
-                    }
+                    if (String(val).toUpperCase() === optStatus) opt.selected = true;
                     input.appendChild(opt);
                 });
-            } else {
-                input = document.createElement('input');
-                input.type = "text";
-                input.name = h;
-                input.className = "w-full px-3.5 py-2.5 border border-blue-700 bg-blue-950 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400 focus:outline-none";
-                input.value = val;
             }
+
+            const isExistingUser = !!activeRowData;
+            if ((isExistingUser && userImmutableFields.includes(hLower)) || !userEditableFields.includes(hLower)) {
+                input.readOnly = true;
+                input.disabled = false;
+                input.classList.add('bg-blue-950/60', 'text-blue-300', 'cursor-not-allowed');
+                input.title = 'Field ini dikelola sistem atau tidak dapat diubah melalui formulir umum.';
+                if (hLower === 'password') input.value = '••••••••';
+            }
+
             div.appendChild(input);
         }
         // Kondisi 2: Sheet 'paket_pekerjaan_sd'
@@ -7479,12 +7491,6 @@ function hideLoading() {
 }
     
 async function handleFormSubmit(e) {
-    // Pengamanan lapis frontend: cegah pengiriman form paket oleh DINAS meskipun form dipanggil secara manual.
-    if (currentUser?.role === 'DINAS' && currentActiveSheet === 'paket_pekerjaan_sd') {
-        e?.preventDefault?.();
-        alert('DINAS tidak memiliki hak untuk mengubah Paket Pekerjaan SD. Gunakan menu verifikasi PAGU.');
-        return;
-    }
     e.preventDefault();
 
     let form = e.target;
