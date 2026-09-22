@@ -321,15 +321,15 @@ body {
 }
 
 /* Logo/footer sidebar */
-#dashboardContainer aside .border-t {
+#dashboardContainer  .border-t {
     border-color: var(--sivit-border) !important;
 }
 
-#dashboardContainer aside .text-amber-400 {
+#dashboardContainer  .text-amber-400 {
     color: var(--sivit-primary) !important;
 }
 
-#dashboardContainer aside .text-slate-300 {
+#dashboardContainer  .text-slate-300 {
     color: var(--sivit-text-soft) !important;
 }
 
@@ -1236,7 +1236,7 @@ section.bg-white {
 }
 
 /* Main header / navigation */
-header, nav, .app-header, .sidebar, aside {
+header, nav, .app-header, .sidebar,  {
   border-color: var(--sivit-border) !important;
 }
 
@@ -2497,7 +2497,12 @@ main,
         </div>
     </header>
 
-    <div class="flex-1 flex max-w-7xl w-full mx-auto">
+    <div class="flex-1 flex max-w-7xl w-full mx-auto relative">
+        
+        <!-- LATAR BELAKANG GELAP (OVERLAY) SAAT SIDEBAR TERBUKA DI HP -->
+        <div id="sidebarOverlay" onclick="toggleMobileSidebar()" class="fixed inset-0 bg-black/50 z-40 hidden md:hidden"></div>
+
+        <!-- SIDEBAR UTAMA -->
         <aside id="appSidebar" class="w-64 bg-slate-900 border-r border-blue-950 p-4 hidden md:flex flex-col justify-between shadow-sm fixed md:static inset-y-0 left-0 z-50 transition-all">
             <div class="space-y-1">
                 <p class="text-[10px] font-extrabold uppercase tracking-wider text-amber-400 px-3 mb-2">Menu Navigasi</p>
@@ -2927,19 +2932,22 @@ main,
 
 // Fungsi untuk membuka/menutup sidebar di HP & Tablet
 function toggleMobileSidebar() {
-    const sidebar = document.getElementById('appSidebar');
-    if (!sidebar) return;
+        const sidebar = document.getElementById('appSidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        if (!sidebar || !overlay) return;
 
-    // Jika sidebar sedang tersembunyi (hidden), tampilkan sebagai menu melayang di kiri
-    if (sidebar.classList.contains('hidden')) {
-        sidebar.classList.remove('hidden');
-        sidebar.classList.add('flex');
-    } else {
-        // Jika sedang terbuka, sembunyikan kembali
-        sidebar.classList.remove('flex');
-        sidebar.classList.add('hidden');
+        if (sidebar.classList.contains('hidden')) {
+            // Buka sidebar dan tampilkan latar belakang gelap tipis
+            sidebar.classList.remove('hidden');
+            sidebar.classList.add('flex');
+            overlay.classList.remove('hidden');
+        } else {
+            // Tutup sidebar dan sembunyikan latar belakang
+            sidebar.classList.remove('flex');
+            sidebar.classList.add('hidden');
+            overlay.classList.add('hidden');
+        }
     }
-}
 
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwjTCHPCC5g0YZYygso8LPGSkpWjWF8PJ2F9WXYkMyWD2sTVCDqIFDS2PzdnzRECIkoaQ/exec";
         
