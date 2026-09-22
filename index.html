@@ -2398,6 +2398,99 @@ main,
         z-index: 2 !important;
     }
 }
+
+<style id="sivit-dashboard-mobile-fix">
+/* =========================================================
+   SIVIT26 — MOBILE & TABLET DASHBOARD VISIBILITY FIX
+   Memastikan dashboard tetap tampil setelah login.
+   Tidak mengubah alur login / backend / data.
+   ========================================================= */
+
+/* Dashboard harus mengikuti viewport pada HP & tablet */
+@media (max-width: 1100px) {
+
+  #dashboardContainer {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    min-height: 100dvh !important;
+
+    display: flex !important;
+    flex-direction: column !important;
+
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+  }
+
+  /* Main dashboard jangan terdorong keluar layar */
+  #dashboardContainer main {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+
+    overflow-x: hidden !important;
+  }
+
+  /* Container isi tetap mengikuti lebar layar */
+  #dashboardContainer .max-w-7xl,
+  #dashboardContainer .max-w-6xl,
+  #dashboardContainer .max-w-5xl {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  /* Feed tetap terlihat */
+  #feedContainer,
+  #contentContainer,
+  #mainContent,
+  .dashboard-content {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+}
+
+/* HP */
+@media (max-width: 768px) {
+
+  #dashboardContainer {
+    min-height: 100dvh !important;
+  }
+
+  #dashboardContainer > header {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  #dashboardContainer main {
+    padding-left: .75rem !important;
+    padding-right: .75rem !important;
+  }
+
+  /* Tabel boleh melebar, tetapi scroll berada di dalam area tabel */
+  #dashboardContainer .overflow-x-auto {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    overflow-y: visible !important;
+  }
+}
+
+/* Tablet */
+@media (min-width: 769px) and (max-width: 1100px) {
+
+  #dashboardContainer main {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+
+  #dashboardContainer .overflow-x-auto {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+  }
+}
 </style>
 
 </head>
