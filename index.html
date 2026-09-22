@@ -1955,26 +1955,42 @@ body {
 #authContainer::after {
   content: "Bersama Membangun\A Pendidikan yang\A Lebih Baik";
   white-space: pre;
+
   position: absolute;
   inset: 0 0 0 50%;
+
   display: flex;
   align-items: center;
   justify-content: flex-start;
+
   text-align: left;
   padding: 18% 5% 8% 11%;
-  color: #fffaf3;
+
+  color: #fffaf3 !important;
   font-family: "DM Sans", Inter, sans-serif;
   font-size: clamp(1.5rem, 3vw, 3.6rem);
   font-weight: 800;
   line-height: 1.08;
   letter-spacing: -.04em;
-  text-shadow: 0 3px 18px rgba(59,42,33,.24);
+
+  text-shadow: 0 3px 18px rgba(0,0,0,.40);
+
   background:
     linear-gradient(
-        180deg,
-        rgba(32, 59, 40, 0.10),
-        rgba(32, 59, 40, 0.38)
+      180deg,
+      rgba(32,59,40,.12),
+      rgba(32,59,40,.42)
     ),
+    url("gambarsekolah.jpeg") center center / cover no-repeat;
+
+  clip-path: polygon(
+    6% 0,
+    100% 0,
+    100% 100%,
+    0 100%
+  );
+
+  z-index: 1;
 }
 
 #authContainer > div {
