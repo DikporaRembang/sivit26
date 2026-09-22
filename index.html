@@ -2258,40 +2258,159 @@ body {
 @media (max-width: 900px) {
   #printableArea .sivit-compact-data-table { min-width: 1180px !important; }
 }
-</style>
-
-
 <style id="sivit-responsive-hardening-v4">
 /* V4: mobile/tablet layout hardening; visual and lifecycle safeguards only. */
-html, body { max-width:100%; overflow-x:hidden !important; }
-#appContainer, #mainApp, main, .main-content { min-width:0 !important; max-width:100% !important; }
-.sivit-compact-data-table { table-layout:auto; }
-.sivit-compact-data-table th, .sivit-compact-data-table td { vertical-align:middle; }
-.sivit-action-cluster { grid-template-columns:repeat(2, minmax(30px, 32px)) !important; gap:4px !important; max-width:72px; }
-.sivit-action-icon { touch-action:manipulation; flex:0 0 30px; }
-@media (max-width: 768px) {
-  .sivit-compact-data-table { min-width:680px !important; }
-  .sivit-compact-data-table th, .sivit-compact-data-table td { padding: .45rem .35rem !important; }
-  .sivit-action-cluster { grid-template-columns:repeat(2, 32px) !important; gap:5px !important; }
-  .sivit-action-icon { width:32px !important; height:32px !important; min-width:32px !important; }
-  #dataModal, #verifikasi-modal, #modalRiwayatPagu { overscroll-behavior:contain; }
+html, body {
+    max-width: 100%;
+    overflow-x: hidden !important;
 }
-@media (min-width:769px) and (max-width:1100px) {
-  .sivit-compact-data-table th, .sivit-compact-data-table td { padding: .5rem .4rem !important; }
+
+#appContainer,
+#mainApp,
+main,
+.main-content {
+    min-width: 0 !important;
+    max-width: 100% !important;
+}
+
+.sivit-compact-data-table {
+    table-layout: auto;
+}
+
+.sivit-compact-data-table th,
+.sivit-compact-data-table td {
+    vertical-align: middle;
+}
+
+.sivit-action-cluster {
+    grid-template-columns: repeat(2, minmax(30px, 32px)) !important;
+    gap: 4px !important;
+    max-width: 72px;
+}
+
+.sivit-action-icon {
+    touch-action: manipulation;
+    flex: 0 0 30px;
+}
+
+@media (max-width: 768px) {
+    .sivit-compact-data-table {
+        min-width: 680px !important;
+    }
+
+    .sivit-compact-data-table th,
+    .sivit-compact-data-table td {
+        padding: .45rem .35rem !important;
+    }
+
+    .sivit-action-cluster {
+        grid-template-columns: repeat(2, 32px) !important;
+        gap: 5px !important;
+    }
+
+    .sivit-action-icon {
+        width: 32px !important;
+        height: 32px !important;
+        min-width: 32px !important;
+    }
+
+    #dataModal,
+    #verifikasi-modal,
+    #modalRiwayatPagu {
+        overscroll-behavior: contain;
+    }
+}
+
+@media (min-width: 769px) and (max-width: 1100px) {
+    .sivit-compact-data-table th,
+    .sivit-compact-data-table td {
+        padding: .5rem .4rem !important;
+    }
+}
+
+
+/* =========================================================
+   FOTO SEKOLAH DI SISI KANAN HALAMAN LOGIN
+   ========================================================= */
+
+#authContainer {
+    position: relative !important;
+}
+
+/* Foto */
+#authContainer::after {
+    content: "" !important;
+
+    position: absolute !important;
+    top: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    left: 50% !important;
+
+    display: block !important;
+
+    background:
+        linear-gradient(
+            90deg,
+            rgba(32, 59, 40, 0.18),
+            rgba(32, 59, 40, 0.03)
+        ),
+        url("gambarsekolah.jpeg") center center / cover no-repeat !important;
+
+    clip-path: polygon(
+        6% 0,
+        100% 0,
+        100% 100%,
+        0 100%
+    ) !important;
+
+    z-index: 0 !important;
+    pointer-events: none !important;
+}
+
+/* Panel login berada di atas foto */
+#authContainer > div {
+    position: relative !important;
+    z-index: 2 !important;
+}
+
+/* HP/tablet: foto disembunyikan agar tidak bertumpuk */
+@media (max-width: 900px) {
+    #authContainer::after {
+        display: none !important;
+    }
+
+    #authContainer > div {
+        position: relative !important;
+        z-index: 2 !important;
+    }
 }
 </style>
 
 </head>
+
 <body class="bg-gradient-to-br from-blue-950 via-blue-900 to-slate-900 min-h-screen text-white font-sans antialiased flex flex-col justify-between">
 
 <div id="sivitLoading">
     <div class="sivit-loading-box">
         <div class="sivit-loading-logo-wrap">
-        <div class="sivit-loading-ring"></div>
-        <img src="bidangsd.png" alt="Logo" class="sivit-loading-logo" onerror="this.style.display='none'">
+            <div class="sivit-loading-ring"></div>
+
+            <img
+                src="bidangsd.png"
+                alt="Logo"
+                class="sivit-loading-logo"
+                onerror="this.style.display='none'"
+            >
         </div>
-        <div id="sivitLoadingText" class="sivit-loading-text">Memproses data</div>
-        <div class="sivit-loading-subtext">SIVIT26 Kabupaten Rembang 2026</div>
+
+        <div id="sivitLoadingText" class="sivit-loading-text">
+            Memproses data
+        </div>
+
+        <div class="sivit-loading-subtext">
+            SIVIT26 Kabupaten Rembang 2026
+        </div>
     </div>
 </div>
 
