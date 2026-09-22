@@ -1952,43 +1952,63 @@ body {
   z-index: -1;
 }
 
+/* =========================================================
+   FOTO SEKOLAH & TEKS DI SISI KANAN HALAMAN LOGIN
+   ========================================================= */
+
+#authContainer {
+    position: relative !important;
+}
+
 #authContainer::after {
-  content: "Bersama Membangun\A Pendidikan yang\A Lebih Baik";
-  white-space: pre;
+    content: "Bersama Membangun\A Pendidikan yang\A Lebih Baik" !important;
+    white-space: pre !important;
 
-  position: absolute;
-  inset: 0 0 0 50%;
+    position: absolute !important;
+    inset: 0 0 0 50% !important;
 
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  text-align: left;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    text-align: left !important;
 
-  padding: 18% 5% 8% 11%;
+    padding: 18% 5% 8% 11% !important;
 
-  color: #fffaf3 !important;
-  font-family: "DM Sans", Inter, sans-serif;
-  font-size: clamp(1.5rem, 3vw, 3.6rem);
-  font-weight: 800;
-  line-height: 1.08;
-  letter-spacing: -.04em;
+    color: #fffaf3 !important;
+    font-family: "DM Sans", Inter, sans-serif !important;
+    font-size: clamp(1.5rem, 3vw, 3.6rem) !important;
+    font-weight: 800 !important;
+    line-height: 1.08 !important;
+    letter-spacing: -.04em !important;
 
-  text-shadow:
-    0 3px 18px rgba(0,0,0,.75),
-    0 1px 3px rgba(0,0,0,.55);
+    text-shadow:
+        0 3px 18px rgba(0,0,0,.75),
+        0 1px 3px rgba(0,0,0,.55) !important;
 
-  /* PERBAIKAN: Lapisan gelap (overlay) dibuat lebih kuat di atas gambar sekolah */
-  background:
-    linear-gradient(
-      135deg,
-      rgba(15, 28, 20, 0.75),
-      rgba(15, 28, 20, 0.65)
-    ),
-    url("gambarsekolah.jpeg") center center / cover no-repeat;
+    /* Gambar sekolah dengan lapisan gelap (overlay) yang kuat agar teks terbaca jelas */
+    background:
+        linear-gradient(
+            135deg,
+            rgba(15, 28, 20, 0.75),
+            rgba(15, 28, 20, 0.65)
+        ),
+        url("gambarsekolah.jpeg") center center / cover no-repeat !important;
 
-  clip-path: polygon(6% 0, 100% 0, 100% 100%, 0 100%);
+    clip-path: polygon(
+        6% 0,
+        100% 0,
+        100% 100%,
+        0 100%
+    ) !important;
 
-  z-index: -1;
+    z-index: 1 !important;
+    pointer-events: none !important;
+}
+
+/* Panel login berada di atas foto */
+#authContainer > div {
+    position: relative !important;
+    z-index: 2 !important;
 }
 
 #authContainer > div {
@@ -2342,51 +2362,6 @@ main,
     }
 }
 
-
-/* =========================================================
-   FOTO SEKOLAH DI SISI KANAN HALAMAN LOGIN
-   ========================================================= */
-
-#authContainer {
-    position: relative !important;
-}
-
-/* Foto */
-#authContainer::after {
-    content: "" !important;
-
-    position: absolute !important;
-    top: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    left: 50% !important;
-
-    display: block !important;
-
-    background:
-        linear-gradient(
-            90deg,
-            rgba(32, 59, 40, 0.18),
-            rgba(32, 59, 40, 0.03)
-        ),
-        url("gambarsekolah.jpeg") center center / cover no-repeat !important;
-
-    clip-path: polygon(
-        6% 0,
-        100% 0,
-        100% 100%,
-        0 100%
-    ) !important;
-
-    z-index: 0 !important;
-    pointer-events: none !important;
-}
-
-/* Panel login berada di atas foto */
-#authContainer > div {
-    position: relative !important;
-    z-index: 2 !important;
-}
 
 /* HP/tablet: foto disembunyikan agar tidak bertumpuk */
 @media (max-width: 900px) {
