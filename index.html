@@ -4984,19 +4984,22 @@ async function handleRegister(e) {
                         </table>
 
                         <div class="ttd">
-                            <div>
-                                <p>Mengetahui,</p>
-                                <strong>Kepala Sekolah</strong>
-                                <div class="ruang-ttd"></div>
-                                <strong>( ........................................ )</strong>
-                            </div>
-                            <div>
-                                <p>Rembang, ${new Date().toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'})}</p>
-                                <strong>Perencana / Pengawas</strong>
-                                <div class="ruang-ttd"></div>
-                                <strong>( ........................................ )</strong>
-                            </div>
+
+                        <div>
+                            <p>Penanggungjawab</p>
+                            <strong>KEPALA SEKOLAH</strong>
+                            <div class="ruang-ttd"></div>
+                            <strong>........................</strong>
+                            <p>NIP. ...................</p>
                         </div>
+
+                        <div>
+                            <p>Pengawas/Perencana</p>
+                            <div class="ruang-ttd"></div>
+                            <strong>........................</strong>
+                        </div>
+
+                    </div>
                     </section>
                 `;
             });
@@ -5021,8 +5024,11 @@ async function handleRegister(e) {
                         * { box-sizing: border-box; }
                         @page { size: A4 landscape; margin: 10mm; }
                         body { margin:0; padding:0; font-family:Arial,Helvetica,sans-serif; color:#111827; background:#fff; font-size:10px; }
-                        .progres-page { width:100%; min-height:180mm; page-break-after:always; padding:4mm; }
+                        .progres-page { width:100%; padding:4mm; break-inside:auto; page-break-inside:auto; }
+                        .progres-page + .progres-page { break-before:page; page-break-before:always; }
                         .progres-page:last-child { page-break-after:auto; }
+                        .progres thead { display:table-header-group; }
+                        .progres tr { break-inside:avoid; page-break-inside:avoid; }
                         .kop { display:flex; align-items:center; border-bottom:3px solid #111827; padding-bottom:6px; margin-bottom:10px; }
                         .logo-area { width:72px; text-align:center; }
                         .logo-area img { width:55px; height:55px; object-fit:contain; }
@@ -5434,41 +5440,17 @@ async function handleRegister(e) {
                     <div class="ttd">
 
                         <div>
-                            <p>Mengetahui,</p>
-                            <strong>Kepala Sekolah</strong>
-
+                            <p>Penanggungjawab</p>
+                            <strong>KEPALA SEKOLAH</strong>
                             <div class="ruang-ttd"></div>
-
-                            <strong>
-                                ( ........................................ )
-                            </strong>
+                            <strong>........................</strong>
+                            <p>NIP. ...................</p>
                         </div>
 
-
                         <div>
-
-                            <p>
-                            Rembang,
-                                ${new Date().toLocaleDateString(
-                                    'id-ID',
-                                    {
-                                        day: 'numeric',
-                                        month: 'long',
-                                        year: 'numeric'
-                                    }
-                                )}
-                            </p>
-
-                            <strong>
-                                Perencana / Pengawas
-                            </strong>
-
+                            <p>Pengawas/Perencana</p>
                             <div class="ruang-ttd"></div>
-
-                            <strong>
-                                ( ........................................ )
-                            </strong>
-
+                            <strong>........................</strong>
                         </div>
 
                     </div>
@@ -5528,14 +5510,23 @@ async function handleRegister(e) {
 
                     .paket-page {
                         width: 100%;
-                        min-height: 270mm;
-                        padding: 12mm;
-                        page-break-after: always;
+                        padding: 8mm 0;
+                        break-inside: auto;
+                        page-break-inside: auto;
+                    }
+
+                    .paket-page + .paket-page {
+                        break-before: page;
+                        page-break-before: always;
                     }
 
                     .paket-page:last-child {
                         page-break-after: auto;
                     }
+
+                    .paket-page table { break-inside: auto; page-break-inside: auto; }
+                    .paket-page thead { display: table-header-group; }
+                    .paket-page tr { break-inside: avoid; page-break-inside: avoid; }
 
                     .kop {
                         display: flex;
@@ -5757,9 +5748,14 @@ async function cetakLaporanResmi(paketId, npsn) {
                 <title>Laporan Revitalisasi SD - ${paket.nama_menu || 'Paket Pekerjaan'} (${targetNpsn})</title>
                 <script src="https://cdn.tailwindcss.com"><\/script>
                 <style>
+                    @page { size: A4 portrait; margin: 8mm; }
                     @media print {
-                        body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
-                        .no-print { display: none; }
+                        body { padding: 0 !important; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+                        .no-print { display: none !important; }
+                        table { width: 100%; border-collapse: collapse; }
+                        thead { display: table-header-group; }
+                        tr { break-inside: avoid; page-break-inside: avoid; }
+                        .page-break-inside-avoid { break-inside: avoid; page-break-inside: avoid; }
                     }
                 </style>
             </head>
@@ -5831,16 +5827,16 @@ async function cetakLaporanResmi(paketId, npsn) {
 
                 <div class="flex justify-between mt-12 text-xs text-center page-break-inside-avoid">
                     <div class="w-1/3">
-                        <p class="font-medium">Mengetahui,</p>
-                        <p class="font-bold">Penanggungjawab (Kepala Sekolah)</p>
+                        <p class="font-bold">Penanggungjawab</p>
+                        <p class="font-bold">KEPALA SEKOLAH</p>
                         <br><br><br><br>
-                        <p class="underline font-bold">( ........................................ )</p>
+                        <p class="underline font-bold">........................</p>
+                        <p>NIP. ...................</p>
                     </div>
                     <div class="w-1/3">
-                        <p class="font-medium">Rembang, ${new Date().toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'})}</p>
-                        <p class="font-bold">Personel Teknis / Pengawas Lapangan</p>
+                        <p class="font-bold">Pengawas/Perencana</p>
                         <br><br><br><br>
-                        <p class="underline font-bold">( ........................................ )</p>
+                        <p class="underline font-bold">........................</p>
                     </div>
                 </div>
 
@@ -6029,13 +6025,18 @@ async function cetakLaporanResmi(paketId, npsn) {
             box-sizing: border-box;
         }
 
+        @page {
+            size: A4 landscape;
+            margin: 8mm;
+        }
+
         body {
             margin: 0;
-            padding: 18mm;
+            padding: 0;
             font-family: Arial, Helvetica, sans-serif;
             color: #111827;
             background: #ffffff;
-            font-size: 10.5pt;
+            font-size: 8.5pt;
         }
 
         .kop {
@@ -6119,8 +6120,9 @@ async function cetakLaporanResmi(paketId, npsn) {
         }
 
         .sekolah-block {
-            margin-top: 18px;
-            page-break-inside: avoid;
+            margin-top: 12px;
+            break-inside: auto;
+            page-break-inside: auto;
         }
 
         .sekolah-header {
@@ -6176,8 +6178,19 @@ async function cetakLaporanResmi(paketId, npsn) {
         table.data th,
         table.data td {
             border: 1px solid #9ca3af;
-            padding: 5px 6px;
+            padding: 3px 4px;
             vertical-align: top;
+            overflow-wrap: anywhere;
+        }
+
+        table.data {
+            break-inside: auto;
+            page-break-inside: auto;
+        }
+
+        table.data tr {
+            break-inside: avoid;
+            page-break-inside: avoid;
         }
 
         table.subtotal-table { width:100%; border-collapse:collapse; margin-top:0; }
@@ -6197,8 +6210,9 @@ async function cetakLaporanResmi(paketId, npsn) {
         }
 
         .paket-block {
-            margin-bottom: 12px;
-            page-break-inside: avoid;
+            margin-bottom: 8px;
+            break-inside: auto;
+            page-break-inside: auto;
         }
 
         .paket-title {
@@ -6217,13 +6231,52 @@ async function cetakLaporanResmi(paketId, npsn) {
             font-style: italic;
         }
 
+        .signature-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 28mm;
+            margin-top: 18mm;
+            margin-bottom: 8mm;
+            break-inside: avoid;
+            page-break-inside: avoid;
+        }
+
+        .signature-box {
+            min-width: 0;
+            text-align: center;
+            font-size: 9pt;
+            line-height: 1.35;
+            break-inside: avoid;
+            page-break-inside: avoid;
+        }
+
+        .signature-box .signature-role {
+            min-height: 28px;
+            font-weight: bold;
+        }
+
+        .signature-box .signature-space {
+            height: 25mm;
+        }
+
+        .signature-box .signature-name {
+            font-weight: bold;
+            text-decoration: underline;
+        }
+
+        .signature-box .signature-nip {
+            margin-top: 2px;
+        }
+
         .footer-print {
-            margin-top: 25px;
-            padding-top: 8px;
+            margin-top: 10px;
+            padding-top: 5px;
             border-top: 1px solid #d1d5db;
-            font-size: 8pt;
+            font-size: 7pt;
             color: #6b7280;
             text-align: center;
+            break-before: avoid;
+            page-break-before: avoid;
         }
 
         .no-print {
@@ -6243,7 +6296,7 @@ async function cetakLaporanResmi(paketId, npsn) {
 
         @media print {
             body {
-                padding: 10mm;
+                padding: 0;
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
             }
@@ -6252,16 +6305,25 @@ async function cetakLaporanResmi(paketId, npsn) {
                 display: none !important;
             }
 
-            .sekolah-block {
-                page-break-inside: avoid;
+            .sekolah-block,
+            .paket-block {
+                break-inside: auto;
+                page-break-inside: auto;
             }
 
-            .paket-block {
-                page-break-inside: avoid;
+            .sekolah-header,
+            .section-title,
+            .paket-title {
+                break-after: avoid;
+                page-break-after: avoid;
             }
 
             thead {
                 display: table-header-group;
+            }
+
+            tfoot {
+                display: table-footer-group;
             }
         }
     
@@ -6333,6 +6395,23 @@ async function cetakLaporanResmi(paketId, npsn) {
 </head>
 <body>
     ${htmlBody}
+
+    <div class="signature-section">
+        <div class="signature-box">
+            <div class="signature-role">
+                Penanggungjawab<br>
+                KEPALA SEKOLAH
+            </div>
+            <div class="signature-space"></div>
+            <div class="signature-name">........................</div>
+            <div class="signature-nip">NIP. ...................</div>
+        </div>
+        <div class="signature-box">
+            <div class="signature-role">Pengawas/Perencana</div>
+            <div class="signature-space"></div>
+            <div class="signature-name">........................</div>
+        </div>
+    </div>
 
     <div class="footer-print">
         SIVIT26 — Sistem Informasi Pemantauan Revitalisasi SD Kabupaten Rembang 2026
