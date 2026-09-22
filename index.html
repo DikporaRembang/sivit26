@@ -1962,8 +1962,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: flex-start;
-
   text-align: left;
+
   padding: 18% 5% 8% 11%;
 
   color: #fffaf3 !important;
@@ -1973,24 +1973,21 @@ body {
   line-height: 1.08;
   letter-spacing: -.04em;
 
-  text-shadow: 0 3px 18px rgba(0,0,0,.40);
+  text-shadow:
+    0 3px 18px rgba(0,0,0,.55),
+    0 1px 3px rgba(0,0,0,.35);
 
   background:
     linear-gradient(
-      180deg,
-      rgba(32,59,40,.12),
-      rgba(32,59,40,.42)
+      90deg,
+      rgba(32,59,40,.18),
+      rgba(32,59,40,.30)
     ),
     url("gambarsekolah.jpeg") center center / cover no-repeat;
 
-  clip-path: polygon(
-    6% 0,
-    100% 0,
-    100% 100%,
-    0 100%
-  );
+  clip-path: polygon(6% 0, 100% 0, 100% 100%, 0 100%);
 
-  z-index: 1;
+  z-index: -1;
 }
 
 #authContainer > div {
