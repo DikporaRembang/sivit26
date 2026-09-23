@@ -7734,24 +7734,9 @@ currentHeaders.forEach(h => {
                 defOpt.innerText = "-- Pilih Rentang Minggu --";
                 input.appendChild(defOpt);
 
-                let baseDate = new Date(2026, 0, 5);
-                for (let w = 1; w <= 24; w++) {
-                    let startD = new Date(baseDate);
-                    startD.setDate(baseDate.getDate() + (w - 1) * 7);
-                    let endD = new Date(baseDate);
-                    endD.setDate(baseDate.getDate() + w * 7 - 1);
-
-                    let fmtStart = `${String(startD.getDate()).padStart(2, '0')}/${String(startD.getMonth() + 1).padStart(2, '0')}/${startD.getFullYear()}`;
-                    let fmtEnd = `${String(endD.getDate()).padStart(2, '0')}/${String(endD.getMonth() + 1).padStart(2, '0')}/${endD.getFullYear()}`;
-                    
-                    let labelMinggu = `Minggu ke-${w} ${fmtStart} s/d ${fmtEnd}`;
-                    let opt = document.createElement('option');
-                    // PATCH8.5.13: backend menerima minggu_ke sebagai integer positif.
-                    opt.value = String(w);
-                    opt.innerText = labelMinggu;
-                    if (activeRowData && String(activeRowData[h] || '') === String(w)) opt.selected = true;
-                    input.appendChild(opt);
-                }
+                // Opsi minggu diisi setelah paket dipilih berdasarkan
+                // tanggal_mulai dan tgl_selesai paket tersebut.
+                input.dataset.sivitWeekSelect = 'true';
             } else if (hLower === 'tanggal_lapor') {
                 input = document.createElement('input');
                 input.type = "date";
@@ -7900,6 +7885,77 @@ currentHeaders.forEach(h => {
 
         container.appendChild(div);
     });
+
+    // =========================================================
+    // MINGGU KE — DINAMIS BERDASARKAN RENTANG PAKET
+    // =========================================================
+    if (currentActiveSheet === 'laporan_progres') {
+        const paketSelect = container.querySelector('select[name="paket_id"]');
+        const mingguSelect = container.querySelector('select[name="minggu_ke"]');
+
+        const parsePackageDateOnly = (value) => {
+            if (value instanceof Date && !isNaN(value.getTime())) {
+                return new Date(value.getFullYear(), value.getMonth(), value.getDate());
+            }
+            const text = String(value ?? '').trim();
+            if (!text) return null;
+            let match = text.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+            if (match) return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+            match = text.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})/);
+            if (match) return new Date(Number(match[3]), Number(match[2]) - 1, Number(match[1]));
+            const parsed = new Date(text);
+            return isNaN(parsed.getTime()) ? null : new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
+        };
+
+        const formatPackageDate = (date) =>
+            `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`;
+
+        const refreshMingguOptions = () => {
+            if (!mingguSelect) return;
+            const oldValue = String(mingguSelect.value || (activeRowData && activeRowData.minggu_ke) || '').trim();
+            mingguSelect.innerHTML = '';
+            const placeholder = document.createElement('option');
+            placeholder.value = '';
+            placeholder.textContent = '-- Pilih Rentang Minggu --';
+            mingguSelect.appendChild(placeholder);
+
+            const selectedPaketId = paketSelect ? String(paketSelect.value || '').trim() : '';
+            const selectedPackage = Array.isArray(paketPekerjaanList)
+                ? paketPekerjaanList.find(p => String(p && (p.paket_id || p.id_paket) || '').trim() === selectedPaketId)
+                : null;
+            const startDate = selectedPackage ? parsePackageDateOnly(selectedPackage.tanggal_mulai) : null;
+            const endDate = selectedPackage ? parsePackageDateOnly(selectedPackage.tgl_selesai || selectedPackage.tanggal_selesai) : null;
+
+            if (!selectedPackage || !startDate || !endDate || endDate < startDate) {
+                const unavailable = document.createElement('option');
+                unavailable.value = '';
+                unavailable.disabled = true;
+                unavailable.textContent = !selectedPackage
+                    ? 'Pilih paket pekerjaan terlebih dahulu'
+                    : 'Rentang tanggal paket belum tersedia atau tidak valid';
+                mingguSelect.appendChild(unavailable);
+                return;
+            }
+
+            let weekNumber = 1;
+            for (let cursor = new Date(startDate); cursor <= endDate; cursor.setDate(cursor.getDate() + 7)) {
+                const weekStart = new Date(cursor);
+                const weekEnd = new Date(cursor);
+                weekEnd.setDate(weekEnd.getDate() + 6);
+                if (weekEnd > endDate) weekEnd.setTime(endDate.getTime());
+
+                const option = document.createElement('option');
+                option.value = String(weekNumber);
+                option.textContent = `Minggu ke-${weekNumber} ${formatPackageDate(weekStart)} s/d ${formatPackageDate(weekEnd)}`;
+                if (oldValue === String(weekNumber)) option.selected = true;
+                mingguSelect.appendChild(option);
+                weekNumber++;
+            }
+        };
+
+        if (paketSelect) paketSelect.addEventListener('change', refreshMingguOptions);
+        refreshMingguOptions();
+    }
 
     modal.classList.remove('hidden');
     modal.classList.add('flex');
