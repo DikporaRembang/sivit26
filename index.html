@@ -3190,8 +3190,16 @@ function togglePasswordVisibility(inputId, iconId) {
                 throw new Error(data.pesan || ('HTTP ' + response.status));
             }
 
-            if (data && data.status === 'success' && data.data) {
-                currentUser = data.data;
+            // Kompatibel dengan dua format respons backend:
+            // 1) { status: 'success', data: {...} }
+            // 2) { success: true, user: {...} }
+            const loginSucceeded = !!(
+                data && (data.status === 'success' || data.success === true)
+            );
+            const authenticatedUser = data && (data.data || data.user);
+
+            if (loginSucceeded && authenticatedUser) {
+                currentUser = authenticatedUser;
                 localStorage.setItem('sivit_user', JSON.stringify(currentUser));
                 await Promise.resolve(initDashboard(true));
                 return true;
