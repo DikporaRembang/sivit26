@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- PATCH8.5.19: Warm nature theme + single EXIF photo source -->
-<title>SIVIT26 - Sistem Informasi Pemantauan Revitalisasi SD Kabupaten Rembang 2026</title>
+<title>SIVIT26 Simple V4 - Pemantauan Revitalisasi SD Kabupaten Rembang 2026</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -3746,6 +3746,151 @@ img[src*="logopendidikan.png"] {
 }
 </style>
 
+
+<style id="sivit-simple-v4">
+/* =========================================================
+   SIVIT26 SIMPLE V4
+   Fokus: lebih sedikit klik + identitas sekolah selalu jelas.
+   ========================================================= */
+#sidebarMenuContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sivit-simple-menu-section {
+  padding: 4px 0 8px;
+  border-bottom: 1px solid rgba(15,23,42,.07);
+}
+
+.sivit-simple-menu-section:last-child {
+  border-bottom: 0;
+}
+
+.sivit-simple-menu-label {
+  padding: 4px 12px 7px;
+  font-size: 9.5px;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: .12em;
+  color: #8b8b90;
+}
+
+.sivit-simple-menu-button {
+  width: 100%;
+  min-height: 42px;
+  display: grid;
+  grid-template-columns: 22px minmax(0,1fr) 14px;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 11px;
+  border: 0 !important;
+  border-radius: 11px !important;
+  background: transparent !important;
+  color: #3a3a3c !important;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 650;
+  cursor: pointer;
+  transition: background .16s ease, color .16s ease, transform .16s ease;
+}
+
+.sivit-simple-menu-button > i:first-child {
+  width: 22px;
+  text-align: center;
+  color: #6e6e73 !important;
+}
+
+.sivit-simple-menu-button .sivit-simple-menu-arrow {
+  font-size: 8px;
+  color: #b0b0b5 !important;
+  opacity: .65;
+}
+
+.sivit-simple-menu-button:hover {
+  background: #f2f2f7 !important;
+  color: #1d1d1f !important;
+}
+
+.sivit-simple-menu-button.active {
+  background: #e8f2ff !important;
+  color: #0066cc !important;
+  box-shadow: inset 0 0 0 1px rgba(0,113,227,.08);
+}
+
+.sivit-simple-menu-button.active > i:first-child,
+.sivit-simple-menu-button.active .sivit-simple-menu-arrow {
+  color: #0071e3 !important;
+}
+
+.sivit-simple-help {
+  margin-top: 2px;
+}
+
+/* Identitas NPSN */
+.sivit-npsn-cell {
+  min-width: 205px !important;
+}
+
+.sivit-npsn-identity {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-width: 175px;
+  line-height: 1.2;
+}
+
+.sivit-npsn-code {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: #edf5ff;
+  color: #0066cc;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .035em;
+}
+
+.sivit-npsn-school {
+  margin-top: 2px;
+  color: #1d1d1f;
+  font-size: 11.5px;
+  font-weight: 750;
+}
+
+.sivit-npsn-kec {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #6e6e73;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+#userNpsnDisplay {
+  max-width: min(52vw, 640px);
+  white-space: normal !important;
+  line-height: 1.25;
+}
+
+/* Filter sekolah lebih mudah dibaca */
+#selectDinasNpsn {
+  min-height: 42px;
+  font-size: 11px !important;
+}
+
+/* Pada mobile identitas sekolah tetap terbaca tanpa memaksa tabel terlalu lebar */
+@media (max-width: 768px) {
+  .sivit-npsn-cell { min-width: 178px !important; }
+  .sivit-npsn-identity { min-width: 155px; }
+  .sivit-npsn-school { font-size: 10.5px; }
+  .sivit-npsn-kec { font-size: 9.5px; }
+}
+</style>
+
 </head>
 
 <body class="bg-gradient-to-br from-blue-950 via-blue-900 to-slate-900 min-h-screen text-white font-sans antialiased flex flex-col justify-between">
@@ -4409,6 +4554,7 @@ function toggleMobileSidebar() {
     let paketPekerjaanList = [];
     let menuPekerjaanList = [];
     let usersList = [];
+    let sekolahReferenceList = [];
     let chartKurvaSInstance = null;
     let leafletMap = null;
     let gisMarkersLayer = null;
@@ -4657,6 +4803,10 @@ function togglePasswordVisibility(inputId, iconId) {
             if (loginSucceeded && authenticatedUser) {
                 currentUser = authenticatedUser;
                 localStorage.setItem('sivit_user', JSON.stringify(currentUser));
+
+                // SIMPLE V4: muat identitas sekolah lebih dulu agar setiap NPSN
+                // langsung tampil bersama nama sekolah dan kecamatan.
+                await loadReferenceTables();
                 await Promise.resolve(initDashboard(true));
                 return true;
             }
@@ -4884,61 +5034,170 @@ async function handleRegister(e) {
 
     async function loadReferenceTables() {
         try {
-            let resMenu = await fetch(`${WEB_APP_URL}?token=${encodeURIComponent(currentUser?.token || "")}&action=getRef&type=menu_pekerjaan`);
-            let dataMenu = await resMenu.json();
-            menuPekerjaanList = dataMenu.data || [];
+            const token = encodeURIComponent(currentUser?.token || "");
 
-            let resUsers = await fetch(`${WEB_APP_URL}?token=${encodeURIComponent(currentUser?.token || "")}&action=getRef&type=users`);
-            let dataUsers = await resUsers.json();
-            usersList = dataUsers.data || [];
+            const [resMenu, resUsers, resSekolah, resPaket] = await Promise.all([
+                fetch(`${WEB_APP_URL}?token=${token}&action=getRef&type=menu_pekerjaan`),
+                fetch(`${WEB_APP_URL}?token=${token}&action=getRef&type=users`),
+                fetch(`${WEB_APP_URL}?token=${token}&action=getRef&type=sekolah`),
+                fetch(`${WEB_APP_URL}?token=${token}&action=getData&sheet=paket_pekerjaan_sd&role=${encodeURIComponent(currentUser?.role || 'SEKOLAH')}&npsn=${encodeURIComponent(currentUser?.role === 'DINAS' ? '' : (currentUser?.username || ''))}`)
+            ]);
 
-            let resPaket = await fetch(`${WEB_APP_URL}?token=${encodeURIComponent(currentUser?.token || "")}&action=getData&sheet=paket_pekerjaan_sd&role=DINAS&npsn=`);
-            let dataPaket = await resPaket.json();
-            paketPekerjaanList = dataPaket.data || [];
+            const [dataMenu, dataUsers, dataSekolah, dataPaket] = await Promise.all([
+                resMenu.json(), resUsers.json(), resSekolah.json(), resPaket.json()
+            ]);
+
+            menuPekerjaanList = dataMenu.status === 'success' ? (dataMenu.data || []) : [];
+            usersList = dataUsers.status === 'success' ? (dataUsers.data || []) : [];
+            sekolahReferenceList = dataSekolah.status === 'success' ? (dataSekolah.data || []) : [];
+            paketPekerjaanList = dataPaket.status === 'success' ? (dataPaket.data || []) : [];
+
+            // Akun SEKOLAH biasanya sudah membawa identitas sekolah dari respons login.
+            // Masukkan sebagai fallback agar nama/kecamatan selalu tersedia meskipun referensi gagal.
+            if (currentUser?.role === 'SEKOLAH' && currentUser?.username) {
+                const npsn = String(currentUser.username).trim();
+                const exists = sekolahReferenceList.some(s => String(s.npsn || '').trim() === npsn);
+                if (!exists && currentUser.sekolah) {
+                    sekolahReferenceList.push({
+                        ...currentUser.sekolah,
+                        npsn: currentUser.sekolah.npsn || npsn
+                    });
+                }
+            }
 
             populateDinasFilterOptions();
+            refreshCurrentUserIdentity();
         } catch (e) {
             console.error("Gagal memuat tabel referensi:", e);
         }
     }
 
+    function normalizeNpsn(value) {
+        return String(value === undefined || value === null ? '' : value).trim();
+    }
+
+    function getSchoolMetaByNpsn(npsnValue) {
+        const npsn = normalizeNpsn(npsnValue);
+        if (!npsn) return { npsn: '', nama: '-', kecamatan: '-' };
+
+        const school = (sekolahReferenceList || []).find(s =>
+            normalizeNpsn(s.npsn || s.username) === npsn
+        );
+
+        const user = (usersList || []).find(u =>
+            normalizeNpsn(u.username || u.npsn) === npsn
+        );
+
+        const loginSchool = currentUser?.sekolah &&
+            normalizeNpsn(currentUser.sekolah.npsn || currentUser.username) === npsn
+            ? currentUser.sekolah : null;
+
+        const src = school || loginSchool || user || {};
+        const nama = String(
+            src.nama_sekolah ||
+            src.nama_lengkap ||
+            src.nama_pengguna ||
+            (user && (user.nama_sekolah || user.nama_pengguna)) ||
+            ''
+        ).trim() || `Sekolah ${npsn}`;
+
+        const kecamatan = String(
+            src.kecamatan ||
+            src.nama_kecamatan ||
+            src.kec ||
+            ''
+        ).trim() || '-';
+
+        return { npsn, nama, kecamatan, raw: src };
+    }
+
+    function formatSchoolIdentityText(npsnValue) {
+        const meta = getSchoolMetaByNpsn(npsnValue);
+        if (!meta.npsn) return '-';
+        const kec = meta.kecamatan && meta.kecamatan !== '-' ? ` · Kec. ${meta.kecamatan}` : '';
+        return `${meta.npsn} — ${meta.nama}${kec}`;
+    }
+
+    function schoolIdentityHtml(npsnValue) {
+        const meta = getSchoolMetaByNpsn(npsnValue);
+        if (!meta.npsn) return '<span class="text-slate-400">-</span>';
+        const kec = meta.kecamatan && meta.kecamatan !== '-'
+            ? `<span class="sivit-npsn-kec"><i class="fa-solid fa-location-dot"></i> Kec. ${escapeHtml(meta.kecamatan)}</span>`
+            : '';
+        return `
+            <div class="sivit-npsn-identity">
+                <span class="sivit-npsn-code">${escapeHtml(meta.npsn)}</span>
+                <span class="sivit-npsn-school">${escapeHtml(meta.nama)}</span>
+                ${kec}
+            </div>
+        `;
+    }
+
+    function refreshCurrentUserIdentity() {
+        const el = document.getElementById('userNpsnDisplay');
+        if (!el || !currentUser) return;
+        if (currentUser.role === 'SEKOLAH') {
+            const meta = getSchoolMetaByNpsn(currentUser.username);
+            const kec = meta.kecamatan && meta.kecamatan !== '-' ? ` · Kec. ${meta.kecamatan}` : '';
+            el.innerText = `NPSN ${meta.npsn} · ${meta.nama}${kec}`;
+        } else {
+            el.innerText = `ID: ${currentUser.username || '-'} · DINAS`;
+        }
+    }
+
     function populateDinasFilterOptions() {
         if (!currentUser || currentUser.role !== 'DINAS') return;
-        
-        let selectNpsn = document.getElementById('selectDinasNpsn');
-        let selectPaket = document.getElementById('selectDinasPaket');
+
+        const selectNpsn = document.getElementById('selectDinasNpsn');
+        const selectPaket = document.getElementById('selectDinasPaket');
         if (!selectNpsn || !selectPaket) return;
 
-        let currentNpsnVal = selectNpsn.value;
-        let currentPaketVal = selectPaket.value;
+        const currentNpsnVal = selectNpsn.value;
+        const currentPaketVal = selectPaket.value;
 
-        selectNpsn.innerHTML = '<option value="">-- Semua Sekolah (Semua NPSN) --</option>';
-        let uniqueNpsn = [...new Set(paketPekerjaanList.map(item => String(item.npsn || '').trim()).filter(Boolean))];
-        uniqueNpsn.forEach(npsn => {
-            let matchedUser = usersList.find(u => String(u.username || u.npsn || '').trim() === npsn);
-            let namaSekolah = matchedUser ? (matchedUser.nama_pengguna || matchedUser.nama_sekolah) : 'Sekolah ' + npsn;
-            let opt = document.createElement('option');
-            opt.value = npsn;
-            opt.innerText = `${npsn} - ${namaSekolah}`;
-            selectNpsn.appendChild(opt);
-        });
+        selectNpsn.innerHTML = '<option value="">-- Semua Sekolah --</option>';
+        const uniqueNpsn = [...new Set(
+            (paketPekerjaanList || []).map(item => normalizeNpsn(item.npsn)).filter(Boolean)
+        )];
+
+        uniqueNpsn
+            .map(npsn => getSchoolMetaByNpsn(npsn))
+            .sort((a, b) => String(a.nama).localeCompare(String(b.nama), 'id'))
+            .forEach(meta => {
+                const opt = document.createElement('option');
+                opt.value = meta.npsn;
+                const kec = meta.kecamatan && meta.kecamatan !== '-' ? ` · Kec. ${meta.kecamatan}` : '';
+                opt.innerText = `${meta.npsn} — ${meta.nama}${kec}`;
+                selectNpsn.appendChild(opt);
+            });
+
         selectNpsn.value = currentNpsnVal;
 
         selectPaket.innerHTML = '<option value="">-- Semua Menu Pekerjaan --</option>';
-        let uniqueMenu = [...new Set(paketPekerjaanList.map(item => String(item.nama_menu || '').trim()).filter(Boolean))];
+        const uniqueMenu = [...new Set(
+            (paketPekerjaanList || []).map(item => String(item.nama_menu || '').trim()).filter(Boolean)
+        )].sort((a,b) => a.localeCompare(b, 'id'));
+
         uniqueMenu.forEach(menu => {
-            let opt = document.createElement('option');
+            const opt = document.createElement('option');
             opt.value = menu;
             opt.innerText = menu;
             selectPaket.appendChild(opt);
         });
         selectPaket.value = currentPaketVal;
     }
-    
+
     function initDashboard(animateTransition = false) {
       applyScreenVisibility('dashboard', animateTransition);
       document.getElementById('userNameDisplay').innerText = currentUser.nama_pengguna;
-      document.getElementById('userNpsnDisplay').innerText = "NPSN/ID: " + currentUser.username + " | Role: " + currentUser.role;
+      if (currentUser.role === 'SEKOLAH') {
+        const loginMeta = currentUser.sekolah || {};
+        const loginNama = loginMeta.nama_sekolah || currentUser.nama_pengguna || 'Sekolah';
+        const loginKec = loginMeta.kecamatan ? ` · Kec. ${loginMeta.kecamatan}` : '';
+        document.getElementById('userNpsnDisplay').innerText = `NPSN ${currentUser.username} · ${loginNama}${loginKec}`;
+      } else {
+        document.getElementById('userNpsnDisplay').innerText = `ID: ${currentUser.username || '-'} · DINAS`;
+      }
 
       let targetPenerima = (currentUser.role === 'DINAS') ? 'DINAS' : currentUser.username;
       loadNotifikasi(targetPenerima, true);
@@ -4974,177 +5233,103 @@ async function handleRegister(e) {
         const container = document.getElementById('sidebarMenuContainer');
         container.innerHTML = '';
 
-        const groups = currentUser.role === 'DINAS'
+        const sections = currentUser.role === 'DINAS'
             ? [
                 {
-                    title: '1. Pengguna',
-                    icon: 'fa-users',
+                    title: 'UTAMA',
+                    items: [
+                        { name: 'Dashboard & Paket', sheet: 'paket_pekerjaan_sd', icon: 'fa-gauge-high' },
+                        { name: 'Verifikasi Sekolah', sheet: 'sekolah_pending', icon: 'fa-user-check' },
+                        { name: 'Laporan Progres', sheet: 'laporan_progres', icon: 'fa-clipboard-check' }
+                    ]
+                },
+                {
+                    title: 'DATA',
                     items: [
                         { name: 'Data Sekolah', sheet: 'sekolah', icon: 'fa-school' },
-                        { name: 'Manajemen User', sheet: 'users', icon: 'fa-users-gear' },
-                        { name: 'Verifikasi Sekolah', sheet: 'sekolah_pending', icon: 'fa-user-check' }
+                        { name: 'Pengguna', sheet: 'users', icon: 'fa-users' }
                     ]
                 },
                 {
-                    title: '2. Data',
-                    icon: 'fa-database',
+                    title: 'MONITORING',
                     items: [
-                        { name: 'Paket Pekerjaan SD', sheet: 'paket_pekerjaan_sd', icon: 'fa-boxes-packing' },
-                        { name: 'Laporan Progres', sheet: 'laporan_progres', icon: 'fa-chart-line' }
+                        { name: 'Kurva S', sheet: 'kurva_s', icon: 'fa-chart-line' },
+                        { name: 'Peta GIS', sheet: 'peta_gis', icon: 'fa-map-location-dot' }
                     ]
-                },
-                {
-                    title: '3. Monitor',
-                    icon: 'fa-chart-line',
-                    items: [
-                        { name: 'Kurva S & Grafik', sheet: 'kurva_s', icon: 'fa-chart-area' },
-                        { name: 'Peta Persebaran (GIS)', sheet: 'peta_gis', icon: 'fa-map-location-dot' }
-                    ],
-                    dashboardNote: 'Dashboard Monitoring DINAS tampil pada area monitor yang relevan.'
                 }
             ]
             : [
                 {
-                    title: '1. Atur Pengguna',
-                    icon: 'fa-user-gear',
+                    title: 'UTAMA',
                     items: [
-                        { name: 'Profil & Tim Teknis', sheet: 'users', icon: 'fa-user-gear' }
+                        { name: 'Profil & Tim Teknis', sheet: 'users', icon: 'fa-user-gear' },
+                        { name: 'Paket Pekerjaan', sheet: 'paket_pekerjaan_sd', icon: 'fa-box' },
+                        { name: 'Laporan Mingguan', sheet: 'laporan_progres', icon: 'fa-clipboard-list' }
                     ]
                 },
                 {
-                    title: '2. Isi Data',
-                    icon: 'fa-pen-to-square',
+                    title: 'MONITORING',
                     items: [
-                        { name: 'Paket Pekerjaan Saya', sheet: 'paket_pekerjaan_sd', icon: 'fa-box' },
-                        { name: 'Laporan Progres Fisik', sheet: 'laporan_progres', icon: 'fa-clipboard-list' }
-                    ]
-                },
-                {
-                    title: '3. Pantau Pekerjaan',
-                    icon: 'fa-chart-line',
-                    items: [
-                        { name: 'Kurva S & Grafik', sheet: 'kurva_s', icon: 'fa-chart-area' },
-                        { name: 'Peta Persebaran (GIS)', sheet: 'peta_gis', icon: 'fa-map-location-dot' }
+                        { name: 'Kurva S', sheet: 'kurva_s', icon: 'fa-chart-line' },
+                        { name: 'Peta GIS', sheet: 'peta_gis', icon: 'fa-map-location-dot' }
                     ]
                 }
             ];
 
-        const createMenuButton = (item) => {
-            const btn = document.createElement('button');
-            btn.type = 'button';
-            btn.className = 'w-full flex items-center space-x-2.5 px-3 py-2 rounded-xl text-left font-semibold text-blue-200 hover:bg-blue-900/60 hover:text-amber-400 transition-all text-xs cursor-pointer';
-            btn.innerHTML = `
-                <i class="fa-solid ${item.icon} w-4 text-center"></i>
-                <span>${escapeHtml(item.name)}</span>
-            `;
-
-            btn.dataset.sivitMenu = 'true';
-            btn.dataset.sheet = item.sheet;
-
-            if (item.sheet === currentActiveSheet) {
-                btn.classList.add('active');
-            }
-
-            btn.onclick = () => {
-                container.querySelectorAll('button[data-sivit-menu="true"]').forEach(el => el.classList.remove('active'));
-                btn.classList.add('active');
-                loadTableData(item.sheet, item.name);
-            };
-
-            return btn;
+        const setActive = (btn) => {
+            container.querySelectorAll('button[data-sivit-menu="true"]').forEach(el => el.classList.remove('active'));
+            if (btn) btn.classList.add('active');
         };
 
-        const setGroupState = (group, submenu, toggleButton, expanded) => {
-            submenu.classList.toggle('hidden', !expanded);
-            toggleButton.setAttribute('aria-expanded', expanded ? 'true' : 'false');
-            toggleButton.querySelector('[data-group-chevron]').className =
-                `fa-solid fa-chevron-${expanded ? 'down' : 'right'} text-[10px] transition-transform`;
-            group.dataset.expanded = expanded ? 'true' : 'false';
-        };
+        sections.forEach(section => {
+            const block = document.createElement('div');
+            block.className = 'sivit-simple-menu-section';
 
-        groups.forEach(group => {
-            const groupBlock = document.createElement('div');
-            groupBlock.className = 'mb-2 rounded-xl border border-blue-900/60 bg-blue-950/20 overflow-hidden';
-            groupBlock.dataset.sivitGroup = 'true';
-            groupBlock.dataset.expanded = 'false';
+            const label = document.createElement('div');
+            label.className = 'sivit-simple-menu-label';
+            label.textContent = section.title;
+            block.appendChild(label);
 
-            const hasActiveItem = group.items.some(item => item.sheet === currentActiveSheet);
-            const toggleButton = document.createElement('button');
-            toggleButton.type = 'button';
-            toggleButton.className = 'w-full flex items-center justify-between gap-2 px-3 py-3 text-left text-amber-200 hover:bg-blue-900/60 transition-all';
-            toggleButton.setAttribute('aria-expanded', 'false');
-            toggleButton.innerHTML = `
-                <span class="flex items-center gap-2 min-w-0">
-                    <i class="fa-solid ${group.icon} w-4 text-center text-amber-300"></i>
-                    <span class="text-[11px] font-extrabold uppercase tracking-wide">${escapeHtml(group.title)}</span>
-                </span>
-                <i data-group-chevron class="fa-solid fa-chevron-right text-[10px] transition-transform"></i>
-            `;
+            section.items.forEach(item => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.dataset.sivitMenu = 'true';
+                btn.dataset.sheet = item.sheet;
+                btn.className = 'sivit-simple-menu-button';
+                btn.innerHTML = `
+                    <i class="fa-solid ${item.icon}"></i>
+                    <span>${escapeHtml(item.name)}</span>
+                    <i class="fa-solid fa-chevron-right sivit-simple-menu-arrow"></i>
+                `;
+                if (item.sheet === currentActiveSheet) btn.classList.add('active');
+                btn.onclick = () => {
+                    setActive(btn);
+                    loadTableData(item.sheet, item.name);
+                };
+                block.appendChild(btn);
+            });
 
-            const submenu = document.createElement('div');
-            submenu.className = 'hidden px-2 pb-2 space-y-1';
-            submenu.dataset.sivitSubmenu = 'true';
-
-            group.items.forEach(item => submenu.appendChild(createMenuButton(item)));
-
-            if (group.dashboardNote) {
-                const note = document.createElement('div');
-                note.className = 'px-2 pt-1 pb-1 text-[10px] leading-relaxed text-blue-300/80';
-                note.textContent = group.dashboardNote;
-                submenu.appendChild(note);
-            }
-
-            toggleButton.onclick = () => {
-                const isExpanded = groupBlock.dataset.expanded === 'true';
-                setGroupState(groupBlock, submenu, toggleButton, !isExpanded);
-            };
-
-            groupBlock.appendChild(toggleButton);
-            groupBlock.appendChild(submenu);
-            container.appendChild(groupBlock);
-
-            // Buka otomatis hanya kelompok yang memuat menu aktif.
-            setGroupState(groupBlock, submenu, toggleButton, hasActiveItem);
+            container.appendChild(block);
         });
 
-        // Kelompok bantuan tetap terpisah dari menu operasional.
-        const helpGroup = document.createElement('div');
-        helpGroup.className = 'mt-3 rounded-xl border border-blue-900/60 bg-blue-950/20 overflow-hidden';
-        helpGroup.dataset.sivitGroup = 'true';
-        helpGroup.dataset.expanded = 'false';
+        const helpBlock = document.createElement('div');
+        helpBlock.className = 'sivit-simple-menu-section sivit-simple-help';
+        const helpLabel = document.createElement('div');
+        helpLabel.className = 'sivit-simple-menu-label';
+        helpLabel.textContent = 'BANTUAN';
+        helpBlock.appendChild(helpLabel);
 
-        const helpToggle = document.createElement('button');
-        helpToggle.type = 'button';
-        helpToggle.className = 'w-full flex items-center justify-between gap-2 px-3 py-3 text-left text-amber-200 hover:bg-blue-900/60 transition-all';
-        helpToggle.setAttribute('aria-expanded', 'false');
-        helpToggle.innerHTML = `
-            <span class="flex items-center gap-2 min-w-0">
-                <i class="fa-solid fa-circle-question w-4 text-center text-amber-300"></i>
-                <span class="text-[11px] font-extrabold uppercase tracking-wide">4. Bantuan</span>
-            </span>
-            <i data-group-chevron class="fa-solid fa-chevron-right text-[10px] transition-transform"></i>
+        const panduan = document.createElement('button');
+        panduan.type = 'button';
+        panduan.className = 'sivit-simple-menu-button';
+        panduan.innerHTML = `
+            <i class="fa-solid fa-book-open"></i>
+            <span>Petunjuk Penggunaan</span>
+            <i class="fa-solid fa-chevron-right sivit-simple-menu-arrow"></i>
         `;
-
-        const helpSubmenu = document.createElement('div');
-        helpSubmenu.className = 'hidden px-2 pb-2 space-y-1';
-        helpSubmenu.dataset.sivitSubmenu = 'true';
-
-        const panduanLink = document.createElement('button');
-        panduanLink.type = 'button';
-        panduanLink.className = 'w-full flex items-center space-x-2.5 px-3 py-2 rounded-xl text-left font-semibold text-amber-300 hover:bg-blue-900/60 hover:text-amber-200 transition-all text-xs cursor-pointer';
-        panduanLink.innerHTML = '<i class="fa-solid fa-book-open w-4 text-center"></i><span>Petunjuk Penggunaan</span>';
-        panduanLink.title = 'Tampilkan Panduan Penggunaan SIVIT26 2026 di feed';
-        panduanLink.onclick = () => showPanduanFeed();
-        helpSubmenu.appendChild(panduanLink);
-
-        helpToggle.onclick = () => {
-            const isExpanded = helpGroup.dataset.expanded === 'true';
-            setGroupState(helpGroup, helpSubmenu, helpToggle, !isExpanded);
-        };
-
-        helpGroup.appendChild(helpToggle);
-        helpGroup.appendChild(helpSubmenu);
-        container.appendChild(helpGroup);
+        panduan.onclick = () => showPanduanFeed();
+        helpBlock.appendChild(panduan);
+        container.appendChild(helpBlock);
     }
 
     function escapeHtml(value) {
@@ -5381,7 +5566,7 @@ async function handleRegister(e) {
             set('detailLastLogin',s.last_login||'-');
             set('detailAlamat',s.alamat_lengkap||'Alamat belum tersedia.');
             set('detailTim','Perencana: '+(s.perencana||'-')+' · Pengawas: '+(s.pengawas||'-'));
-            set('detailAkunUser',s.user_terdaftar ? ('Username/NPSN: '+(s.username||s.npsn||'-')+' · Nama: '+(s.nama_pengguna||'-')+' · Status: '+(s.status_user||'-')) : 'Sekolah belum memiliki user SEKOLAH aktif/disetujui.');
+            set('detailAkunUser',s.user_terdaftar ? (formatSchoolIdentityText(s.username||s.npsn||'')+' · Status: '+(s.status_user||'-')) : 'Sekolah belum memiliki user SEKOLAH aktif/disetujui.');
             const body=document.getElementById('detailPaketBody'); if(body) body.innerHTML='';
             const paket=Array.isArray(data.paket)?data.paket:[];
             if(!paket.length){
@@ -5824,16 +6009,18 @@ async function handleRegister(e) {
         (points || []).forEach(item => {
             const status = normalizeGisStatus(item.status_verifikasi);
             const progress = Math.max(0, Math.min(100, Number(String(item.realisasi_fisik || 0).replace('%','')) || 0));
-            const name = String(item.nama_sekolah || item.nama_pengguna || '').trim() || `NPSN ${item.npsn || '-'}`;
             const npsn = String(item.npsn || '-').trim();
+            const meta = getSchoolMetaByNpsn(npsn);
+            const name = String(item.nama_sekolah || item.nama_pengguna || meta.nama || '').trim() || `NPSN ${npsn}`;
+            const kecamatan = meta.kecamatan && meta.kecamatan !== '-' ? meta.kecamatan : '-';
             const week = item.minggu_ke || item.minggu || '-';
             const date = item.tanggal_lapor || item.tanggal_upload || '-';
             const marker = L.marker([item.__lat, item.__lon], {icon: buildGisIcon(status, progress)});
-            marker.bindTooltip(`${name} • ${progress.toFixed(1)}%`, {direction:'top', offset:[0,-23], opacity:.92});
+            marker.bindTooltip(`${name} · Kec. ${kecamatan} • ${progress.toFixed(1)}%`, {direction:'top', offset:[0,-23], opacity:.92});
             marker.bindPopup(`
                 <div style="min-width:230px">
                     <div class="v3-popup-title">${escapeHtml(name)}</div>
-                    <div class="v3-popup-sub">NPSN ${escapeHtml(npsn)}</div>
+                    <div class="v3-popup-sub">NPSN ${escapeHtml(npsn)} · Kec. ${escapeHtml(kecamatan)}</div>
                     <div class="v3-popup-grid">
                         <div><span>Minggu</span><strong>${escapeHtml(week)}</strong></div>
                         <div><span>Status</span><strong>${escapeHtml(status)}</strong></div>
@@ -6051,16 +6238,13 @@ async function handleRegister(e) {
         const currentNpsn = String(firstRow.npsn || currentUser?.username || '-').trim();
         const currentMenu = getNamaMenu(firstRow) || 'Pekerjaan Revitalisasi';
 
-        let namaSekolah = 'Sekolah Tidak Ditemukan';
-        if (Array.isArray(usersList)) {
-            const found = usersList.find(s => String(s.username || s.npsn || '').trim() === currentNpsn);
-            if (found) namaSekolah = found.nama_pengguna || found.nama_sekolah || namaSekolah;
-        }
+        const kurvaMeta = getSchoolMetaByNpsn(currentNpsn);
+        let namaSekolah = firstRow.nama_sekolah || kurvaMeta.nama || 'Sekolah Tidak Ditemukan';
         if (currentUser?.sekolah?.nama_sekolah) namaSekolah = currentUser.sekolah.nama_sekolah;
-        else if (firstRow.nama_sekolah) namaSekolah = firstRow.nama_sekolah;
+        const kurvaKecamatan = kurvaMeta.kecamatan && kurvaMeta.kecamatan !== '-' ? kurvaMeta.kecamatan : '-';
 
         const infoEl = document.getElementById('infoSekolahMenu');
-        if (infoEl) infoEl.innerHTML = `<strong>${escapeHtml(namaSekolah)}</strong> &nbsp;•&nbsp; NPSN ${escapeHtml(currentNpsn)} &nbsp;•&nbsp; ${escapeHtml(currentMenu)}`;
+        if (infoEl) infoEl.innerHTML = `<strong>${escapeHtml(namaSekolah)}</strong> &nbsp;•&nbsp; NPSN ${escapeHtml(currentNpsn)} &nbsp;•&nbsp; Kec. ${escapeHtml(kurvaKecamatan)} &nbsp;•&nbsp; ${escapeHtml(currentMenu)}`;
 
         const matchedPaket = paketList.find(p => getPaketId(p) === selectedPaketId && String(p.status_pagu || '').trim().toUpperCase() === 'DISETUJUI');
         const paguDisetujui = matchedPaket ? (Number(matchedPaket.pagu) || Number(matchedPaket.pagu_anggaran) || 0) : 0;
@@ -6370,10 +6554,10 @@ async function handleRegister(e) {
 
                 if (h.toLowerCase() === 'paket_id') {
                     let npsnKey = row.npsn || "";
-                    let matchedUser = usersList.find(u => String(u.username || u.npsn || '').trim() === String(npsnKey).trim());
-                    let namaUser = matchedUser ? (matchedUser.nama_pengguna || matchedUser.nama_sekolah) : "";
-                    if (namaUser) {
-                        val = `${val} (${namaUser})`;
+                    const metaPaket = getSchoolMetaByNpsn(npsnKey);
+                    if (metaPaket.npsn) {
+                        const kecPaket = metaPaket.kecamatan && metaPaket.kecamatan !== '-' ? ` · Kec. ${metaPaket.kecamatan}` : '';
+                        val = `${val} (${metaPaket.nama}${kecPaket})`;
                     }
                 }
 
@@ -6388,6 +6572,19 @@ async function handleRegister(e) {
                 }
 
                 const visualColumnKey = h.toLowerCase();
+
+                // SIMPLE V4: setiap NPSN selalu tampil bersama nama sekolah dan kecamatan.
+                const rawIdentityValue = row[h] !== undefined ? row[h] : '';
+                const looksLikeNpsnUsername =
+                    visualColumnKey === 'username' &&
+                    /^\d{6,12}$/.test(String(rawIdentityValue || '').trim());
+
+                if (visualColumnKey === 'npsn' || looksLikeNpsnUsername) {
+                    td.innerHTML = schoolIdentityHtml(rawIdentityValue);
+                    td.classList.add('sivit-npsn-cell');
+                    tr.appendChild(td);
+                    return;
+                }
 
                 if (['status', 'status_verifikasi', 'status_pagu'].includes(visualColumnKey)) {
                     td.innerHTML = '';
@@ -6767,7 +6964,7 @@ async function handleRegister(e) {
 
                         <table class="identitas">
                             <tr>
-                                <td>NPSN</td><td>${esc(targetNpsn)}</td>
+                                <td>NPSN</td><td>${esc(formatSchoolIdentityText(targetNpsn))}</td>
                                 <td>ID Paket</td><td>${esc(paketId)}</td>
                             </tr>
                             <tr>
@@ -7104,7 +7301,7 @@ async function handleRegister(e) {
 
                         <tr>
                             <td>NPSN</td>
-                            <td>${esc(targetNpsn)}</td>
+                            <td>${esc(formatSchoolIdentityText(targetNpsn))}</td>
 
                             <td>ID Paket</td>
                             <td>${esc(paketId)}</td>
@@ -7606,7 +7803,7 @@ async function cetakLaporanResmi(paketId, npsn) {
                 <div class="mb-6 grid grid-cols-2 gap-4 text-xs bg-gray-50 p-4 rounded-lg border border-gray-200">
                     <div>
                         <table class="w-full">
-                            <tr><td class="font-semibold py-0.5 w-1/3">NPSN:</td><td>${targetNpsn}</td></tr>
+                            <tr><td class="font-semibold py-0.5 w-1/3">Sekolah:</td><td>${escapeHtml(formatSchoolIdentityText(targetNpsn))}</td></tr>
                             <tr><td class="font-semibold py-0.5">Nama Sekolah:</td><td>${namaSekolah}</td></tr>
                             <tr><td class="font-semibold py-0.5">Kecamatan:</td><td>${kecamatanSekolah}</td></tr>
                             <tr><td class="font-semibold py-0.5">Alamat:</td><td>${alamatSekolah}</td></tr>
@@ -8303,7 +8500,7 @@ async function cetakLaporanResmi(paketId, npsn) {
                 body += `
                     <section class="sekolah-block">
                         <div class="sekolah-header">
-                            <div class="npsn">NPSN: ${escapePrintHtml(npsn)}</div>
+                            <div class="npsn">${escapePrintHtml(formatSchoolIdentityText(npsn))}</div>
                             <div class="nama">${escapePrintHtml(namaSekolah)}</div>
                         </div>
 
@@ -8376,7 +8573,7 @@ async function cetakLaporanResmi(paketId, npsn) {
             });
 
             const scopeText = selectedNpsn
-                ? `NPSN ${escapePrintHtml(selectedNpsn)}`
+                ? escapePrintHtml(formatSchoolIdentityText(selectedNpsn))
                 : 'Seluruh NPSN';
 
             const menuText = selectedMenu
@@ -8590,7 +8787,7 @@ async function cetakLaporanResmi(paketId, npsn) {
                 body += `
                     <section class="sekolah-block">
                         <div class="sekolah-header">
-                            <div class="npsn">NPSN: ${escapePrintHtml(npsn)}</div>
+                            <div class="npsn">${escapePrintHtml(formatSchoolIdentityText(npsn))}</div>
                             <div class="nama">${escapePrintHtml(namaSekolah)}</div>
                         </div>
 
@@ -8613,7 +8810,7 @@ async function cetakLaporanResmi(paketId, npsn) {
             });
 
             const scopeText = selectedNpsn
-                ? `NPSN ${escapePrintHtml(selectedNpsn)}`
+                ? escapePrintHtml(formatSchoolIdentityText(selectedNpsn))
                 : 'Seluruh NPSN';
 
             const menuText = selectedMenu
@@ -10025,7 +10222,7 @@ async function bukaRiwayatPagu(npsn, paketId) {
             let dataRiwayat = (result.data || []).filter(r => String(r.paket_id || '').trim() === String(paketId).trim());
             
             let foundUser = usersList.find(u => String(u.username || u.npsn || '').trim() === String(npsn).trim());
-            infoNamaSekolah.innerText = foundUser ? `${npsn} - ${foundUser.nama_pengguna || foundUser.nama_sekolah}` : `NPSN: ${npsn}`;
+            infoNamaSekolah.innerText = formatSchoolIdentityText(npsn);
 
             let foundPaket = paketPekerjaanList.find(p => String(p.paket_id || '').trim() === String(paketId).trim());
             infoNamaMenu.innerText = foundPaket ? `Menu Pekerjaan: ${foundPaket.nama_menu} (ID: ${paketId})` : `ID Paket: ${paketId}`;
