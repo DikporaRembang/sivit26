@@ -1600,6 +1600,8 @@ td, th, label, p, span, a, button {
   }
 }
 
+</style>
+
 <style id="sivit-cream-brown-theme-patch8518">
 /* =========================================================
    PATCH 8.5.18 — CREAM / DARK BROWN VISUAL THEME
@@ -2184,6 +2186,8 @@ body {
 @media (max-width: 900px) {
   #printableArea .sivit-compact-data-table { min-width: 1180px !important; }
 }
+</style>
+
 <style id="sivit-responsive-hardening-v4">
 /* V4: mobile/tablet layout hardening; visual and lifecycle safeguards only. */
 html, body {
@@ -2266,6 +2270,8 @@ main,
         z-index: 2 !important;
     }
 }
+
+</style>
 
 <style id="sivit-dashboard-mobile-fix">
 /* =========================================================
@@ -2358,6 +2364,1040 @@ main,
     max-width: 100% !important;
     overflow-x: auto !important;
   }
+}
+</style>
+
+
+<style id="sivit-apple-clean-theme-v1">
+/* =========================================================
+   SIVIT26 — CLEAN PREMIUM UI
+   Terinspirasi estetika web modern Apple: ruang lega, kontras
+   bersih, tipografi sistem, lapisan kaca lembut, dan aksen biru.
+   Visual-only: alur data, logo, foto sekolah, dan animasi loader
+   tetap dipertahankan.
+   ========================================================= */
+
+:root {
+  --sivit-primary: #0071e3 !important;
+  --sivit-primary-dark: #005bb5 !important;
+  --sivit-primary-soft: #e8f2ff !important;
+  --sivit-bg: #f5f5f7 !important;
+  --sivit-surface: #ffffff !important;
+  --sivit-surface-soft: #fbfbfd !important;
+  --sivit-text: #1d1d1f !important;
+  --sivit-text-soft: #6e6e73 !important;
+  --sivit-border: rgba(0, 0, 0, .10) !important;
+  --sivit-success: #248a3d !important;
+  --sivit-warning: #b26a00 !important;
+  --sivit-danger: #d70015 !important;
+  --sivit-accent: #0071e3 !important;
+  --sivit-shadow: 0 1px 2px rgba(0,0,0,.03), 0 8px 24px rgba(0,0,0,.05) !important;
+  --sivit-shadow-lg: 0 18px 60px rgba(0,0,0,.13) !important;
+  --sivit-radius: 18px;
+  --sivit-radius-lg: 28px;
+}
+
+html, body {
+  background: var(--sivit-bg) !important;
+  color: var(--sivit-text) !important;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Arial, sans-serif !important;
+  letter-spacing: -0.01em;
+}
+
+body {
+  background:
+    radial-gradient(circle at 10% -10%, rgba(0,113,227,.07), transparent 28rem),
+    #f5f5f7 !important;
+}
+
+h1, h2, h3, h4, h5, h6,
+.section-title, .modal-title, .card-title,
+#modalTitle, #verifikasi-modal h3 {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif !important;
+  color: var(--sivit-text) !important;
+  letter-spacing: -0.035em !important;
+  font-weight: 700 !important;
+}
+
+button, input, select, textarea, table, th, td {
+  font-family: inherit !important;
+}
+
+/* ---------- AUTH / LOGIN ---------- */
+#authContainer {
+  min-height: 100vh !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: stretch !important;
+  justify-content: flex-start !important;
+  position: relative !important;
+  isolation: isolate !important;
+  overflow: hidden !important;
+  background: #f5f5f7 !important;
+}
+
+/* Matikan bidang dekoratif tema lama; foto sekolah tetap dipertahankan. */
+#authContainer::before {
+  content: none !important;
+}
+
+#authContainer::after {
+  content: "Membangun ruang belajar\Ayang nyaman dan berprestasi." !important;
+  white-space: pre !important;
+  position: absolute !important;
+  inset: 0 0 0 46% !important;
+  display: flex !important;
+  align-items: flex-end !important;
+  justify-content: flex-start !important;
+  padding: clamp(2rem, 6vw, 5rem) !important;
+  color: #ffffff !important;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif !important;
+  font-size: clamp(2rem, 4.2vw, 4.8rem) !important;
+  font-weight: 700 !important;
+  line-height: .98 !important;
+  letter-spacing: -.055em !important;
+  text-shadow: 0 2px 24px rgba(0,0,0,.35) !important;
+  background:
+    linear-gradient(180deg, rgba(8,8,10,.04) 35%, rgba(8,8,10,.66) 100%),
+    url("gambarsekolah.jpeg") center center / cover no-repeat !important;
+  clip-path: none !important;
+  z-index: 0 !important;
+  pointer-events: none !important;
+}
+
+#authContainer > div {
+  position: relative !important;
+  z-index: 2 !important;
+  width: min(46%, 620px) !important;
+  max-width: 620px !important;
+  min-height: 100vh !important;
+  margin: 0 !important;
+  padding: clamp(2rem, 5vw, 5.5rem) clamp(1.5rem, 4vw, 4.5rem) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  background: rgba(255,255,255,.94) !important;
+  color: var(--sivit-text) !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: 24px 0 64px rgba(0,0,0,.08) !important;
+  backdrop-filter: saturate(180%) blur(24px) !important;
+  -webkit-backdrop-filter: saturate(180%) blur(24px) !important;
+  clip-path: none !important;
+}
+
+#authContainer h1 {
+  color: #1d1d1f !important;
+  font-size: clamp(2rem, 3.2vw, 3rem) !important;
+  letter-spacing: -.055em !important;
+}
+
+#authContainer p,
+#authContainer label {
+  color: var(--sivit-text-soft) !important;
+}
+
+#authContainer .mt-3 {
+  background: #f5f5f7 !important;
+  border: 1px solid rgba(0,0,0,.06) !important;
+  color: var(--sivit-text) !important;
+  border-radius: 16px !important;
+}
+
+#authContainer .mt-3 p:first-child { color: var(--sivit-text) !important; }
+#authContainer .mt-3 p:last-child  { color: var(--sivit-text-soft) !important; }
+#authContainer .border-b { border-color: rgba(0,0,0,.08) !important; }
+
+#tabLogin, #tabRegister {
+  color: #86868b !important;
+  border-color: transparent !important;
+  font-weight: 600 !important;
+}
+#tabLogin {
+  color: #0071e3 !important;
+  border-color: #0071e3 !important;
+}
+#tabLogin:hover, #tabRegister:hover { color: #0071e3 !important; }
+
+#authContainer input {
+  height: 48px !important;
+  background: #ffffff !important;
+  color: #1d1d1f !important;
+  border: 1px solid #d2d2d7 !important;
+  border-radius: 12px !important;
+  box-shadow: inset 0 1px 0 rgba(0,0,0,.015) !important;
+}
+#authContainer input::placeholder { color: #a1a1a6 !important; }
+#authContainer input[readonly] { background: #f5f5f7 !important; color: #86868b !important; }
+#authContainer input:focus {
+  border-color: #0071e3 !important;
+  box-shadow: 0 0 0 4px rgba(0,113,227,.12) !important;
+  outline: none !important;
+}
+
+#formLogin button[type="submit"],
+#formRegister button[type="submit"] {
+  min-height: 46px !important;
+  background: #0071e3 !important;
+  color: #fff !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  box-shadow: none !important;
+  font-weight: 600 !important;
+}
+#formLogin button[type="submit"]:hover,
+#formRegister button[type="submit"]:hover { background: #0077ed !important; }
+#authContainer button:not([type="submit"]) { color: #6e6e73 !important; }
+#authContainer button:not([type="submit"]):hover { color: #0071e3 !important; }
+
+/* ---------- APP SHELL ---------- */
+#dashboardContainer {
+  min-height: 100vh !important;
+  background: #f5f5f7 !important;
+  color: #1d1d1f !important;
+}
+
+#dashboardContainer > header {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 70 !important;
+  min-height: 64px !important;
+  padding: .75rem clamp(1rem, 3vw, 2rem) !important;
+  background: rgba(255,255,255,.82) !important;
+  color: #1d1d1f !important;
+  border-bottom: 1px solid rgba(0,0,0,.08) !important;
+  box-shadow: 0 1px 0 rgba(255,255,255,.7) inset !important;
+  backdrop-filter: saturate(180%) blur(22px) !important;
+  -webkit-backdrop-filter: saturate(180%) blur(22px) !important;
+}
+
+#dashboardContainer > header h2 { color: #1d1d1f !important; letter-spacing: -.03em !important; }
+#dashboardContainer > header p { color: #6e6e73 !important; }
+#userNameDisplay { color: #1d1d1f !important; }
+#userNpsnDisplay { color: #6e6e73 !important; }
+
+#dashboardContainer header button:not([onclick="logout()"]) {
+  background: #f5f5f7 !important;
+  color: #1d1d1f !important;
+  border: 1px solid rgba(0,0,0,.07) !important;
+  border-radius: 999px !important;
+  box-shadow: none !important;
+}
+#dashboardContainer header button:not([onclick="logout()"]):hover {
+  background: #e8e8ed !important;
+  color: #0071e3 !important;
+}
+#dashboardContainer header button[onclick="logout()"] {
+  background: #f5f5f7 !important;
+  color: #d70015 !important;
+  border: 1px solid rgba(215,0,21,.12) !important;
+  border-radius: 999px !important;
+  box-shadow: none !important;
+}
+#dashboardContainer header button[onclick="logout()"]:hover { background: #fff1f2 !important; }
+
+/* ---------- SIDEBAR ---------- */
+#dashboardContainer aside,
+#appSidebar {
+  width: 250px !important;
+  background: rgba(255,255,255,.88) !important;
+  color: #1d1d1f !important;
+  border-right: 1px solid rgba(0,0,0,.07) !important;
+  box-shadow: none !important;
+  backdrop-filter: saturate(180%) blur(20px) !important;
+  -webkit-backdrop-filter: saturate(180%) blur(20px) !important;
+}
+#dashboardContainer aside p:first-child,
+#dashboardContainer .text-amber-400 { color: #6e6e73 !important; }
+#dashboardContainer .text-slate-300,
+#dashboardContainer .text-slate-400 { color: #86868b !important; }
+
+#sidebarMenuContainer button,
+#sidebarMenuContainer a {
+  width: 100% !important;
+  min-height: 42px !important;
+  padding: .65rem .8rem !important;
+  color: #424245 !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 12px !important;
+  font-weight: 600 !important;
+  transition: background .16s ease, color .16s ease, transform .16s ease !important;
+}
+#sidebarMenuContainer button:hover,
+#sidebarMenuContainer a:hover {
+  background: #f0f0f2 !important;
+  color: #1d1d1f !important;
+  transform: translateX(1px);
+}
+#sidebarMenuContainer .active,
+#sidebarMenuContainer button.active,
+#sidebarMenuContainer a.active {
+  background: #e8f2ff !important;
+  color: #0071e3 !important;
+}
+#sidebarMenuContainer i { color: currentColor !important; }
+
+/* ---------- MAIN / CARDS ---------- */
+#dashboardContainer main {
+  background: #f5f5f7 !important;
+  color: #1d1d1f !important;
+  padding: clamp(1rem, 2.4vw, 2rem) !important;
+}
+
+#sekolahIdentitasCard,
+#gisMapContainer,
+#filterDinasContainer,
+#printableArea,
+#kurvaSContainer,
+#dashboardDinasContainer > div,
+#dashboardDinasContainer section,
+.card,
+section.bg-white {
+  background: #ffffff !important;
+  color: #1d1d1f !important;
+  border: 1px solid rgba(0,0,0,.07) !important;
+  border-radius: 22px !important;
+  box-shadow: var(--sivit-shadow) !important;
+}
+
+#sekolahIdentitasCard {
+  padding: 1.25rem 1.4rem !important;
+  background: linear-gradient(180deg, #ffffff 0%, #fbfbfd 100%) !important;
+}
+#sekolahIdentitasCard h4,
+#sekolahIdentitasCard .text-amber-400 { color: #1d1d1f !important; }
+#sekolahIdentitasCard .text-slate-300 { color: #86868b !important; }
+#sekolahIdentitasCard .text-white { color: #1d1d1f !important; }
+#sekolahIdentitasCard span {
+  background: #e9f8ee !important;
+  color: #248a3d !important;
+  border-color: rgba(36,138,61,.15) !important;
+  border-radius: 999px !important;
+}
+
+#gisMapContainer h4,
+#filterDinasContainer h4,
+#kurvaSContainer h4,
+#contentTitle { color: #1d1d1f !important; }
+#gisMapContainer h4 i,
+#kurvaSContainer h4 i,
+#filterDinasContainer h4 { color: #0071e3 !important; }
+#gisMapContainer span,
+#contentSubtitle { color: #6e6e73 !important; }
+
+/* KPI cards built dynamically with Tailwind utilities */
+#dashboardDinasContainer .rounded-xl,
+#dashboardDinasContainer .rounded-lg {
+  background: #ffffff !important;
+  border-color: rgba(0,0,0,.07) !important;
+  border-radius: 20px !important;
+  box-shadow: 0 8px 28px rgba(0,0,0,.04) !important;
+}
+#dashboardDinasContainer .text-3xl,
+#dashboardDinasContainer .text-2xl,
+#dashboardDinasContainer .text-xl { color: #1d1d1f !important; }
+#dashboardDinasContainer .text-blue-600,
+#dashboardDinasContainer .text-indigo-600 { color: #0071e3 !important; }
+#dashboardDinasContainer .text-emerald-600,
+#dashboardDinasContainer .text-green-600 { color: #248a3d !important; }
+#dashboardDinasContainer .text-amber-600,
+#dashboardDinasContainer .text-orange-600 { color: #b26a00 !important; }
+
+/* ---------- TABLE ---------- */
+.overflow-x-auto {
+  border-radius: 16px !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+table {
+  background: #ffffff !important;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+}
+#tableHead,
+thead, th,
+#tableHead th {
+  background: #f5f5f7 !important;
+  color: #424245 !important;
+  border-color: rgba(0,0,0,.07) !important;
+  font-weight: 650 !important;
+  letter-spacing: .01em !important;
+}
+#tableHead th {
+  padding-top: .8rem !important;
+  padding-bottom: .8rem !important;
+}
+#tableBody tr,
+tbody tr { background: #ffffff !important; }
+#tableBody tr:nth-child(even),
+tbody tr:nth-child(even) { background: #fbfbfd !important; }
+#tableBody tr:hover,
+tbody tr:hover { background: #f2f7ff !important; }
+#tableBody td,
+tbody td {
+  color: #1d1d1f !important;
+  border-color: rgba(0,0,0,.055) !important;
+  font-weight: 500 !important;
+}
+
+/* ---------- FORMS ---------- */
+input, select, textarea,
+#formFieldsContainer input,
+#formFieldsContainer select,
+#formFieldsContainer textarea,
+#dataModal input, #dataModal select, #dataModal textarea,
+#verifikasi-modal input, #verifikasi-modal select, #verifikasi-modal textarea,
+#modalRiwayatPagu input, #modalRiwayatPagu select, #modalRiwayatPagu textarea {
+  background: #ffffff !important;
+  color: #1d1d1f !important;
+  border: 1px solid #d2d2d7 !important;
+  border-radius: 12px !important;
+  box-shadow: none !important;
+}
+input:focus, select:focus, textarea:focus,
+#formFieldsContainer input:focus,
+#formFieldsContainer select:focus,
+#formFieldsContainer textarea:focus {
+  border-color: #0071e3 !important;
+  box-shadow: 0 0 0 4px rgba(0,113,227,.11) !important;
+  outline: none !important;
+}
+input[readonly], input:disabled, select:disabled, textarea:disabled,
+#formFieldsContainer input[readonly] {
+  background: #f5f5f7 !important;
+  color: #86868b !important;
+}
+label,
+#formFieldsContainer label,
+#dataModal label,
+#verifikasi-modal label {
+  color: #424245 !important;
+  font-weight: 600 !important;
+  letter-spacing: .01em !important;
+}
+
+/* Tailwind gelap lama yang muncul di form dinamis */
+#formFieldsContainer .bg-blue-950\/60,
+#formFieldsContainer .bg-blue-950,
+#formFieldsContainer .bg-blue-900\/40,
+#formFieldsContainer .bg-gray-800 {
+  background: #f5f5f7 !important;
+  color: #1d1d1f !important;
+  border-color: #d2d2d7 !important;
+}
+#formFieldsContainer .text-blue-200,
+#formFieldsContainer .text-blue-300,
+#formFieldsContainer .text-amber-300,
+#formFieldsContainer .text-amber-400 { color: #6e6e73 !important; }
+
+/* ---------- BUTTONS ---------- */
+button, .btn, input[type="button"], input[type="submit"] {
+  border-radius: 999px !important;
+  font-weight: 600 !important;
+  transition: transform .15s ease, background .15s ease, box-shadow .15s ease !important;
+}
+button:active, .btn:active { transform: scale(.985); }
+
+.bg-blue-600, .bg-blue-700, .bg-blue-500,
+#kurvaSContainer button,
+#btnSaveModal {
+  background: #0071e3 !important;
+  color: #fff !important;
+  border-color: #0071e3 !important;
+}
+.hover\:bg-blue-700:hover,
+.hover\:bg-blue-800:hover,
+#kurvaSContainer button:hover,
+#btnSaveModal:hover { background: #0077ed !important; }
+
+.bg-emerald-600, .bg-green-600 { background: #248a3d !important; color: #fff !important; }
+.bg-amber-500, .bg-amber-600,
+#formFieldsContainer label[for^="fileInput_"] {
+  background: #f5f5f7 !important;
+  color: #0071e3 !important;
+  border: 1px solid rgba(0,113,227,.18) !important;
+}
+.bg-red-600, .bg-red-500 { background: #d70015 !important; color: #fff !important; }
+
+/* ---------- MODALS ---------- */
+#dataModal,
+#verifikasi-modal,
+#modalRiwayatPagu,
+.modal,
+[role="dialog"] {
+  background: rgba(0,0,0,.30) !important;
+  backdrop-filter: blur(18px) !important;
+  -webkit-backdrop-filter: blur(18px) !important;
+}
+#dataModal > div,
+#verifikasi-modal > div,
+#modalRiwayatPagu > div,
+.modal-content,
+[role="dialog"] > div {
+  background: rgba(255,255,255,.97) !important;
+  color: #1d1d1f !important;
+  border: 1px solid rgba(255,255,255,.7) !important;
+  border-radius: 24px !important;
+  box-shadow: 0 30px 90px rgba(0,0,0,.22) !important;
+}
+#dataModal .border-b, #dataModal .border-t,
+#verifikasi-modal .border-b,
+#modalRiwayatPagu .border-b { border-color: rgba(0,0,0,.08) !important; }
+
+#dataModal button[type="button"],
+#verifikasi-modal button[type="button"] {
+  background: #f5f5f7 !important;
+  color: #424245 !important;
+  border: 1px solid rgba(0,0,0,.07) !important;
+}
+#dataModal button[type="button"]:hover,
+#verifikasi-modal button[type="button"]:hover { background: #e8e8ed !important; }
+
+/* ---------- NOTIFICATION ---------- */
+#notifDropdown {
+  background: rgba(255,255,255,.96) !important;
+  color: #1d1d1f !important;
+  border: 1px solid rgba(0,0,0,.08) !important;
+  border-radius: 18px !important;
+  box-shadow: 0 20px 60px rgba(0,0,0,.16) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+}
+#notifDropdown .border-b { border-color: rgba(0,0,0,.07) !important; }
+#notifDropdown span:first-child { color: #1d1d1f !important; }
+#notifDropdown .text-blue-300,
+#notifListContainer { color: #6e6e73 !important; }
+#notifBadge { background: #d70015 !important; }
+
+/* ---------- LOADING ----------
+   Animasi/ring/logo tetap sama. Hanya permukaan dan warna diselaraskan. */
+#sivitLoading {
+  background: rgba(245,245,247,.78) !important;
+  backdrop-filter: blur(18px) !important;
+  -webkit-backdrop-filter: blur(18px) !important;
+}
+.sivit-loading-box {
+  background: rgba(255,255,255,.96) !important;
+  color: #1d1d1f !important;
+  border: 1px solid rgba(0,0,0,.07) !important;
+  border-radius: 26px !important;
+  box-shadow: 0 24px 70px rgba(0,0,0,.14) !important;
+}
+.sivit-loading-ring {
+  border-color: rgba(0,113,227,.13) !important;
+  border-top-color: #0071e3 !important;
+  border-right-color: #5ac8fa !important;
+  box-shadow: 0 0 16px rgba(0,113,227,.14) !important;
+}
+.sivit-loading-ring::before { border-color: rgba(0,113,227,.18) !important; }
+.sivit-loading-logo { background: #fff !important; box-shadow: 0 6px 20px rgba(0,0,0,.09) !important; }
+.sivit-loading-logo-wrap::after { background: radial-gradient(circle, rgba(0,113,227,.14), transparent 70%) !important; }
+.sivit-loading-text { color: #1d1d1f !important; }
+.sivit-loading-subtext { color: #86868b !important; }
+
+/* ---------- MISC ---------- */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #c7c7cc; border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: #a1a1a6; }
+
+.text-amber-400, .text-amber-300, .text-amber-500 { color: #0071e3 !important; }
+.text-blue-600, .text-blue-700, .text-blue-800 { color: #0071e3 !important; }
+.text-red-400, .text-red-500, .text-red-600 { color: #d70015 !important; }
+.text-green-500, .text-green-600 { color: #248a3d !important; }
+.text-yellow-500, .text-yellow-600 { color: #b26a00 !important; }
+.border-blue-500, .border-blue-600, .border-blue-700, .border-blue-800 { border-color: rgba(0,0,0,.10) !important; }
+.bg-blue-50, .bg-blue-100 { background: #e8f2ff !important; }
+
+/* ---------- RESPONSIVE ---------- */
+@media (max-width: 900px) {
+  #authContainer {
+    min-height: 100dvh !important;
+    display: block !important;
+    padding: 0 !important;
+    background: #fff !important;
+  }
+  #authContainer::after {
+    position: relative !important;
+    inset: auto !important;
+    width: 100% !important;
+    min-height: 32vh !important;
+    padding: 2rem 1.5rem !important;
+    display: flex !important;
+    align-items: flex-end !important;
+    font-size: clamp(1.7rem, 8vw, 3rem) !important;
+    background:
+      linear-gradient(180deg, rgba(0,0,0,.04), rgba(0,0,0,.55)),
+      url("gambarsekolah.jpeg") center center / cover no-repeat !important;
+  }
+  #authContainer > div {
+    width: 100% !important;
+    max-width: none !important;
+    min-height: auto !important;
+    padding: 2rem 1.25rem 2.5rem !important;
+    box-shadow: none !important;
+    background: #fff !important;
+  }
+  #dashboardContainer aside,
+  #appSidebar {
+    background: rgba(255,255,255,.97) !important;
+    box-shadow: 18px 0 50px rgba(0,0,0,.12) !important;
+  }
+  #dashboardContainer > header {
+    padding-left: .8rem !important;
+    padding-right: .8rem !important;
+  }
+  #dashboardContainer main { padding: .85rem !important; }
+  #sekolahIdentitasCard,
+  #gisMapContainer,
+  #filterDinasContainer,
+  #printableArea,
+  #kurvaSContainer { border-radius: 18px !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { scroll-behavior: auto !important; }
+}
+</style>
+
+
+<style id="sivit-premium-v2">
+/* =========================================================
+   SIVIT26 PREMIUM V2
+   Clean institutional interface inspired by premium product UI.
+   Visual-only enhancement: business logic, logos, school image,
+   and loading animation behavior are preserved.
+   ========================================================= */
+:root {
+  --v2-bg: #f5f5f7;
+  --v2-surface: rgba(255,255,255,.92);
+  --v2-surface-solid: #ffffff;
+  --v2-ink: #1d1d1f;
+  --v2-muted: #6e6e73;
+  --v2-faint: #86868b;
+  --v2-line: rgba(0,0,0,.075);
+  --v2-line-soft: rgba(0,0,0,.05);
+  --v2-blue: #0071e3;
+  --v2-blue-hover: #0077ed;
+  --v2-blue-soft: #eaf4ff;
+  --v2-green: #1f8f4e;
+  --v2-green-soft: #eaf8ef;
+  --v2-red: #c9342c;
+  --v2-red-soft: #fff0ef;
+  --v2-amber: #9a6700;
+  --v2-amber-soft: #fff7df;
+  --v2-shadow-card: 0 1px 2px rgba(0,0,0,.02), 0 12px 34px rgba(0,0,0,.055);
+  --v2-shadow-float: 0 24px 70px rgba(0,0,0,.16);
+}
+
+html { background: var(--v2-bg) !important; }
+body {
+  background:
+    radial-gradient(circle at 82% 0%, rgba(0,113,227,.055), transparent 26rem),
+    var(--v2-bg) !important;
+  color: var(--v2-ink) !important;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Header: quieter, airier, premium glass surface. */
+#dashboardContainer > header {
+  min-height: 70px !important;
+  background: rgba(250,250,252,.84) !important;
+  border-bottom-color: rgba(0,0,0,.065) !important;
+  box-shadow: 0 1px 0 rgba(255,255,255,.86) inset !important;
+  backdrop-filter: saturate(180%) blur(28px) !important;
+  -webkit-backdrop-filter: saturate(180%) blur(28px) !important;
+}
+#dashboardContainer > header h2 {
+  font-size: 1.08rem !important;
+  font-weight: 720 !important;
+  letter-spacing: -.035em !important;
+}
+#userNameDisplay { font-weight: 650 !important; }
+#userNpsnDisplay { font-size: .72rem !important; }
+
+/* Sidebar: flatter navigation, clearer selected state. */
+#dashboardContainer aside,
+#appSidebar {
+  background: rgba(251,251,253,.90) !important;
+  border-right-color: rgba(0,0,0,.065) !important;
+}
+#sidebarMenuContainer button,
+#sidebarMenuContainer a {
+  min-height: 44px !important;
+  padding: .72rem .85rem !important;
+  border-radius: 13px !important;
+  font-size: .79rem !important;
+  font-weight: 590 !important;
+}
+#sidebarMenuContainer button:hover,
+#sidebarMenuContainer a:hover {
+  background: rgba(0,0,0,.035) !important;
+  transform: none !important;
+}
+#sidebarMenuContainer .active,
+#sidebarMenuContainer button.active,
+#sidebarMenuContainer a.active {
+  background: var(--v2-blue-soft) !important;
+  color: var(--v2-blue) !important;
+  box-shadow: inset 0 0 0 1px rgba(0,113,227,.06) !important;
+}
+
+/* Main spacing and cards. */
+#dashboardContainer main {
+  padding: clamp(1rem, 2.5vw, 2.25rem) !important;
+}
+#printableArea,
+#sekolahIdentitasCard,
+#gisMapContainer,
+#filterDinasContainer,
+#kurvaSContainer,
+#dashboardDinasContainer > div,
+#dashboardDinasContainer section {
+  border: 1px solid var(--v2-line) !important;
+  border-radius: 24px !important;
+  box-shadow: var(--v2-shadow-card) !important;
+}
+#printableArea {
+  padding: clamp(1rem, 2vw, 1.55rem) !important;
+  overflow: hidden;
+}
+#printableArea > .flex:first-child {
+  margin-bottom: 1.2rem !important;
+  padding-bottom: 1rem !important;
+  border-bottom-color: var(--v2-line) !important;
+}
+#contentTitle {
+  color: var(--v2-ink) !important;
+  font-size: 1rem !important;
+  font-weight: 720 !important;
+  letter-spacing: -.025em !important;
+}
+#contentSubtitle {
+  margin-top: .18rem !important;
+  color: var(--v2-muted) !important;
+  font-size: .72rem !important;
+  font-weight: 500 !important;
+}
+
+/* Top-level page actions. */
+#actionButtonContainer {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  justify-content: flex-end !important;
+  gap: .5rem !important;
+}
+#actionButtonContainer button {
+  min-height: 36px !important;
+  padding: .5rem .9rem !important;
+  border-radius: 999px !important;
+  border: 1px solid var(--v2-line) !important;
+  box-shadow: none !important;
+  font-size: .73rem !important;
+  font-weight: 620 !important;
+  letter-spacing: -.005em !important;
+  white-space: nowrap !important;
+}
+#actionButtonContainer button:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 6px 14px rgba(0,0,0,.07) !important;
+}
+#actionButtonContainer button {
+  background: #ffffff !important;
+  color: #3a3a3c !important;
+}
+#actionButtonContainer button i { color: #0071e3 !important; }
+#actionButtonContainer button.bg-amber-500 {
+  background: #0071e3 !important;
+  color: #ffffff !important;
+  border-color: #0071e3 !important;
+}
+#actionButtonContainer button.bg-amber-500 i { color: #ffffff !important; }
+#actionButtonContainer button.bg-amber-500:hover {
+  background: #0077ed !important;
+}
+#actionButtonContainer button.bg-blue-700,
+#actionButtonContainer button.bg-emerald-600 {
+  background: #ffffff !important;
+  color: #3a3a3c !important;
+  border-color: var(--v2-line) !important;
+}
+
+/* Table shell. */
+#printableArea .overflow-x-auto {
+  border: 1px solid var(--v2-line) !important;
+  border-radius: 18px !important;
+  background: #fff !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  box-shadow: 0 1px 0 rgba(255,255,255,.8) inset !important;
+}
+#printableArea .sivit-compact-data-table {
+  min-width: 1180px !important;
+  border: 0 !important;
+  font-size: 11.5px !important;
+}
+#printableArea .sivit-compact-data-table[data-sheet="sekolah_pending"] {
+  min-width: 1040px !important;
+}
+#printableArea .sivit-compact-data-table[data-sheet="users"] {
+  min-width: 980px !important;
+}
+#printableArea .sivit-compact-data-table th {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  height: 42px !important;
+  padding: .72rem .72rem !important;
+  background: #f6f6f8 !important;
+  color: #515154 !important;
+  border-bottom: 1px solid var(--v2-line) !important;
+  font-size: 9.5px !important;
+  font-weight: 700 !important;
+  line-height: 1.15 !important;
+  letter-spacing: .055em !important;
+  text-transform: uppercase !important;
+  white-space: nowrap !important;
+}
+#printableArea .sivit-compact-data-table td {
+  height: 54px !important;
+  padding: .72rem .72rem !important;
+  color: #2b2b2f !important;
+  border-bottom: 1px solid var(--v2-line-soft) !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  line-height: 1.35 !important;
+  vertical-align: middle !important;
+}
+#printableArea .sivit-compact-data-table tbody tr {
+  background: #fff !important;
+  transition: background .14s ease !important;
+}
+#printableArea .sivit-compact-data-table tbody tr:nth-child(even) {
+  background: #fcfcfd !important;
+}
+#printableArea .sivit-compact-data-table tbody tr:hover {
+  background: #f5f9ff !important;
+}
+#printableArea .sivit-compact-data-table tbody tr:last-child td {
+  border-bottom: 0 !important;
+}
+
+/* School verification table gets useful widths instead of a huge password column. */
+.sivit-compact-data-table[data-sheet="sekolah_pending"] td[data-col="id"] { width: 110px; }
+.sivit-compact-data-table[data-sheet="sekolah_pending"] td[data-col="npsn"] { width: 120px; white-space: nowrap !important; }
+.sivit-compact-data-table[data-sheet="sekolah_pending"] td[data-col="nama_sekolah"] { min-width: 220px; max-width: 300px; }
+.sivit-compact-data-table[data-sheet="sekolah_pending"] td[data-col="status"] { width: 130px; text-align: center; }
+.sivit-compact-data-table[data-sheet="sekolah_pending"] td[data-col="tanggal_daftar"] { width: 135px; white-space: nowrap !important; text-align: center; }
+
+/* Status badges. */
+.sivit-status-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: .34rem !important;
+  min-height: 28px !important;
+  padding: .35rem .65rem !important;
+  border: 1px solid transparent !important;
+  border-radius: 999px !important;
+  font-size: 10px !important;
+  font-weight: 650 !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+}
+.sivit-status-badge i { font-size: 9px !important; }
+.sivit-status-badge.is-approved {
+  background: var(--v2-green-soft) !important;
+  color: #19733f !important;
+  border-color: rgba(31,143,78,.14) !important;
+}
+.sivit-status-badge.is-pending {
+  background: var(--v2-amber-soft) !important;
+  color: #8a5a00 !important;
+  border-color: rgba(154,103,0,.14) !important;
+}
+.sivit-status-badge.is-rejected {
+  background: var(--v2-red-soft) !important;
+  color: #b32720 !important;
+  border-color: rgba(201,52,44,.14) !important;
+}
+
+/* Action column + buttons: fixes vertical Setujui/Tolak wrapping. */
+.sivit-action-head,
+.sivit-action-cell {
+  text-align: center !important;
+  white-space: nowrap !important;
+}
+.sivit-action-head {
+  background: #f6f6f8 !important;
+}
+.sivit-action-cell {
+  min-width: 126px !important;
+}
+.sivit-compact-data-table[data-sheet="sekolah_pending"] .sivit-action-head,
+.sivit-compact-data-table[data-sheet="sekolah_pending"] .sivit-action-cell {
+  min-width: 176px !important;
+  width: 176px !important;
+}
+.sivit-action-cluster {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  width: auto !important;
+  max-width: 120px !important;
+  margin: 0 auto !important;
+}
+.sivit-action-cluster-wide {
+  flex-wrap: nowrap !important;
+  max-width: none !important;
+  width: 100% !important;
+  gap: 7px !important;
+}
+.sivit-action-button {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: .38rem !important;
+  min-width: 76px !important;
+  min-height: 34px !important;
+  padding: .45rem .7rem !important;
+  border-radius: 999px !important;
+  border: 1px solid transparent !important;
+  box-shadow: none !important;
+  font-size: 10.5px !important;
+  font-weight: 650 !important;
+  line-height: 1 !important;
+  letter-spacing: -.005em !important;
+  white-space: nowrap !important;
+  word-break: keep-all !important;
+  overflow-wrap: normal !important;
+  transition: transform .14s ease, background .14s ease, box-shadow .14s ease !important;
+}
+.sivit-action-button i { margin: 0 !important; font-size: 10px !important; }
+.sivit-action-button:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 5px 12px rgba(0,0,0,.075) !important;
+}
+.sivit-action-approve {
+  background: var(--v2-green-soft) !important;
+  color: #19733f !important;
+  border-color: rgba(31,143,78,.17) !important;
+}
+.sivit-action-approve:hover { background: #ddf4e6 !important; }
+.sivit-action-reject {
+  background: var(--v2-red-soft) !important;
+  color: #b32720 !important;
+  border-color: rgba(201,52,44,.17) !important;
+}
+.sivit-action-reject:hover { background: #ffe5e3 !important; }
+.sivit-action-review {
+  min-width: 92px !important;
+  background: var(--v2-blue-soft) !important;
+  color: var(--v2-blue) !important;
+  border-color: rgba(0,113,227,.15) !important;
+}
+.sivit-action-review:hover { background: #deefff !important; }
+
+/* Icon-only table actions. */
+.sivit-action-icon {
+  width: 34px !important;
+  height: 34px !important;
+  min-width: 34px !important;
+  flex: 0 0 34px !important;
+  padding: 0 !important;
+  border: 1px solid var(--v2-line) !important;
+  border-radius: 10px !important;
+  background: #f7f7f9 !important;
+  color: #3a3a3c !important;
+  box-shadow: none !important;
+  font-size: 11px !important;
+  transition: transform .14s ease, background .14s ease, box-shadow .14s ease !important;
+}
+.sivit-action-icon:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 5px 12px rgba(0,0,0,.07) !important;
+}
+.sivit-action-print { background: #edf8f1 !important; color: #19733f !important; border-color: rgba(31,143,78,.14) !important; }
+.sivit-action-history { background: #f0f7ff !important; color: #0066cc !important; border-color: rgba(0,102,204,.13) !important; }
+.sivit-action-approve-icon { background: var(--v2-green-soft) !important; color: #19733f !important; border-color: rgba(31,143,78,.14) !important; }
+.sivit-action-reject-icon { background: var(--v2-red-soft) !important; color: #b32720 !important; border-color: rgba(201,52,44,.14) !important; }
+.sivit-action-edit { background: #eef5ff !important; color: #0066cc !important; border-color: rgba(0,102,204,.13) !important; }
+
+.sivit-table-button {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: .38rem !important;
+  min-height: 32px !important;
+  padding: .4rem .72rem !important;
+  border-radius: 999px !important;
+  border: 1px solid rgba(0,113,227,.14) !important;
+  background: var(--v2-blue-soft) !important;
+  color: var(--v2-blue) !important;
+  box-shadow: none !important;
+  font-size: 10.5px !important;
+  font-weight: 620 !important;
+  white-space: nowrap !important;
+}
+.sivit-table-button:hover { background: #deefff !important; }
+
+/* Inputs and modals: quieter borders, clearer focus. */
+input, select, textarea,
+#formFieldsContainer input,
+#formFieldsContainer select,
+#formFieldsContainer textarea {
+  border-radius: 13px !important;
+  border-color: #d6d6db !important;
+}
+input:focus, select:focus, textarea:focus {
+  border-color: var(--v2-blue) !important;
+  box-shadow: 0 0 0 4px rgba(0,113,227,.10) !important;
+}
+#dataModal > div,
+#verifikasi-modal > div,
+#modalRiwayatPagu > div {
+  border-radius: 26px !important;
+  border-color: rgba(255,255,255,.85) !important;
+  box-shadow: var(--v2-shadow-float) !important;
+}
+
+/* Explicitly preserve loader motion and identity images. */
+#sivitLoading .sivit-loading-ring,
+#sivitLoading .sivit-loading-ring::before,
+#sivitLoading .sivit-loading-logo,
+#sivitLoading .sivit-loading-logo-wrap::after,
+#sivitLoading .sivit-loading-text::after {
+  animation-play-state: running !important;
+}
+img[src*="bidangsd.png"],
+img[src*="logorembang.png"],
+img[src*="logopendidikan.png"] {
+  object-fit: contain !important;
+}
+
+/* Responsive polish. */
+@media (max-width: 1100px) {
+  #printableArea .sivit-compact-data-table { min-width: 1020px !important; }
+  #printableArea .sivit-compact-data-table[data-sheet="sekolah_pending"] { min-width: 920px !important; }
+}
+@media (max-width: 768px) {
+  #dashboardContainer main { padding: .8rem !important; }
+  #printableArea { padding: .85rem !important; border-radius: 19px !important; }
+  #printableArea > .flex:first-child { align-items: flex-start !important; }
+  #actionButtonContainer { justify-content: flex-start !important; width: 100% !important; }
+  #actionButtonContainer button { min-height: 34px !important; font-size: .7rem !important; }
+  #printableArea .sivit-compact-data-table { min-width: 860px !important; }
+  #printableArea .sivit-compact-data-table[data-sheet="sekolah_pending"] { min-width: 820px !important; }
+  .sivit-action-button { min-height: 36px !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sivit-action-button,
+  .sivit-action-icon,
+  #actionButtonContainer button { transition: none !important; }
 }
 </style>
 
@@ -3200,7 +4240,7 @@ function togglePasswordVisibility(inputId, iconId) {
 
             if (loginSucceeded && authenticatedUser) {
                 currentUser = authenticatedUser;
-                sessionStorage.setItem('sivit_user', JSON.stringify(currentUser));
+                localStorage.setItem('sivit_user', JSON.stringify(currentUser));
                 await Promise.resolve(initDashboard(true));
                 return true;
             }
@@ -3356,7 +4396,7 @@ async function handleRegister(e) {
 
     function handleSessionExpired(response) {
         if (response && response.status === 'error' && /sesi login|token sesi|login kembali/i.test(response.pesan || '')) {
-            sessionStorage.removeItem('sivit_user');
+            localStorage.removeItem('sivit_user');
             currentUser = null;
             const auth = document.getElementById('authContainer');
             const dash = document.getElementById('dashboardContainer');
@@ -3379,7 +4419,7 @@ async function handleRegister(e) {
         } catch (err) {
             console.warn('Logout server gagal:', err);
         } finally {
-            sessionStorage.removeItem('sivit_user');
+            localStorage.removeItem('sivit_user');
             currentUser = null;
             clearSivitScreenTransition();
             applyScreenVisibility('auth');
@@ -3389,7 +4429,7 @@ async function handleRegister(e) {
     window.onload = function() {
         applyScreenVisibility('auth');
         try {
-            const saved = sessionStorage.getItem('sivit_user');
+            const saved = localStorage.getItem('sivit_user');
 
             if (saved) {
                 currentUser = JSON.parse(saved);
@@ -3397,13 +4437,13 @@ async function handleRegister(e) {
                if (currentUser && currentUser.username && currentUser.token) {
                     initDashboard();
                 } else {
-                    sessionStorage.removeItem('sivit_user');
+                    localStorage.removeItem('sivit_user');
                     currentUser = null;
                 }
             }
         } catch (error) {
             console.error('Session login rusak:', error);
-            sessionStorage.removeItem('sivit_user');
+            localStorage.removeItem('sivit_user');
             currentUser = null;
         }
 
@@ -4142,7 +5182,7 @@ async function handleRegister(e) {
 
         try {
             let targetSheet = sheetName === 'kurva_s' ? 'laporan_progres' : sheetName;
-            let res = await fetch(`${WEB_APP_URL}?token=${encodeURIComponent(currentUser?.token || "")}&action=getData&sheet=${encodeURIComponent(targetSheet)}`);
+            let res = await fetch(`${WEB_APP_URL}?token=${encodeURIComponent(currentUser?.token || "")}&action=getData&sheet=${targetSheet}&role=${currentUser.role}&npsn=${encodeURIComponent(currentUser.username)}`);
             let result = await res.json();
 
             if (result.status === 'success') {
@@ -4224,7 +5264,7 @@ async function handleRegister(e) {
                     renderKurvaSChart();
                 }
             } else {
-                bodyEl.innerHTML = `<tr><td colspan="10" class="text-center p-4 text-red-500 text-xs">${escapeHtml(result.message || 'Gagal memuat data')}</td></tr>`;
+                bodyEl.innerHTML = `<tr><td colspan="10" class="text-center p-4 text-red-500 text-xs">${result.message || 'Gagal memuat data'}</td></tr>`;
                 const subtitleEl = document.getElementById('contentSubtitle');
                 if (subtitleEl) subtitleEl.innerText = result.message || 'Gagal memuat data.';
             }
@@ -4410,7 +5450,7 @@ async function handleRegister(e) {
 
         const infoEl = document.getElementById('infoSekolahMenu');
         if (infoEl) {
-            infoEl.innerHTML = `<strong>Nama Sekolah:</strong> ${escapeHtml(namaSekolah)} (NPSN: ${escapeHtml(currentNpsn)}) &bull; <strong>Menu:</strong> ${escapeHtml(currentMenu)}`;
+            infoEl.innerHTML = `<strong>Nama Sekolah:</strong> ${namaSekolah} (NPSN: ${currentNpsn}) &bull; <strong>Menu:</strong> ${currentMenu}`;
         }
 
         // Pagu hanya boleh berasal dari paket yang sudah DISETUJUI DINAS.
@@ -4597,6 +5637,10 @@ async function handleRegister(e) {
         headEl.innerHTML = "";
         bodyEl.innerHTML = "";
 
+        // PREMIUM V2: tandai tabel aktif agar ukuran/aksi dapat disesuaikan per sheet.
+        const activeTable = headEl ? headEl.closest('table') : null;
+        if (activeTable) activeTable.dataset.sheet = String(sheetName || '').toLowerCase();
+
         let showActionColumn = true;
         if (sheetName === 'sekolah' && currentUser.role === 'SEKOLAH') showActionColumn = false;
         if (sheetName === 'kurva_s' || sheetName === 'peta_gis') showActionColumn = false;
@@ -4608,6 +5652,12 @@ async function handleRegister(e) {
         // Laporan Progres perlu menampilkan NAMA MENU PEKERJAAN
         // agar paket_id tidak berdiri sendiri dan mudah dikenali.
         let displayHeaders = [...headers];
+
+        // PREMIUM V2: kredensial tidak pernah perlu ditampilkan pada tabel antarmuka.
+        // Data tetap berada di backend/database; hanya kolom visualnya disembunyikan.
+        displayHeaders = displayHeaders.filter(h =>
+            String(h || '').trim().toLowerCase() !== 'password'
+        );
 
         // PATCH 8.5.2: Rekap DINAS menampilkan nama sekolah berdasarkan NPSN.
         const isRekapDinas = currentUser && currentUser.role === 'DINAS' &&
@@ -4657,7 +5707,8 @@ async function handleRegister(e) {
 
         if (showActionColumn) {
             let thAct = document.createElement('th');
-            thAct.className = "p-2 text-center whitespace-nowrap w-[76px]";
+            thAct.className = "sivit-action-head p-2 text-center whitespace-nowrap";
+            thAct.style.minWidth = sheetName === 'sekolah_pending' ? '176px' : '126px';
             thAct.innerText = "AKSI";
             trHead.appendChild(thAct);
         }
@@ -4724,16 +5775,34 @@ async function handleRegister(e) {
                     }
                 }
 
-                if (
+                const visualColumnKey = h.toLowerCase();
+
+                if (['status', 'status_verifikasi', 'status_pagu'].includes(visualColumnKey)) {
+                    td.innerHTML = '';
+                    const badge = document.createElement('span');
+                    const normalizedStatus = String(val || 'DIAJUKAN').trim().toUpperCase();
+                    badge.className = 'sivit-status-badge';
+                    if (normalizedStatus === 'DISETUJUI' || normalizedStatus === 'APPROVED') {
+                        badge.classList.add('is-approved');
+                        badge.innerHTML = '<i class="fa-solid fa-circle-check"></i><span>Disetujui</span>';
+                    } else if (normalizedStatus === 'DITOLAK' || normalizedStatus === 'REJECTED') {
+                        badge.classList.add('is-rejected');
+                        badge.innerHTML = '<i class="fa-solid fa-circle-xmark"></i><span>Ditolak</span>';
+                    } else {
+                        badge.classList.add('is-pending');
+                        badge.innerHTML = '<i class="fa-solid fa-clock"></i><span>Diajukan</span>';
+                    }
+                    td.appendChild(badge);
+                } else if (
                     sheetName === 'laporan_progres' &&
-                    h.toLowerCase() === 'foto_dokumentasi' &&
+                    visualColumnKey === 'foto_dokumentasi' &&
                     String(row[h] || '').trim() !== ''
                 ) {
                     td.innerHTML = '';
 
                     let btnFoto = document.createElement('button');
                     btnFoto.type = 'button';
-                    btnFoto.className = 'px-2.5 py-1 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-lg text-[11px] font-bold border border-blue-300 cursor-pointer';
+                    btnFoto.className = 'sivit-table-button sivit-table-button-primary px-2.5 py-1 cursor-pointer';
                     btnFoto.innerHTML = '<i class="fa-solid fa-image mr-1"></i> Lihat Foto';
 
                     btnFoto.onclick = function() {
@@ -4776,28 +5845,30 @@ async function handleRegister(e) {
 
             if (showActionColumn) {
                 let tdAct = document.createElement('td');
-                tdAct.className = "p-2 text-center align-middle";
+                tdAct.className = "sivit-action-cell p-2 text-center align-middle";
                 
                 let btnGroup = document.createElement('div');
-                btnGroup.className = "sivit-action-cluster";
+                btnGroup.className = sheetName === 'sekolah_pending'
+                    ? "sivit-action-cluster sivit-action-cluster-wide"
+                    : "sivit-action-cluster";
                 tdAct.appendChild(btnGroup);
 
                 if (sheetName === 'sekolah_pending') {
                     let btnApprove = document.createElement('button');
-                    btnApprove.className = "px-2.5 py-1 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 rounded-lg text-[11px] font-bold border border-emerald-300 cursor-pointer shadow-xs";
+                    btnApprove.className = "sivit-action-button sivit-action-approve cursor-pointer";
                     btnApprove.innerHTML = `<i class="fa-solid fa-check mr-1"></i> Setujui`;
                     btnApprove.onclick = () => verifyReg(row.username || row.npsn, 'DISETUJUI');
                     btnGroup.appendChild(btnApprove);
 
                     let btnReject = document.createElement('button');
-                    btnReject.className = "px-2.5 py-1 bg-red-100 hover:bg-red-200 text-red-800 rounded-lg text-[11px] font-bold border border-red-300 cursor-pointer shadow-xs";
+                    btnReject.className = "sivit-action-button sivit-action-reject cursor-pointer";
                     btnReject.innerHTML = `<i class="fa-solid fa-xmark mr-1"></i> Tolak`;
                     btnReject.onclick = () => verifyReg(row.username || row.npsn, 'DITOLAK');
                     btnGroup.appendChild(btnReject);
                 } else {
                     if (sheetName === 'paket_pekerjaan_sd') {
                         let btnCetakPDF = document.createElement('button');
-                        btnCetakPDF.className = "sivit-action-icon bg-emerald-700 hover:bg-emerald-800 text-white font-bold border border-emerald-600 cursor-pointer shadow-xs";
+                        btnCetakPDF.className = "sivit-action-icon sivit-action-print cursor-pointer";
                         btnCetakPDF.innerHTML = `<i class="fa-solid fa-print"></i><span class="sivit-action-text-hidden">Cetak PDF</span>`;
                         btnCetakPDF.title = "Cetak PDF";
                         btnCetakPDF.setAttribute("aria-label", "Cetak PDF");
@@ -4805,7 +5876,7 @@ async function handleRegister(e) {
                         btnGroup.appendChild(btnCetakPDF);
 
                         let btnRiwayat = document.createElement('button');
-                        btnRiwayat.className = "sivit-action-icon bg-cyan-100 hover:bg-cyan-200 text-cyan-900 font-bold border border-cyan-300 cursor-pointer shadow-xs";
+                        btnRiwayat.className = "sivit-action-icon sivit-action-history cursor-pointer";
                         btnRiwayat.innerHTML = `<i class="fa-solid fa-clock-rotate-left"></i><span class="sivit-action-text-hidden">Riwayat Pagu</span>`;
                         btnRiwayat.title = "Riwayat Pagu";
                         btnRiwayat.setAttribute("aria-label", "Riwayat Pagu");
@@ -4816,14 +5887,14 @@ async function handleRegister(e) {
                             let statusPagu = String(row.status_pagu || '').trim().toUpperCase();
                             if (statusPagu === 'DIAJUKAN') {
                                 let btnApprovePagu = document.createElement('button');
-                                btnApprovePagu.className = "sivit-action-icon bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-bold border border-emerald-300 cursor-pointer shadow-xs";
+                                btnApprovePagu.className = "sivit-action-icon sivit-action-approve-icon cursor-pointer";
                                 btnApprovePagu.innerHTML = `<i class="fa-solid fa-check"></i><span class="sivit-action-text-hidden">Setujui Pagu</span>`;
                                 btnApprovePagu.title = "Setujui Pagu";
                                 btnApprovePagu.onclick = () => verifikasiPaguDinas(row.paket_id, 'DISETUJUI');
                                 btnGroup.appendChild(btnApprovePagu);
 
                                 let btnRejectPagu = document.createElement('button');
-                                btnRejectPagu.className = "sivit-action-icon bg-red-100 hover:bg-red-200 text-red-800 font-bold border border-red-300 cursor-pointer shadow-xs";
+                                btnRejectPagu.className = "sivit-action-icon sivit-action-reject-icon cursor-pointer";
                                 btnRejectPagu.innerHTML = `<i class="fa-solid fa-xmark"></i><span class="sivit-action-text-hidden">Tolak Pagu</span>`;
                                 btnRejectPagu.title = "Tolak Pagu";
                                 btnRejectPagu.onclick = () => verifikasiPaguDinas(row.paket_id, 'DITOLAK');
@@ -4834,7 +5905,7 @@ async function handleRegister(e) {
 
                     if (currentUser.role === 'DINAS' && sheetName === 'laporan_progres') {
                         let btnVerif = document.createElement('button');
-                        btnVerif.className = "px-2.5 py-1 bg-amber-100 hover:bg-amber-200 text-amber-900 rounded-lg text-[11px] font-bold border border-amber-300 cursor-pointer shadow-xs";
+                        btnVerif.className = "sivit-action-button sivit-action-review cursor-pointer";
                         btnVerif.innerHTML = `<i class="fa-solid fa-clipboard-check mr-1"></i> Verifikasi`;
                         let idLap = row.id || row.id_laporan || row.paket_id || Object.values(row)[0];
                         btnVerif.onclick = () => openVerifikasiModal(idLap);
@@ -4858,7 +5929,7 @@ async function handleRegister(e) {
 
                     if (allowEdit) {
                         let btnEdit = document.createElement('button');
-                        btnEdit.className = "sivit-action-icon bg-blue-100 hover:bg-blue-200 text-blue-900 font-bold border border-blue-300 cursor-pointer shadow-xs";
+                        btnEdit.className = "sivit-action-icon sivit-action-edit cursor-pointer";
                         btnEdit.innerHTML = `<i class="fa-solid fa-pen-to-square"></i>`;
                         btnEdit.title = "Edit";
                         btnEdit.setAttribute("aria-label", "Edit");
@@ -4880,7 +5951,7 @@ async function handleRegister(e) {
 
                     if (currentUser.role === 'DINAS' && sheetName !== 'users') {
                         let btnDel = document.createElement('button');
-                        btnDel.className = "sivit-action-icon bg-red-100 hover:bg-red-200 text-red-800 font-bold border border-red-300 cursor-pointer shadow-xs";
+                        btnDel.className = "sivit-action-icon sivit-action-reject-icon cursor-pointer";
                         btnDel.innerHTML = `<i class="fa-solid fa-trash"></i>`;
                         btnDel.title = "Hapus";
                         btnDel.setAttribute("aria-label", "Hapus");
@@ -8248,7 +9319,7 @@ async function handleFormSubmit(e) {
             }
 
             if (typeof loadTableData === 'function') {
-                loadTableData(currentActiveSheet);
+                loadTableData(currentActiveSheet, document.getElementById('contentTitle')?.innerText || currentActiveSheet);
             }
         }
 
@@ -8290,7 +9361,7 @@ async function deleteRowData(rowIndex) {
         let result = await res.json();
         alert(result.pesan);
         if (result.status === 'success') {
-            loadTableData(currentActiveSheet);
+            loadTableData(currentActiveSheet, document.getElementById('contentTitle')?.innerText || currentActiveSheet);
         }
     } catch (err) {
         alert('Gagal menghapus data.');
@@ -8336,7 +9407,7 @@ async function bukaRiwayatPagu(npsn, paketId) {
     modal.classList.add('flex');
 
     try {
-        let res = await fetch(`${WEB_APP_URL}?token=${encodeURIComponent(currentUser?.token || "")}&action=getData&sheet=riwayat_pagu&npsn=${encodeURIComponent(npsn)}`);
+        let res = await fetch(`${WEB_APP_URL}?token=${encodeURIComponent(currentUser?.token || "")}&action=getData&sheet=riwayat_pagu&role=${currentUser.role}&npsn=${encodeURIComponent(npsn)}`);
         let result = await res.json();
         if (result.status === 'success') {
             let dataRiwayat = (result.data || []).filter(r => String(r.paket_id || '').trim() === String(paketId).trim());
@@ -8362,11 +9433,11 @@ async function bukaRiwayatPagu(npsn, paketId) {
 
                 tr.innerHTML = `
                     <td class="p-2.5 text-center">${idx + 1}</td>
-                    <td class="p-2.5">${escapeHtml(r.tanggal || r.timestamp || '-')}</td>
+                    <td class="p-2.5">${r.tanggal || r.timestamp || '-'}</td>
                     <td class="p-2.5 text-right">Rp ${Number(r.pagu_lama || 0).toLocaleString('id-ID')}</td>
                     <td class="p-2.5 text-right font-bold text-amber-300">Rp ${Number(r.pagu_baru || 0).toLocaleString('id-ID')}</td>
                     <td class="p-2.5 text-center font-semibold ${selisihColor}">${selisihStr}</td>
-                    <td class="p-2.5">${escapeHtml(r.keterangan || '-')}</td>
+                    <td class="p-2.5">${r.keterangan || '-'}</td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -8401,8 +9472,10 @@ if (currentUser && currentUser.role === 'SEKOLAH') {
         console.warn('NPSN sekolah belum tersedia pada data pengguna login.');
     }
 
-    document.getElementById('npsn-sekolah').value = npsnSekolah;
-    document.getElementById('nama-sekolah').value = namaSekolah;
+    const legacyNpsnInput = document.getElementById('npsn-sekolah');
+    const legacyNamaInput = document.getElementById('nama-sekolah');
+    if (legacyNpsnInput) legacyNpsnInput.value = npsnSekolah;
+    if (legacyNamaInput) legacyNamaInput.value = namaSekolah;
 }
 
     // PATCH8.5.13: pastikan form laporan khusus memiliki input minggu_ke numerik.
@@ -8535,8 +9608,9 @@ if (currentUser && currentUser.role === 'SEKOLAH') {
                 username: currentUser?.username || '',
                 npsn: currentUser?.username || '',
                 formData: {
-                    npsn: document.getElementById('npsn-sekolah').value,
-                    nama_sekolah: document.getElementById('nama-sekolah').value,
+                    paket_id: document.querySelector('#formTambahLaporan [name="paket_id"]')?.value || '',
+                    npsn: document.getElementById('npsn-sekolah')?.value || currentUser?.username || '',
+                    nama_sekolah: document.getElementById('nama-sekolah')?.value || currentUser?.nama_pengguna || '',
                     target_kurva_s: document.getElementById('target-kurva-s').value,
                     realisasi_fisik: document.getElementById('realisasi-fisik').value,
                     penggunaan_anggaran: document.getElementById('penggunaan-anggaran').value.replace(/\./g, ''),
