@@ -3401,6 +3401,351 @@ img[src*="logopendidikan.png"] {
 }
 </style>
 
+
+<style id="sivit-premium-v3-interactive">
+/* =========================================================
+   SIVIT26 PREMIUM V3 — INLINE GUIDE + INTERACTIVE MONITORING
+   Visual/interaction enhancement only; business flow preserved.
+   ========================================================= */
+:root {
+  --v3-blue: #0071e3;
+  --v3-blue-dark: #0057b8;
+  --v3-ink: #1d1d1f;
+  --v3-muted: #6e6e73;
+  --v3-line: rgba(0,0,0,.08);
+  --v3-surface: rgba(255,255,255,.92);
+  --v3-bg: #f5f5f7;
+  --v3-green: #22a06b;
+  --v3-amber: #b7791f;
+  --v3-red: #d92d20;
+}
+
+/* Embedded guide */
+#pdfGuideContainer {
+  background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(248,248,250,.96));
+  border: 1px solid var(--v3-line);
+  border-radius: 26px;
+  box-shadow: 0 18px 55px rgba(0,0,0,.08);
+  overflow: hidden;
+}
+#pdfGuideContainer .v3-guide-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  background: rgba(255,255,255,.88);
+  border-bottom: 1px solid var(--v3-line);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+}
+#pdfGuideContainer .v3-guide-title {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--v3-ink);
+}
+#pdfGuideContainer .v3-guide-title i {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 11px;
+  color: var(--v3-blue);
+  background: rgba(0,113,227,.09);
+}
+#pdfGuideFrame {
+  display: block;
+  width: 100%;
+  height: min(76vh, 920px);
+  min-height: 560px;
+  border: 0;
+  background: #fff;
+}
+#pdfGuideContainer.v3-fullscreen {
+  position: fixed !important;
+  inset: 14px !important;
+  z-index: 99990 !important;
+  margin: 0 !important;
+  border-radius: 24px !important;
+  box-shadow: 0 30px 100px rgba(0,0,0,.24) !important;
+}
+#pdfGuideContainer.v3-fullscreen #pdfGuideFrame {
+  height: calc(100vh - 86px);
+  min-height: 0;
+}
+
+.v3-icon-btn,
+.v3-seg-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 36px;
+  border: 1px solid rgba(0,0,0,.09);
+  border-radius: 999px;
+  padding: 8px 12px;
+  background: rgba(255,255,255,.94);
+  color: #3a3a3c;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  transition: transform .16s ease, box-shadow .16s ease, background .16s ease, color .16s ease;
+  cursor: pointer;
+}
+.v3-icon-btn:hover,
+.v3-seg-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 7px 18px rgba(0,0,0,.08);
+  background: #fff;
+}
+.v3-seg-btn.active {
+  background: var(--v3-ink);
+  color: #fff;
+  border-color: var(--v3-ink);
+}
+
+/* Kurva S */
+#kurvaSContainer {
+  position: relative;
+  overflow: hidden;
+  border-radius: 26px !important;
+  border: 1px solid var(--v3-line) !important;
+  background:
+    radial-gradient(circle at 88% 0%, rgba(0,113,227,.08), transparent 30%),
+    linear-gradient(180deg,#fff,#fbfbfd) !important;
+  box-shadow: 0 16px 45px rgba(0,0,0,.055) !important;
+  padding: 22px !important;
+}
+#kurvaSContainer::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto auto 0;
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.9), transparent);
+}
+#kurvaSKpi > div {
+  min-height: 82px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  padding: 13px 14px;
+  border: 1px solid rgba(0,0,0,.065);
+  border-radius: 17px;
+  background: rgba(255,255,255,.82);
+  box-shadow: 0 5px 18px rgba(0,0,0,.035);
+  text-align: left;
+}
+#kurvaSKpi > div span {
+  color: var(--v3-muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+#kurvaSKpi > div strong {
+  color: var(--v3-ink);
+  font-size: 18px;
+  letter-spacing: -.025em;
+}
+#kurvaSInsight {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: 15px;
+  border: 1px solid rgba(0,113,227,.12);
+  background: rgba(0,113,227,.055);
+  color: #324155;
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.5;
+}
+#kurvaSInsight[data-tone="warning"] {
+  border-color: rgba(183,121,31,.2);
+  background: rgba(183,121,31,.07);
+  color: #7c5416;
+}
+#kurvaSInsight[data-tone="good"] {
+  border-color: rgba(34,160,107,.18);
+  background: rgba(34,160,107,.065);
+  color: #176c4b;
+}
+.v3-chart-shell {
+  position: relative;
+  height: 390px;
+  width: 100%;
+  margin-top: 16px;
+  padding: 12px 8px 2px;
+  border-radius: 20px;
+  background: rgba(255,255,255,.68);
+  border: 1px solid rgba(0,0,0,.055);
+}
+.v3-chart-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+/* GIS */
+#gisMapContainer {
+  position: relative;
+  overflow: hidden;
+  border-radius: 28px !important;
+  border: 1px solid var(--v3-line) !important;
+  background: linear-gradient(180deg,#fff,#f9f9fb) !important;
+  box-shadow: 0 18px 55px rgba(0,0,0,.07) !important;
+  padding: 18px !important;
+}
+#gisMapContainer.v3-map-fullscreen {
+  position: fixed !important;
+  inset: 14px !important;
+  z-index: 99980 !important;
+  margin: 0 !important;
+  padding: 14px !important;
+  border-radius: 24px !important;
+}
+#gisMapContainer.v3-map-fullscreen #map {
+  height: calc(100vh - 190px) !important;
+}
+.v3-map-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0,1fr));
+  gap: 10px;
+  margin: 12px 0;
+}
+.v3-map-kpi {
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(0,0,0,.06);
+  background: rgba(255,255,255,.9);
+  box-shadow: 0 5px 18px rgba(0,0,0,.035);
+}
+.v3-map-kpi span {
+  display: block;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .045em;
+  font-weight: 750;
+  color: var(--v3-muted);
+}
+.v3-map-kpi strong {
+  display: block;
+  margin-top: 3px;
+  font-size: 19px;
+  color: var(--v3-ink);
+  letter-spacing: -.025em;
+}
+.v3-map-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 12px 0;
+}
+.v3-map-search {
+  position: relative;
+  flex: 1 1 250px;
+  max-width: 420px;
+}
+.v3-map-search i {
+  position: absolute;
+  left: 13px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #8e8e93;
+  pointer-events: none;
+}
+#gisSearchInput {
+  width: 100%;
+  min-height: 40px;
+  padding: 9px 14px 9px 37px;
+  border-radius: 999px !important;
+  border: 1px solid rgba(0,0,0,.1) !important;
+  background: rgba(255,255,255,.96) !important;
+  box-shadow: inset 0 1px 1px rgba(0,0,0,.015);
+  color: var(--v3-ink) !important;
+  font-size: 12px;
+}
+.v3-map-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+#map {
+  height: 540px !important;
+  border-radius: 22px !important;
+  border: 1px solid rgba(0,0,0,.08);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.4), 0 10px 28px rgba(0,0,0,.075) !important;
+  overflow: hidden;
+}
+.sivit-map-marker {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 50% 50% 50% 10px;
+  transform: rotate(-45deg);
+  border: 3px solid rgba(255,255,255,.98);
+  box-shadow: 0 6px 16px rgba(0,0,0,.22);
+}
+.sivit-map-marker > span {
+  transform: rotate(45deg);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 850;
+}
+.sivit-map-marker.is-approved { background: var(--v3-green); }
+.sivit-map-marker.is-pending { background: var(--v3-amber); }
+.sivit-map-marker.is-rejected { background: var(--v3-red); }
+.sivit-map-marker.is-other { background: var(--v3-blue); }
+.leaflet-popup-content-wrapper {
+  border-radius: 18px !important;
+  box-shadow: 0 16px 40px rgba(0,0,0,.16) !important;
+}
+.leaflet-popup-content { margin: 14px 16px !important; }
+.v3-popup-title { font-size: 13px; font-weight: 800; color: var(--v3-ink); margin-bottom: 3px; }
+.v3-popup-sub { color: var(--v3-muted); font-size: 11px; margin-bottom: 10px; }
+.v3-popup-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; font-size: 11px; }
+.v3-popup-grid div { padding: 7px 8px; border-radius: 9px; background: #f5f5f7; }
+.v3-popup-grid span { display: block; color: var(--v3-muted); font-size: 9px; text-transform: uppercase; font-weight: 750; }
+.v3-popup-grid strong { display:block; color:var(--v3-ink); margin-top:2px; }
+.v3-progress-track { height: 7px; border-radius: 999px; background: #e9e9ed; overflow:hidden; margin-top: 10px; }
+.v3-progress-fill { height:100%; border-radius:999px; background: linear-gradient(90deg,#0071e3,#64d2ff); }
+.v3-map-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  padding: 10px 2px 0;
+  color: var(--v3-muted);
+  font-size: 10px;
+  font-weight: 650;
+}
+.v3-map-legend span { display:inline-flex; align-items:center; gap:6px; }
+.v3-map-legend i { width:9px; height:9px; border-radius:50%; display:inline-block; }
+
+@media (max-width: 850px) {
+  .v3-map-summary { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  #map { height: 470px !important; }
+  #pdfGuideFrame { min-height: 500px; height: 72vh; }
+  .v3-chart-shell { height: 340px; }
+}
+@media (max-width: 520px) {
+  #kurvaSContainer, #gisMapContainer { padding: 14px !important; border-radius: 22px !important; }
+  .v3-map-summary { gap: 7px; }
+  .v3-map-kpi { padding: 10px; }
+  .v3-map-kpi strong { font-size: 16px; }
+  #map { height: 430px !important; border-radius: 17px !important; }
+  #pdfGuideFrame { min-height: 460px; height: 68vh; }
+  #pdfGuideContainer .v3-guide-toolbar { align-items:flex-start; }
+  #pdfGuideContainer .v3-guide-toolbar > div:last-child { flex-wrap:wrap; justify-content:flex-end; }
+}
+</style>
+
 </head>
 
 <body class="bg-gradient-to-br from-blue-950 via-blue-900 to-slate-900 min-h-screen text-white font-sans antialiased flex flex-col justify-between">
@@ -3600,11 +3945,46 @@ img[src*="logopendidikan.png"] {
 
             <!-- ================= KONTAINER PETA GIS ================= -->
             <div id="gisMapContainer" class="hidden mb-6 p-4 bg-slate-50 rounded-xl border border-slate-200">
-                <div class="flex justify-between items-center mb-3">
-                    <h4 class="font-bold text-sm text-slate-800"><i class="fa-solid fa-map-location-dot text-blue-900 mr-2"></i> Peta Persebaran Lokasi Revitalisasi SD Kabupaten Rembang</h4>
-                    <span class="text-xs text-slate-500 font-medium">Titik koordinat bersumber dari metadata EXIF foto / data sekolah</span>
+                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+                    <div>
+                        <div class="text-[10px] uppercase tracking-[.18em] font-extrabold text-blue-600 mb-1">Monitoring spasial</div>
+                        <h4 class="font-extrabold text-[17px] text-slate-900 tracking-tight"><i class="fa-solid fa-map-location-dot text-blue-600 mr-2"></i>Peta Persebaran Revitalisasi SD</h4>
+                        <p class="text-[11px] text-slate-500 mt-1">Titik dipadatkan per sekolah dan menampilkan laporan terbaru yang memiliki koordinat valid.</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button type="button" onclick="resetGisView()" class="v3-icon-btn" title="Tampilkan semua titik"><i class="fa-solid fa-expand"></i><span>Semua Titik</span></button>
+                        <button type="button" onclick="toggleGisFullscreen()" class="v3-icon-btn" title="Perbesar peta"><i class="fa-solid fa-up-right-and-down-left-from-center"></i><span>Layar Penuh</span></button>
+                    </div>
                 </div>
-                <div id="map" style="height: 450px; width: 100%;" class="rounded-lg shadow-inner z-10"></div>
+
+                <div class="v3-map-summary">
+                    <div class="v3-map-kpi"><span>Sekolah bertitik</span><strong id="gisKpiTotal">0</strong></div>
+                    <div class="v3-map-kpi"><span>Disetujui</span><strong id="gisKpiApproved">0</strong></div>
+                    <div class="v3-map-kpi"><span>Diajukan</span><strong id="gisKpiPending">0</strong></div>
+                    <div class="v3-map-kpi"><span>Rata fisik</span><strong id="gisKpiProgress">0%</strong></div>
+                </div>
+
+                <div class="v3-map-toolbar">
+                    <div class="v3-map-search">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input id="gisSearchInput" type="search" placeholder="Cari NPSN atau nama sekolah..." oninput="applyGisFilter()">
+                    </div>
+                    <div class="v3-map-filter-row" id="gisStatusFilters">
+                        <button type="button" class="v3-seg-btn active" data-gis-filter="ALL" onclick="setGisStatusFilter('ALL', this)">Semua</button>
+                        <button type="button" class="v3-seg-btn" data-gis-filter="DISETUJUI" onclick="setGisStatusFilter('DISETUJUI', this)">Disetujui</button>
+                        <button type="button" class="v3-seg-btn" data-gis-filter="DIAJUKAN" onclick="setGisStatusFilter('DIAJUKAN', this)">Diajukan</button>
+                        <button type="button" class="v3-seg-btn" data-gis-filter="DITOLAK" onclick="setGisStatusFilter('DITOLAK', this)">Ditolak</button>
+                    </div>
+                </div>
+
+                <div id="map" style="height: 540px; width: 100%;" class="rounded-lg shadow-inner z-10"></div>
+                <div class="v3-map-legend">
+                    <span><i style="background:#22a06b"></i>Disetujui</span>
+                    <span><i style="background:#b7791f"></i>Diajukan</span>
+                    <span><i style="background:#d92d20"></i>Ditolak</span>
+                    <span><i style="background:#0071e3"></i>Status lain</span>
+                    <span class="ml-auto" id="gisFilterInfo">0 titik ditampilkan</span>
+                </div>
             </div>
             <!-- ======================================================= -->
 
@@ -3812,6 +4192,30 @@ img[src*="logopendidikan.png"] {
                 </div>
             </div>
 
+
+            <!-- ================= INLINE PDF GUIDE — PREMIUM V3 ================= -->
+            <section id="pdfGuideContainer" class="hidden mb-6" aria-label="Petunjuk Penggunaan SIVIT26">
+                <div class="v3-guide-toolbar">
+                    <div class="v3-guide-title">
+                        <i class="fa-solid fa-book-open"></i>
+                        <div class="min-w-0">
+                            <div class="text-[10px] uppercase tracking-[.16em] font-extrabold text-blue-600">Bantuan</div>
+                            <div class="text-sm font-extrabold truncate">Petunjuk Penggunaan SIVIT26 2026</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button type="button" class="v3-icon-btn" onclick="reloadPanduanFeed()" title="Muat ulang PDF"><i class="fa-solid fa-rotate-right"></i><span class="hidden sm:inline">Muat Ulang</span></button>
+                        <button type="button" class="v3-icon-btn" onclick="togglePanduanFullscreen()" title="Perbesar viewer"><i class="fa-solid fa-up-right-and-down-left-from-center"></i><span class="hidden sm:inline">Layar Penuh</span></button>
+                        <button type="button" class="v3-icon-btn" onclick="tutupPanduanFeed()" title="Tutup petunjuk"><i class="fa-solid fa-xmark"></i><span class="hidden sm:inline">Tutup</span></button>
+                    </div>
+                </div>
+                <iframe id="pdfGuideFrame" title="Petunjuk Penggunaan SIVIT26 2026" loading="lazy"></iframe>
+                <div class="px-4 py-3 text-[10px] text-slate-500 bg-white/70 border-t border-slate-200">
+                    PDF ditampilkan di dalam feed aplikasi. Jika browser membatasi viewer PDF tertanam, gunakan tombol muat ulang atau browser desktop terbaru.
+                </div>
+            </section>
+            <!-- ================================================================= -->
+
             <div id="printableArea" class="bg-white rounded-xl border border-slate-300 shadow-xs p-6 text-slate-900">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-200">
                     <div>
@@ -3825,9 +4229,14 @@ img[src*="logopendidikan.png"] {
                 <div id="kurvaSContainer" class="hidden mb-6 p-4 bg-slate-50 rounded-xl border border-slate-200">
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3 gap-2">
                         <h4 class="font-bold text-sm text-slate-800"><i class="fa-solid fa-chart-line text-blue-900 mr-2"></i> Grafik Kurva S (Progres Fisik, Target, & Anggaran %)</h4>
-                        <button onclick="eksporGrafikJPEG()" class="bg-blue-900 hover:bg-blue-800 text-amber-400 font-bold px-3 py-1.5 rounded-lg text-xs shadow-sm flex items-center space-x-1.5 cursor-pointer border border-amber-400/40 transition-all">
-                            <i class="fa-solid fa-file-image"></i><span>Ekspor Grafik ke JPEG</span>
-                        </button>
+                        <div class="v3-chart-controls">
+                            <button type="button" class="v3-seg-btn active" data-kurva-mode="all" onclick="setKurvaSeriesMode('all', this)">Semua</button>
+                            <button type="button" class="v3-seg-btn" data-kurva-mode="physical" onclick="setKurvaSeriesMode('physical', this)">Target & Fisik</button>
+                            <button type="button" class="v3-seg-btn" data-kurva-mode="budget" onclick="setKurvaSeriesMode('budget', this)">Anggaran</button>
+                            <button onclick="eksporGrafikJPEG()" class="v3-icon-btn" title="Simpan grafik sebagai JPEG">
+                                <i class="fa-solid fa-arrow-down-to-line"></i><span>Ekspor JPEG</span>
+                            </button>
+                        </div>
                     </div>
                     
                     <!-- HEADER KETERANGAN GRAFIK -->
@@ -3841,11 +4250,12 @@ img[src*="logopendidikan.png"] {
                     </div>
                     <p id="infoSekolahMenu" class="text-muted m-0" style="font-size: 13px; color: #555;"></p>
                     <div id="kurvaSKpi" class="grid grid-cols-2 sm:grid-cols-5 gap-2 mt-3 text-xs"></div>
+                    <div id="kurvaSInsight" class="hidden"></div>
                     <div id="kurvaSWarning" class="hidden mt-3 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800"></div>
                     </div>
 
-                    <!-- KONTAINER KANVAS DENGAN TINGGI TETAP -->
-                    <div style="position: relative; height: 350px; width: 100%;">
+                    <!-- KONTAINER KANVAS INTERAKTIF -->
+                    <div class="v3-chart-shell">
                         <canvas id="chartKurvaS"></canvas>
                     </div>
                 </div>
@@ -4001,6 +4411,12 @@ function toggleMobileSidebar() {
     let usersList = [];
     let chartKurvaSInstance = null;
     let leafletMap = null;
+    let gisMarkersLayer = null;
+    let gisAllPoints = [];
+    let gisLastBounds = null;
+    let gisStatusFilter = 'ALL';
+    let kurvaSeriesMode = 'all';
+    const PANDUAN_SIVIT26_URL = 'https://dikporarembang.github.io/sivit26/Panduan_Penggunaan_SIVIT26_2026.pdf';
 
     function convertToInputDate(val) {
         if (!val) return new Date().toISOString().split('T')[0];
@@ -4713,13 +5129,12 @@ async function handleRegister(e) {
         helpSubmenu.className = 'hidden px-2 pb-2 space-y-1';
         helpSubmenu.dataset.sivitSubmenu = 'true';
 
-        const panduanLink = document.createElement('a');
-        panduanLink.href = 'https://dikporarembang.github.io/sivit26/Panduan_Penggunaan_SIVIT26_2026.pdf';
-        panduanLink.target = '_blank';
-        panduanLink.rel = 'noopener noreferrer';
+        const panduanLink = document.createElement('button');
+        panduanLink.type = 'button';
         panduanLink.className = 'w-full flex items-center space-x-2.5 px-3 py-2 rounded-xl text-left font-semibold text-amber-300 hover:bg-blue-900/60 hover:text-amber-200 transition-all text-xs cursor-pointer';
         panduanLink.innerHTML = '<i class="fa-solid fa-book-open w-4 text-center"></i><span>Petunjuk Penggunaan</span>';
-        panduanLink.title = 'Buka Panduan Penggunaan SIVIT26 2026';
+        panduanLink.title = 'Tampilkan Panduan Penggunaan SIVIT26 2026 di feed';
+        panduanLink.onclick = () => showPanduanFeed();
         helpSubmenu.appendChild(panduanLink);
 
         helpToggle.onclick = () => {
@@ -5033,7 +5448,62 @@ async function handleRegister(e) {
         }
     }
 
+
+    function showPanduanFeed() {
+        const guide = document.getElementById('pdfGuideContainer');
+        const frame = document.getElementById('pdfGuideFrame');
+        const printable = document.getElementById('printableArea');
+        const map = document.getElementById('gisMapContainer');
+        const filter = document.getElementById('filterDinasContainer');
+        const dash = document.getElementById('dashboardDinasContainer');
+        const formLaporan = document.getElementById('formLaporanCard');
+        if (!guide || !frame) return;
+
+        currentActiveSheet = 'panduan';
+        if (printable) printable.style.display = 'none';
+        if (map) map.classList.add('hidden');
+        if (filter) filter.classList.add('hidden');
+        if (dash) dash.classList.add('hidden');
+        if (formLaporan) formLaporan.style.display = 'none';
+
+        guide.classList.remove('hidden');
+        if (!frame.src) frame.src = PANDUAN_SIVIT26_URL + '#view=FitH&toolbar=1&navpanes=0';
+        guide.scrollIntoView({behavior:'smooth', block:'start'});
+    }
+
+    function tutupPanduanFeed() {
+        const guide = document.getElementById('pdfGuideContainer');
+        const printable = document.getElementById('printableArea');
+        if (guide) {
+            guide.classList.add('hidden');
+            guide.classList.remove('v3-fullscreen');
+        }
+        if (printable) printable.style.display = 'block';
+    }
+
+    function reloadPanduanFeed() {
+        const frame = document.getElementById('pdfGuideFrame');
+        if (!frame) return;
+        frame.src = '';
+        setTimeout(() => {
+            frame.src = PANDUAN_SIVIT26_URL + '#view=FitH&toolbar=1&navpanes=0&t=' + Date.now();
+        }, 50);
+    }
+
+    function togglePanduanFullscreen() {
+        const guide = document.getElementById('pdfGuideContainer');
+        if (!guide) return;
+        guide.classList.toggle('v3-fullscreen');
+        document.body.style.overflow = guide.classList.contains('v3-fullscreen') ? 'hidden' : '';
+    }
+
     async function loadTableData(sheetName, title) {
+        const pdfGuide = document.getElementById('pdfGuideContainer');
+        if (pdfGuide) {
+            pdfGuide.classList.add('hidden');
+            pdfGuide.classList.remove('v3-fullscreen');
+        }
+        document.body.style.overflow = '';
       // Tampilkan loading sebelum proses dimulai
         showLoading('Sedang memuat data...'); 
         
@@ -5278,74 +5748,182 @@ async function handleRegister(e) {
         }
     }
 
+    function normalizeGisStatus(value) {
+        const s = String(value || '').trim().toUpperCase();
+        if (s === 'APPROVED') return 'DISETUJUI';
+        if (s === 'PENDING') return 'DIAJUKAN';
+        if (s === 'REJECTED') return 'DITOLAK';
+        return s || 'LAINNYA';
+    }
+
+    function parseGisDate(value) {
+        if (!value) return 0;
+        const d = new Date(value);
+        return Number.isNaN(d.getTime()) ? 0 : d.getTime();
+    }
+
+    function latestGisRowsPerSchool(list) {
+        const grouped = new Map();
+        (list || []).forEach((item, idx) => {
+            const raw = String(item.lokasi_koordinat || '').trim();
+            if (!raw.includes(',')) return;
+            const parts = raw.split(',');
+            const lat = parseFloat(String(parts[0] || '').trim());
+            const lon = parseFloat(String(parts[1] || '').trim());
+            if (!Number.isFinite(lat) || !Number.isFinite(lon)) return;
+
+            const npsn = String(item.npsn || '').trim() || `TANPA-NPSN-${idx}`;
+            const week = Number(item.minggu_ke || item.minggu || 0) || 0;
+            const stamp = parseGisDate(item.tanggal_lapor || item.tanggal_upload || item.waktu_pengambilan_foto);
+            const score = (week * 10_000_000_000) + stamp;
+            const prev = grouped.get(npsn);
+            if (!prev || score >= prev.__score) {
+                grouped.set(npsn, {...item, __lat:lat, __lon:lon, __score:score});
+            }
+        });
+        return [...grouped.values()];
+    }
+
+    function gisMarkerClass(status) {
+        if (status === 'DISETUJUI') return 'is-approved';
+        if (status === 'DIAJUKAN') return 'is-pending';
+        if (status === 'DITOLAK') return 'is-rejected';
+        return 'is-other';
+    }
+
+    function buildGisIcon(status, progress) {
+        const safe = Math.max(0, Math.min(100, Number(progress) || 0));
+        return L.divIcon({
+            className: 'sivit-marker-wrap',
+            html: `<div class="sivit-map-marker ${gisMarkerClass(status)}"><span>${Math.round(safe)}</span></div>`,
+            iconSize: [36, 36],
+            iconAnchor: [18, 34],
+            popupAnchor: [0, -31]
+        });
+    }
+
+    function updateGisSummary(points) {
+        const all = Array.isArray(points) ? points : [];
+        const approved = all.filter(p => normalizeGisStatus(p.status_verifikasi) === 'DISETUJUI').length;
+        const pending = all.filter(p => normalizeGisStatus(p.status_verifikasi) === 'DIAJUKAN').length;
+        const progressValues = all.map(p => Number(String(p.realisasi_fisik || 0).replace('%',''))).filter(Number.isFinite);
+        const avg = progressValues.length ? progressValues.reduce((a,b)=>a+b,0) / progressValues.length : 0;
+        const set = (id,val) => { const el=document.getElementById(id); if (el) el.textContent=val; };
+        set('gisKpiTotal', all.length.toLocaleString('id-ID'));
+        set('gisKpiApproved', approved.toLocaleString('id-ID'));
+        set('gisKpiPending', pending.toLocaleString('id-ID'));
+        set('gisKpiProgress', avg.toFixed(1).replace('.',',') + '%');
+    }
+
+    function renderGisMarkers(points, autoFit = false) {
+        if (!leafletMap) return;
+        if (gisMarkersLayer) gisMarkersLayer.clearLayers();
+        else gisMarkersLayer = L.layerGroup().addTo(leafletMap);
+
+        const bounds = [];
+        (points || []).forEach(item => {
+            const status = normalizeGisStatus(item.status_verifikasi);
+            const progress = Math.max(0, Math.min(100, Number(String(item.realisasi_fisik || 0).replace('%','')) || 0));
+            const name = String(item.nama_sekolah || item.nama_pengguna || '').trim() || `NPSN ${item.npsn || '-'}`;
+            const npsn = String(item.npsn || '-').trim();
+            const week = item.minggu_ke || item.minggu || '-';
+            const date = item.tanggal_lapor || item.tanggal_upload || '-';
+            const marker = L.marker([item.__lat, item.__lon], {icon: buildGisIcon(status, progress)});
+            marker.bindTooltip(`${name} • ${progress.toFixed(1)}%`, {direction:'top', offset:[0,-23], opacity:.92});
+            marker.bindPopup(`
+                <div style="min-width:230px">
+                    <div class="v3-popup-title">${escapeHtml(name)}</div>
+                    <div class="v3-popup-sub">NPSN ${escapeHtml(npsn)}</div>
+                    <div class="v3-popup-grid">
+                        <div><span>Minggu</span><strong>${escapeHtml(week)}</strong></div>
+                        <div><span>Status</span><strong>${escapeHtml(status)}</strong></div>
+                        <div><span>Fisik</span><strong>${progress.toFixed(1)}%</strong></div>
+                        <div><span>Tanggal</span><strong>${escapeHtml(date)}</strong></div>
+                    </div>
+                    <div class="v3-progress-track"><div class="v3-progress-fill" style="width:${progress}%"></div></div>
+                </div>
+            `);
+            marker.addTo(gisMarkersLayer);
+            bounds.push([item.__lat, item.__lon]);
+        });
+        const info = document.getElementById('gisFilterInfo');
+        if (info) info.textContent = `${(points || []).length.toLocaleString('id-ID')} titik ditampilkan`;
+        if (bounds.length) {
+            gisLastBounds = L.latLngBounds(bounds);
+            if (autoFit) leafletMap.fitBounds(gisLastBounds.pad(.14), {maxZoom: 15, animate: true});
+        }
+    }
+
+    function setGisStatusFilter(status, button) {
+        gisStatusFilter = status || 'ALL';
+        document.querySelectorAll('[data-gis-filter]').forEach(btn => btn.classList.toggle('active', btn === button));
+        applyGisFilter();
+    }
+
+    function applyGisFilter() {
+        const q = String(document.getElementById('gisSearchInput')?.value || '').trim().toLowerCase();
+        const filtered = gisAllPoints.filter(item => {
+            const status = normalizeGisStatus(item.status_verifikasi);
+            if (gisStatusFilter !== 'ALL' && status !== gisStatusFilter) return false;
+            if (!q) return true;
+            const hay = [item.npsn, item.nama_sekolah, item.nama_pengguna, item.nama_menu, item.paket_id]
+                .map(v => String(v || '').toLowerCase()).join(' ');
+            return hay.includes(q);
+        });
+        renderGisMarkers(filtered, q.length > 0 || gisStatusFilter !== 'ALL');
+    }
+
+    function resetGisView() {
+        const search = document.getElementById('gisSearchInput');
+        if (search) search.value = '';
+        gisStatusFilter = 'ALL';
+        document.querySelectorAll('[data-gis-filter]').forEach(btn => btn.classList.toggle('active', btn.dataset.gisFilter === 'ALL'));
+        renderGisMarkers(gisAllPoints, true);
+    }
+
+    function toggleGisFullscreen() {
+        const wrap = document.getElementById('gisMapContainer');
+        if (!wrap) return;
+        wrap.classList.toggle('v3-map-fullscreen');
+        document.body.style.overflow = wrap.classList.contains('v3-map-fullscreen') ? 'hidden' : '';
+        setTimeout(() => {
+            if (leafletMap) {
+                leafletMap.invalidateSize();
+                if (gisLastBounds?.isValid()) leafletMap.fitBounds(gisLastBounds.pad(.12), {maxZoom:15});
+            }
+        }, 180);
+    }
+
     async function initLeafletMap() {
         if (!leafletMap) {
-            leafletMap = L.map('map').setView([-6.706, 111.345], 11);
-
+            leafletMap = L.map('map', {zoomControl:true, scrollWheelZoom:true}).setView([-6.706, 111.345], 11);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 maxZoom: 19,
                 attribution: '&copy; OpenStreetMap contributors'
             }).addTo(leafletMap);
+            L.control.scale({imperial:false, position:'bottomleft'}).addTo(leafletMap);
+            gisMarkersLayer = L.layerGroup().addTo(leafletMap);
         } else {
             leafletMap.invalidateSize();
         }
 
         try {
-            let res = await fetch(
-                `${WEB_APP_URL}?token=${encodeURIComponent(currentUser?.token || "")}&action=getData&sheet=laporan_progres&role=DINAS&npsn=`
+            const res = await fetch(
+                `${WEB_APP_URL}?token=${encodeURIComponent(currentUser?.token || "")}&action=getData&sheet=laporan_progres&role=${encodeURIComponent(currentUser?.role || 'DINAS')}&npsn=${encodeURIComponent(currentUser?.role === 'DINAS' ? '' : (currentUser?.username || ''))}`
             );
+            const result = await res.json();
+            if (result.status !== 'success') throw new Error(result.message || result.pesan || 'Data GIS gagal dimuat.');
 
-            let result = await res.json();
+            gisAllPoints = latestGisRowsPerSchool(result.data || []);
+            updateGisSummary(gisAllPoints);
+            resetGisView();
 
-            if (result.status === 'success') {
-                let listLaporan = result.data || [];
-
-                leafletMap.eachLayer((layer) => {
-                    if (layer instanceof L.Marker) {
-                        leafletMap.removeLayer(layer);
-                    }
-                });
-
-                let markersCount = 0;
-
-                listLaporan.forEach(item => {
-                    let koordinatStr = item.lokasi_koordinat || '';
-
-                    if (koordinatStr && koordinatStr.includes(',')) {
-                        let parts = koordinatStr.split(',');
-                        let lat = parseFloat(parts[0].trim());
-                        let lon = parseFloat(parts[1].trim());
-
-                        if (!isNaN(lat) && !isNaN(lon)) {
-                            markersCount++;
-
-                            let marker = L.marker([lat, lon]).addTo(leafletMap);
-
-                            marker.bindPopup(`
-                                <div class="text-xs space-y-1">
-                                    <p class="font-bold text-blue-900">
-                                        NPSN: ${item.npsn || '-'}
-                                    </p>
-                                    <p><strong>Minggu:</strong> ${item.minggu_ke || '-'}</p>
-                                    <p><strong>Realisasi Fisik:</strong> ${item.realisasi_fisik || 0}%</p>
-                                    <p><strong>Status:</strong> ${item.status_verifikasi || 'DIAJUKAN'}</p>
-                                </div>
-                            `);
-                        }
-                    }
-                });
-
-                if (markersCount === 0) {
-                    console.warn(
-                        "Belum ada data koordinat GPS valid yang ditemukan."
-                    );
-                }
-            } else {
-                throw new Error(result.message || "Data GIS gagal dimuat.");
+            if (!gisAllPoints.length) {
+                const info = document.getElementById('gisFilterInfo');
+                if (info) info.textContent = 'Belum ada koordinat GPS valid';
             }
-
         } catch (e) {
-            console.error("Gagal memuat titik koordinat peta:", e);
+            console.error('Gagal memuat titik koordinat peta:', e);
             throw e;
         }
     }
@@ -5382,198 +5960,182 @@ async function handleRegister(e) {
         }
     }
         
+    function setKurvaSeriesMode(mode, button) {
+        kurvaSeriesMode = mode || 'all';
+        document.querySelectorAll('[data-kurva-mode]').forEach(btn => btn.classList.toggle('active', btn === button || btn.dataset.kurvaMode === kurvaSeriesMode));
+        renderKurvaSChart();
+    }
+
     function renderKurvaSChart() {
         const canvasEl = document.getElementById('chartKurvaS');
         if (!canvasEl) return;
-
         const ctx = canvasEl.getContext('2d');
         if (chartKurvaSInstance) chartKurvaSInstance.destroy();
 
         const rows = Array.isArray(currentData) ? [...currentData] : [];
         const paketList = Array.isArray(paketPekerjaanList) ? paketPekerjaanList : [];
-
-        // =========================================================
-        // KURVA S — SATU PAKET SEBAGAI SATUAN ANALISIS
-        // Baseline utama: target_kurva_s (%)
-        // Pembanding: realisasi_fisik (%) dan penggunaan_anggaran / PAGU DISETUJUI x 100
-        // =========================================================
         const getPaketId = row => String(row.paket_id || row.id_paket || '').trim();
         const getNamaMenu = row => String(row.nama_menu || row.menu || '').trim();
-
         const uniquePaketIds = [...new Set(rows.map(getPaketId).filter(Boolean))];
-        let selectPaket = document.getElementById('selectKurvaSPaket');
+        const selectPaket = document.getElementById('selectKurvaSPaket');
 
         if (selectPaket) {
             const selectedBefore = String(selectPaket.value || '').trim();
             selectPaket.innerHTML = '<option value="">-- Pilih Paket Pekerjaan --</option>';
-
             uniquePaketIds.forEach(paketId => {
-                const firstRow = rows.find(r => getPaketId(r) === paketId) || {};
-                const refPaket = paketList.find(p => getPaketId(p) === paketId) || {};
-                const namaMenu = getNamaMenu(firstRow) || String(refPaket.nama_menu || '').trim() || 'Pekerjaan';
+                const first = rows.find(r => getPaketId(r) === paketId) || {};
+                const ref = paketList.find(p => getPaketId(p) === paketId) || {};
+                const nama = getNamaMenu(first) || String(ref.nama_menu || '').trim() || 'Pekerjaan';
                 const opt = document.createElement('option');
                 opt.value = paketId;
-                opt.textContent = `${paketId} — ${namaMenu}`;
+                opt.textContent = `${paketId} — ${nama}`;
                 selectPaket.appendChild(opt);
             });
-
-            if (selectedBefore && uniquePaketIds.includes(selectedBefore)) {
-                selectPaket.value = selectedBefore;
-            } else if (uniquePaketIds.length === 1) {
-                selectPaket.value = uniquePaketIds[0];
-            }
+            if (selectedBefore && uniquePaketIds.includes(selectedBefore)) selectPaket.value = selectedBefore;
+            else if (uniquePaketIds.length === 1) selectPaket.value = uniquePaketIds[0];
         }
 
-        const selectedPaketId = String(selectPaket ? selectPaket.value : '').trim();
-        const paketRows = selectedPaketId
-            ? rows.filter(r => getPaketId(r) === selectedPaketId)
-            : rows;
-
-        const firstRow = paketRows.length > 0 ? paketRows[0] : (rows[0] || {});
+        const selectedPaketId = String(selectPaket?.value || '').trim();
+        const paketRows = selectedPaketId ? rows.filter(r => getPaketId(r) === selectedPaketId) : rows;
+        const firstRow = paketRows[0] || rows[0] || {};
         const currentNpsn = String(firstRow.npsn || currentUser?.username || '-').trim();
         const currentMenu = getNamaMenu(firstRow) || 'Pekerjaan Revitalisasi';
 
         let namaSekolah = 'Sekolah Tidak Ditemukan';
         if (Array.isArray(usersList)) {
-            const foundSekolah = usersList.find(s =>
-                String(s.username || s.npsn || '').trim() === currentNpsn
-            );
-            if (foundSekolah) {
-                namaSekolah = foundSekolah.nama_pengguna || foundSekolah.nama_sekolah || namaSekolah;
-            }
+            const found = usersList.find(s => String(s.username || s.npsn || '').trim() === currentNpsn);
+            if (found) namaSekolah = found.nama_pengguna || found.nama_sekolah || namaSekolah;
         }
-        if (currentUser && currentUser.sekolah && currentUser.sekolah.nama_sekolah) {
-            namaSekolah = currentUser.sekolah.nama_sekolah;
-        } else if (firstRow.nama_sekolah) {
-            namaSekolah = firstRow.nama_sekolah;
-        }
+        if (currentUser?.sekolah?.nama_sekolah) namaSekolah = currentUser.sekolah.nama_sekolah;
+        else if (firstRow.nama_sekolah) namaSekolah = firstRow.nama_sekolah;
 
         const infoEl = document.getElementById('infoSekolahMenu');
-        if (infoEl) {
-            infoEl.innerHTML = `<strong>Nama Sekolah:</strong> ${namaSekolah} (NPSN: ${currentNpsn}) &bull; <strong>Menu:</strong> ${currentMenu}`;
-        }
+        if (infoEl) infoEl.innerHTML = `<strong>${escapeHtml(namaSekolah)}</strong> &nbsp;•&nbsp; NPSN ${escapeHtml(currentNpsn)} &nbsp;•&nbsp; ${escapeHtml(currentMenu)}`;
 
-        // Pagu hanya boleh berasal dari paket yang sudah DISETUJUI DINAS.
-        const matchedPaket = paketList.find(p =>
-            getPaketId(p) === selectedPaketId &&
-            String(p.status_pagu || '').trim().toUpperCase() === 'DISETUJUI'
-        );
-        const paguDisetujui = matchedPaket
-            ? (Number(matchedPaket.pagu) || Number(matchedPaket.pagu_anggaran) || 0)
-            : 0;
+        const matchedPaket = paketList.find(p => getPaketId(p) === selectedPaketId && String(p.status_pagu || '').trim().toUpperCase() === 'DISETUJUI');
+        const paguDisetujui = matchedPaket ? (Number(matchedPaket.pagu) || Number(matchedPaket.pagu_anggaran) || 0) : 0;
 
-        const sortedRows = paketRows.sort((a, b) => {
-            const ma = Number(a.minggu_ke || a.minggu || 0);
-            const mb = Number(b.minggu_ke || b.minggu || 0);
-            if (Number.isFinite(ma) && Number.isFinite(mb) && ma !== mb) return ma - mb;
+        const sortedRows = paketRows.sort((a,b) => {
+            const ma=Number(a.minggu_ke || a.minggu || 0), mb=Number(b.minggu_ke || b.minggu || 0);
+            if (Number.isFinite(ma) && Number.isFinite(mb) && ma !== mb) return ma-mb;
             return String(a.tanggal_lapor || '').localeCompare(String(b.tanggal_lapor || ''));
         });
-
         const pct = value => {
-            const n = Number(String(value ?? '').replace('%', '').trim());
-            return Number.isFinite(n) ? Math.max(0, Math.min(100, n)) : 0;
+            const n = Number(String(value ?? '').replace('%','').trim());
+            return Number.isFinite(n) ? Math.max(0,Math.min(100,n)) : 0;
         };
-
         const targetData = sortedRows.map(d => pct(d.target_kurva_s));
         const realisasiData = sortedRows.map(d => pct(d.realisasi_fisik));
         const anggaranPersenData = sortedRows.map(d => {
-            const penggunaan = Number(String(d.penggunaan_anggaran ?? 0).replace(/[^0-9.-]/g, '')) || 0;
-            if (paguDisetujui <= 0) return null;
-            return Number(((penggunaan / paguDisetujui) * 100).toFixed(2));
+            const penggunaan = Number(String(d.penggunaan_anggaran ?? 0).replace(/[^0-9.-]/g,'')) || 0;
+            return paguDisetujui > 0 ? Number(((penggunaan/paguDisetujui)*100).toFixed(2)) : null;
         });
+        const labels = sortedRows.map(d => (d.minggu_ke || d.minggu) ? `Minggu ${d.minggu_ke || d.minggu}` : (d.tanggal_lapor || 'Periode'));
 
-        const labels = sortedRows.map(d => {
-            const minggu = d.minggu_ke || d.minggu;
-            return minggu ? `Minggu ${minggu}` : (d.tanggal_lapor || 'Periode');
-        });
-
-        // Ringkasan kondisi terakhir terhadap baseline target.
-        const latestTarget = targetData.length ? targetData[targetData.length - 1] : 0;
-        const latestFisik = realisasiData.length ? realisasiData[realisasiData.length - 1] : 0;
-        const latestAnggaran = anggaranPersenData.length ? anggaranPersenData[anggaranPersenData.length - 1] : null;
-        const devFisik = Number((latestFisik - latestTarget).toFixed(2));
-        const devAnggaran = latestAnggaran === null ? null : Number((latestAnggaran - latestTarget).toFixed(2));
+        const latestTarget = targetData.at(-1) ?? 0;
+        const latestFisik = realisasiData.at(-1) ?? 0;
+        const latestAnggaran = anggaranPersenData.length ? anggaranPersenData.at(-1) : null;
+        const devFisik = Number((latestFisik-latestTarget).toFixed(2));
+        const devAnggaran = latestAnggaran === null ? null : Number((latestAnggaran-latestTarget).toFixed(2));
+        const devText = v => v === null ? '-' : `${v > 0 ? '+' : ''}${v.toFixed(2)}%`;
 
         const kpiEl = document.getElementById('kurvaSKpi');
-        if (kpiEl) {
-            const devText = v => v === null ? '-' : `${v > 0 ? '+' : ''}${v.toFixed(2)}%`;
-            kpiEl.innerHTML = `
-                <div><span>Target terakhir</span><strong>${latestTarget.toFixed(2)}%</strong></div>
-                <div><span>Realisasi fisik</span><strong>${latestFisik.toFixed(2)}%</strong></div>
-                <div><span>Realisasi anggaran</span><strong>${latestAnggaran === null ? '-' : latestAnggaran.toFixed(2) + '%'}</strong></div>
-                <div><span>Deviasi fisik</span><strong>${devText(devFisik)}</strong></div>
-                <div><span>Deviasi anggaran</span><strong>${devText(devAnggaran)}</strong></div>
-            `;
-        }
+        if (kpiEl) kpiEl.innerHTML = `
+            <div><span>Target terakhir</span><strong>${latestTarget.toFixed(2)}%</strong></div>
+            <div><span>Realisasi fisik</span><strong>${latestFisik.toFixed(2)}%</strong></div>
+            <div><span>Realisasi anggaran</span><strong>${latestAnggaran === null ? '-' : latestAnggaran.toFixed(2)+'%'}</strong></div>
+            <div><span>Deviasi fisik</span><strong>${devText(devFisik)}</strong></div>
+            <div><span>Deviasi anggaran</span><strong>${devText(devAnggaran)}</strong></div>`;
+
+        const insightEl = document.getElementById('kurvaSInsight');
+        if (insightEl && sortedRows.length && selectedPaketId) {
+            const behind = devFisik < 0;
+            const trend = behind
+                ? `Realisasi fisik tertinggal ${Math.abs(devFisik).toFixed(2)} poin dari target pada periode terakhir.`
+                : devFisik > 0
+                    ? `Realisasi fisik berada ${devFisik.toFixed(2)} poin di atas target pada periode terakhir.`
+                    : 'Realisasi fisik tepat berada pada target periode terakhir.';
+            const budgetText = latestAnggaran === null ? ' Data persentase anggaran belum tersedia karena PAGU yang disetujui belum terbaca.' : ` Serapan anggaran terakhir ${latestAnggaran.toFixed(2)}%.`;
+            insightEl.textContent = trend + budgetText;
+            insightEl.dataset.tone = behind ? 'warning' : 'good';
+            insightEl.classList.remove('hidden');
+        } else if (insightEl) insightEl.classList.add('hidden');
 
         const warningEl = document.getElementById('kurvaSWarning');
         if (warningEl) {
             if (!selectedPaketId) {
-                warningEl.textContent = uniquePaketIds.length > 1
-                    ? 'Pilih satu paket pekerjaan agar Kurva S tidak mencampur beberapa paket.'
-                    : '';
+                warningEl.textContent = uniquePaketIds.length > 1 ? 'Pilih satu paket pekerjaan agar Kurva S tidak mencampur beberapa paket.' : '';
                 warningEl.classList.toggle('hidden', uniquePaketIds.length <= 1);
             } else if (!matchedPaket || paguDisetujui <= 0) {
                 warningEl.textContent = 'Pagu yang DISETUJUI DINAS untuk paket ini belum tersedia. Persentase anggaran tidak dapat dihitung.';
                 warningEl.classList.remove('hidden');
-            } else {
-                warningEl.classList.add('hidden');
-            }
+            } else warningEl.classList.add('hidden');
         }
 
         if (!selectedPaketId && uniquePaketIds.length > 1) return;
         if (!sortedRows.length) return;
 
-        chartKurvaSInstance = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels,
-                datasets: [
-                    {
-                        label: 'Target Kurva S (%)',
-                        data: targetData,
-                        borderColor: 'rgb(59, 130, 246)',
-                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                        tension: 0.3,
-                        fill: false,
-                        spanGaps: false
-                    },
-                    {
-                        label: 'Realisasi Fisik (%)',
-                        data: realisasiData,
-                        borderColor: 'rgb(245, 158, 11)',
-                        backgroundColor: 'rgba(245, 158, 11, 0.1)',
-                        tension: 0.3,
-                        fill: false
-                    },
-                    {
-                        label: 'Realisasi Anggaran (%)',
-                        data: anggaranPersenData,
-                        borderColor: 'rgb(16, 185, 129)',
-                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                        tension: 0.3,
-                        fill: false,
-                        spanGaps: false
-                    }
-                ]
+        const gradientBlue = ctx.createLinearGradient(0,0,0,330);
+        gradientBlue.addColorStop(0,'rgba(0,113,227,.18)');
+        gradientBlue.addColorStop(1,'rgba(0,113,227,0)');
+        const gradientGreen = ctx.createLinearGradient(0,0,0,330);
+        gradientGreen.addColorStop(0,'rgba(34,160,107,.14)');
+        gradientGreen.addColorStop(1,'rgba(34,160,107,0)');
+
+        const datasets = [
+            {
+                label:'Target Kurva S (%)', data:targetData, borderColor:'#0071e3', backgroundColor:gradientBlue,
+                borderWidth:2.5, tension:.35, pointRadius:3, pointHoverRadius:6, pointBorderWidth:2,
+                pointBackgroundColor:'#fff', pointBorderColor:'#0071e3', fill:true,
+                hidden: kurvaSeriesMode === 'budget'
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                interaction: { mode: 'index', intersect: false },
-                plugins: {
-                    tooltip: {
-                        callbacks: {
-                            label: context => `${context.dataset.label}: ${context.parsed.y === null ? 'Tidak tersedia' : context.parsed.y.toFixed(2) + '%'}`
+            {
+                label:'Realisasi Fisik (%)', data:realisasiData, borderColor:'#ff9f0a', backgroundColor:'rgba(255,159,10,.08)',
+                borderWidth:3, tension:.35, pointRadius:3.5, pointHoverRadius:6.5, pointBorderWidth:2,
+                pointBackgroundColor:'#fff', pointBorderColor:'#ff9f0a', fill:false,
+                hidden: kurvaSeriesMode === 'budget'
+            },
+            {
+                label:'Realisasi Anggaran (%)', data:anggaranPersenData, borderColor:'#22a06b', backgroundColor:gradientGreen,
+                borderWidth:2.5, tension:.35, pointRadius:3, pointHoverRadius:6, pointBorderWidth:2,
+                pointBackgroundColor:'#fff', pointBorderColor:'#22a06b', fill: kurvaSeriesMode === 'budget', spanGaps:false,
+                hidden: kurvaSeriesMode === 'physical'
+            }
+        ];
+
+        chartKurvaSInstance = new Chart(ctx, {
+            type:'line',
+            data:{labels,datasets},
+            options:{
+                responsive:true,
+                maintainAspectRatio:false,
+                animation:{duration:650,easing:'easeOutQuart'},
+                interaction:{mode:'index',intersect:false},
+                layout:{padding:{top:8,right:8,bottom:4,left:2}},
+                plugins:{
+                    legend:{
+                        position:'bottom',
+                        labels:{usePointStyle:true,pointStyle:'circle',boxWidth:8,boxHeight:8,padding:18,color:'#6e6e73',font:{size:11,weight:'600'}}
+                    },
+                    tooltip:{
+                        backgroundColor:'rgba(29,29,31,.94)', titleColor:'#fff', bodyColor:'#f5f5f7',
+                        padding:12, cornerRadius:12, displayColors:true, boxPadding:5,
+                        callbacks:{
+                            title: items => items[0]?.label || '',
+                            label: c => `${c.dataset.label}: ${c.parsed.y === null ? 'Tidak tersedia' : c.parsed.y.toFixed(2)+'%'}`,
+                            afterBody: items => {
+                                const index = items[0]?.dataIndex;
+                                if (index === undefined) return '';
+                                const t = targetData[index] ?? 0, f = realisasiData[index] ?? 0;
+                                const d = f - t;
+                                return `Deviasi fisik: ${d>0?'+':''}${d.toFixed(2)} poin`;
+                            }
                         }
                     }
                 },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 100,
-                        ticks: { callback: value => value + '%' }
-                    }
+                scales:{
+                    x:{grid:{display:false},ticks:{color:'#6e6e73',font:{size:10,weight:'600'},maxRotation:0,autoSkip:true,maxTicksLimit:12}},
+                    y:{beginAtZero:true,max:100,border:{display:false},grid:{color:'rgba(0,0,0,.055)'},ticks:{stepSize:20,color:'#8e8e93',font:{size:10},callback:v=>v+'%'}}
                 }
             }
         });
