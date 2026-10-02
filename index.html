@@ -5897,10 +5897,60 @@ async function handleRegister(e) {
     async function initLeafletMap() {
         if (!leafletMap) {
             leafletMap = L.map('map', {zoomControl:true, scrollWheelZoom:true}).setView([-6.706, 111.345], 11);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                maxZoom: 19,
-                attribution: '&copy; OpenStreetMap contributors'
+
+            // GIS V3.1: jangan gunakan tile.openstreetmap.org langsung sebagai basemap produksi.
+            // Gunakan beberapa layanan basemap sehingga pengguna dapat berpindah layer
+            // dan peta tetap dapat digunakan bila salah satu penyedia mengalami gangguan.
+            const esriAttr = 'Tiles &copy; Esri';
+
+            const basemapLight = L.tileLayer(
+                'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',
+                { maxZoom: 16, attribution: esriAttr }
+            );
+
+            const basemapStreet = L.tileLayer(
+                'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
+                { maxZoom: 19, attribution: esriAttr }
+            );
+
+            const basemapSatellite = L.tileLayer(
+                'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+                { maxZoom: 19, attribution: esriAttr }
+            );
+
+            const basemapTopo = L.tileLayer(
+                'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
+                { maxZoom: 19, attribution: esriAttr }
+            );
+
+            basemapLight.addTo(leafletMap);
+
+            const baseMaps = {
+                'Light': basemapLight,
+                'Street': basemapStreet,
+                'Satellite': basemapSatellite,
+                'Topographic': basemapTopo
+            };
+
+            L.control.layers(baseMaps, null, {
+                position: 'topright',
+                collapsed: true
             }).addTo(leafletMap);
+
+            // Fallback otomatis apabila tile default gagal dimuat.
+            let fallbackTriggered = false;
+            basemapLight.on('tileerror', function() {
+                if (fallbackTriggered) return;
+                fallbackTriggered = true;
+                try {
+                    if (leafletMap.hasLayer(basemapLight)) leafletMap.removeLayer(basemapLight);
+                    if (!leafletMap.hasLayer(basemapStreet)) basemapStreet.addTo(leafletMap);
+                    console.warn('Basemap Light gagal dimuat; beralih otomatis ke Street.');
+                } catch (fallbackErr) {
+                    console.warn('Gagal mengaktifkan fallback basemap:', fallbackErr);
+                }
+            });
+
             L.control.scale({imperial:false, position:'bottomleft'}).addTo(leafletMap);
             gisMarkersLayer = L.layerGroup().addTo(leafletMap);
         } else {
